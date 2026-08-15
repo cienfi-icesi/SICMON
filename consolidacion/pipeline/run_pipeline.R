@@ -10,11 +10,14 @@
 #   1. lockfile: si hay una corrida en curso (< LOCK_MAX_MIN minutos) se omite
 #   2. abre la corrida en processing_runs
 #   3. ejecuta 00_conectar_drive -> 00_conectar_hoja -> 01_ingest -> 02_dedup ->
-#      03_matching -> 04_exportar_consulta -> 05_exportar_tablero, cada uno en
-#      su propia sesion de R.
+#      03_matching -> 04_exportar_consulta -> 05_exportar_tablero ->
+#      06_publicar_hoja, cada uno en su propia sesion de R.
 #      Los dos pasos 00 son los canales de llegada de datos y NINGUNO detiene
 #      la corrida: si Drive o la hoja del Apps Script no responden, o falta su
 #      token, se saltan y se sigue con lo que ya haya en CARPETA_INGESTA.
+#      El 06 es el canal de SALIDA —devuelve el consolidado a la hoja, que es
+#      de donde lo lee el aplicativo de consulta— y tampoco tumba la corrida:
+#      si Google no responde, la base local queda igual de valida.
 #      Si cualquiera de los demas pasos falla, la corrida queda en 'error'.
 #   4. cierra la corrida con el resumen
 ##============================================================================##
@@ -57,7 +60,7 @@ log_msg(sprintf("=== corrida %d iniciada ===", run_id))
 
 pasos  <- c("pipeline/00_conectar_drive.R", "pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R",
             "pipeline/02_dedup.R", "pipeline/03_matching.R", "pipeline/04_exportar_consulta.R",
-            "pipeline/05_exportar_tablero.R")
+            "pipeline/05_exportar_tablero.R", "pipeline/06_publicar_hoja.R")
 estado <- "ok"
 
 ## ruta completa al Rscript de ESTA instalacion de R, no "Rscript" a secas:

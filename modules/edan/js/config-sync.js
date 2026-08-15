@@ -34,7 +34,7 @@
 
     // Dirección de la implementación del Apps Script. Termina en /exec
     // Si algún día se crea una implementación nueva, se cambia aquí.
-    url: 'https://script.google.com/macros/s/AKfycbwXjt0oChd7-8YcTL3Uao6P0t5fZPwVumVijddwpYyFE_5Bt88wF4mtJ4jFzm4050zX_Q/exec',
+    url: 'https://script.google.com/macros/s/AKfycbwHuGE5olZBzOskJoQh0bBo0YqcVSvEiIA0Vhbw1UrW_2bFJqEruqgAUsJG8patB5etxA/exec',
 
     // La misma cadena que está en la propiedad TOKEN del script de Google.
     // Si se cambia aquí, hay que cambiarla también allá, y al revés.

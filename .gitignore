@@ -1,0 +1,51 @@
+# ============================================================================
+# SICMON — qué NO entra al repositorio
+#
+# Este repositorio es PÚBLICO. Todo lo que se liste aquí es material que, si
+# se sube, queda visible para cualquiera en internet y sigue visible en el
+# historial aunque después se borre del último commit.
+#
+# La regla de fondo: aquí va CÓDIGO, no datos. Los datos personales viven en
+# la hoja de Google y el sitio se los pide por fetch al Apps Script; el
+# repositorio no necesita ni una cédula para funcionar.
+# ============================================================================
+
+# --- Credenciales -----------------------------------------------------------
+# El token de extracción y el token de Google Drive. Con el primero cualquiera
+# se baja las tablas completas del Apps Script.
+consolidacion/.secrets/
+*.secret
+.env
+
+# --- Bases de datos ---------------------------------------------------------
+# Nombres, cédulas, direcciones, coordenadas y estado de salud.
+consolidacion/data/db/
+*.sqlite
+*.sqlite3
+
+# --- Datos de entrada y de salida -------------------------------------------
+# entrada/  lo que baja de Drive y de la hoja
+# salida/   la copia local del consolidado (datos.js y el Excel del equipo)
+# pruebas/  las bases sintéticas de los generadores
+consolidacion/data/entrada/
+consolidacion/data/salida/
+consolidacion/data/pruebas/
+
+# --- Datos que antes alimentaban el sitio -----------------------------------
+# Hasta agosto de 2026 el pipeline escribía estos archivos dentro del sitio y
+# había que hacer commit para actualizar la consulta. Eso publicaba la base
+# entera. Hoy no los escribe nadie, pero quedan listados para que un script
+# viejo o una copia manual no los devuelvan sin que nadie se dé cuenta.
+modules/consulta/js/datos.js
+modules/consulta/descargas/
+modules/tablero/js/datos_tablero.js
+
+# --- Registros de operación -------------------------------------------------
+consolidacion/logs/
+*.log
+
+# --- Sistema ----------------------------------------------------------------
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/

@@ -187,6 +187,31 @@ function verificarTokenLectura_(payload) {
  * Este token vive ÚNICAMENTE en la máquina donde corre el pipeline
  * (consolidacion/.secrets/, fuera de git). No va en config-sync.js.
  */
+/**
+ * Candado de la CONSULTA COMPLETA (las tablas consolidadas del aplicativo).
+ *
+ * Es igual a verificarTokenLectura_ salvo en una cosa, que es justamente la
+ * importante: FALLA CERRADO. Si la propiedad TOKEN_LECTURA no existe, esta
+ * puerta no se abre.
+ *
+ * POR QUÉ NO SIRVE AQUÍ EL COMPORTAMIENTO DE verificarTokenLectura_
+ * Aquella deja pasar cuando la propiedad no está, y eso era razonable mientras
+ * el sitio no era público y lo que devolvía era un resumen de avance. Esta
+ * devuelve la base entera —cédulas, direcciones, estado de salud—, y el token
+ * general no la protege: viaja en config-consulta.js, que cualquiera lee con
+ * «ver código fuente».
+ *
+ * Se comprobó en la práctica: con la propiedad sin crear, una contraseña
+ * inventada abría las cuatro bases completas.
+ */
+function verificarTokenConsulta_(payload) {
+  var esperado = propiedad_('TOKEN_LECTURA', false);
+  if (!esperado) throw new Error('consulta_no_habilitada');
+  if (String(payload.token_lectura || '') !== String(esperado)) {
+    throw new Error('no_autorizado');
+  }
+}
+
 function verificarTokenExportacion_(payload) {
   var esperado = propiedad_('TOKEN_EXPORTACION', false);
   if (!esperado) throw new Error('exportacion_no_habilitada');
@@ -208,7 +233,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.6.0',
+    version: '1.6.1',
     hora_servidor: ahora_()
   });
 }
@@ -228,7 +253,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.0', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.1', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
@@ -263,7 +288,7 @@ function doPost(e) {
       return salida_(consultarCedula_(libro_(), payload));
     }
     if (payload.accion === 'consulta_completa') {
-      verificarTokenLectura_(payload);
+      verificarTokenConsulta_(payload);   // falla cerrado, NO verificarTokenLectura_
       return salida_(consultaCompleta_(libro_(), payload));
     }
     if (payload.accion === 'publicar_consolidado') {
@@ -312,7 +337,8 @@ function doPost(e) {
     // Ni un token equivocado ni una propiedad sin crear se arreglan
     // reintentando; un fallo pasajero sí.
     var esConfiguracion = String(error.message).indexOf('no_autorizado') !== -1 ||
-                          String(error.message).indexOf('exportacion_no_habilitada') !== -1;
+                          String(error.message).indexOf('exportacion_no_habilitada') !== -1 ||
+                          String(error.message).indexOf('consulta_no_habilitada') !== -1;
     return salida_({
       ok: false,
       error: error.message,

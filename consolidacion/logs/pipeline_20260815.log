@@ -512,3 +512,89 @@
 [2026-08-15 13:14:30] dedup afectaciones: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
 [2026-08-15 13:14:31] matching: matched_hogar=1 | 0 cambio(s) en esta corrida 
 [2026-08-15 13:14:31] cruce direccion: 0 pareja(s) sobre 0 afectacion(es) | 0 nueva(s), 0 retirada(s) 
+[2026-08-15 13:20:20] === corrida 25 iniciada === 
+[2026-08-15 13:20:20] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 13:20:22] publicacion: receptor version 1.5.0 
+[2026-08-15 13:20:22] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 13:20:22 
+[2026-08-15 13:20:23] publicacion: el receptor respondio 'accion_no_reconocida' (accion publicar_consolidado, tabla c_personas) — se omite este paso; la base local queda igual de valida 
+[2026-08-15 13:20:23] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 13:20:25] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 13:20:26] hoja: afectaciones viene vacia; se retira afectaciones_hoja.csv 
+[2026-08-15 13:20:27] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 13:20:27] hoja: 0 de 3 tabla(s) descargada(s) 
+[2026-08-15 13:20:28] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 13:20:28] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:20:28] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 13:20:28] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:20:28] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:20:28] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:20:28] dedup afectaciones: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:20:29] matching: matched_hogar=1 | 0 cambio(s) en esta corrida 
+[2026-08-15 13:20:29] cruce direccion: 0 pareja(s) sobre 0 afectacion(es) | 0 nueva(s), 0 retirada(s) 
+[2026-08-15 13:20:30] consulta: 1 personas, 1 hogares, 1 edificaciones, 1 afectaciones, 0 cruce(s), 3 fichas -> ../modules/consulta 
+[2026-08-15 13:20:30] tablero: 1 personas, 1 viviendas, 0 casos por revisar 
+[2026-08-15 13:20:32] publicacion: receptor version 1.5.0 
+[2026-08-15 13:20:33] publicacion: el receptor respondio 'accion_no_reconocida' (accion publicar_consolidado, tabla c_personas) — se omite este paso; la base local queda igual de valida 
+[2026-08-15 13:20:33] === corrida 25 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 13:25:14] === corrida 26 iniciada === 
+[2026-08-15 13:25:15] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 13:25:17] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 13:25:16 
+[2026-08-15 13:25:18] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 13:25:19] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 13:25:20] hoja: afectaciones viene vacia; se retira afectaciones_hoja.csv 
+[2026-08-15 13:25:22] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 13:25:22] hoja: 0 de 3 tabla(s) descargada(s) 
+[2026-08-15 13:25:22] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 13:25:22] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:25:23] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 13:25:23] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:25:23] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:25:23] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:25:23] dedup afectaciones: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:25:24] matching: matched_hogar=1 | 0 cambio(s) en esta corrida 
+[2026-08-15 13:25:24] cruce direccion: 0 pareja(s) sobre 0 afectacion(es) | 0 nueva(s), 0 retirada(s) 
+[2026-08-15 13:25:24] consulta: 1 personas, 1 hogares, 1 edificaciones, 1 afectaciones, 0 cruce(s), 3 fichas -> data/salida 
+[2026-08-15 13:25:25] tablero: 1 personas, 1 viviendas, 0 casos por revisar 
+[2026-08-15 13:25:26] publicacion: receptor version 1.5.0 
+[2026-08-15 13:25:27] publicacion: el receptor respondio 'accion_no_reconocida' (accion publicar_consolidado, tabla c_personas) — se omite este paso; la base local queda igual de valida 
+[2026-08-15 13:25:27] === corrida 26 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 13:35:32] publicacion: receptor version 1.6.0 
+[2026-08-15 13:35:35] publicacion: c_personas -> 1 filas, 29 columnas (699 por pagina) 
+[2026-08-15 13:35:38] publicacion: c_hogares -> 1 filas, 14 columnas (1456 por pagina) 
+[2026-08-15 13:35:40] publicacion: c_edificaciones -> 1 filas, 21 columnas (1045 por pagina) 
+[2026-08-15 13:35:43] publicacion: c_afectaciones -> 1 filas, 30 columnas (612 por pagina) 
+[2026-08-15 13:35:45] publicacion: c_fichas -> 3 filas, 2 columnas (127 por pagina) 
+[2026-08-15 13:35:47] publicacion: c_diccionario -> 128 filas, 6 columnas (3703 por pagina) 
+[2026-08-15 13:35:50] publicacion: c_revisar vacia (0 filas) 
+[2026-08-15 13:35:51] publicacion: c_duplicados vacia (0 filas) 
+[2026-08-15 13:35:53] publicacion: consolidado en la hoja, marcado 2026-08-15T13:35:51 
+[2026-08-15 13:40:16] === corrida 27 iniciada === 
+[2026-08-15 13:40:16] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 13:40:18] hoja: receptor version 1.6.0, hora del servidor 2026-08-15 13:40:18 
+[2026-08-15 13:40:20] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 13:40:21] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 13:40:23] hoja: afectaciones viene vacia; se retira afectaciones_hoja.csv 
+[2026-08-15 13:40:24] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 13:40:24] hoja: 0 de 3 tabla(s) descargada(s) 
+[2026-08-15 13:40:24] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 13:40:24] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:40:25] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 13:40:25] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:40:25] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:40:25] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:40:25] dedup afectaciones: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:40:26] matching: matched_hogar=1 | 0 cambio(s) en esta corrida 
+[2026-08-15 13:40:26] cruce direccion: 0 pareja(s) sobre 0 afectacion(es) | 0 nueva(s), 0 retirada(s) 
+[2026-08-15 13:40:27] consulta: 1 personas, 1 hogares, 1 edificaciones, 1 afectaciones, 0 cruce(s), 3 fichas -> data/salida 
+[2026-08-15 13:40:27] tablero: 1 personas, 1 viviendas, 0 casos por revisar 
+[2026-08-15 13:40:29] publicacion: receptor version 1.6.0 
+[2026-08-15 13:40:31] publicacion: c_personas -> 1 filas, 29 columnas (699 por pagina) 
+[2026-08-15 13:40:33] publicacion: c_hogares -> 1 filas, 14 columnas (1456 por pagina) 
+[2026-08-15 13:40:35] publicacion: c_edificaciones -> 1 filas, 21 columnas (1045 por pagina) 
+[2026-08-15 13:40:38] publicacion: c_afectaciones -> 1 filas, 30 columnas (612 por pagina) 
+[2026-08-15 13:40:40] publicacion: c_fichas -> 3 filas, 2 columnas (127 por pagina) 
+[2026-08-15 13:40:42] publicacion: c_diccionario -> 128 filas, 6 columnas (3703 por pagina) 
+[2026-08-15 13:40:43] publicacion: c_revisar vacia (0 filas) 
+[2026-08-15 13:40:45] publicacion: c_duplicados vacia (0 filas) 
+[2026-08-15 13:40:46] publicacion: consolidado en la hoja, marcado 2026-08-15T13:40:45 
+[2026-08-15 13:40:47] === corrida 27 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 

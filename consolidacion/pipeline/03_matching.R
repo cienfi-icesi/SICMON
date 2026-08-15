@@ -209,9 +209,9 @@ for (j in seq_len(nrow(retiradas))) {
 
 ## n_viviendas de las parejas viejas cambia cuando entra otra edificacion en la
 ## misma direccion, asi que se recalcula sobre la tabla ya actualizada
-dbExecute(con, "UPDATE cruce_direccion
-                SET n_viviendas = (SELECT COUNT(*) FROM cruce_direccion c
-                                   WHERE c.id_encuesta_afectacion = cruce_direccion.id_encuesta_afectacion)")
+invisible(dbExecute(con, "UPDATE cruce_direccion
+                          SET n_viviendas = (SELECT COUNT(*) FROM cruce_direccion c
+                                             WHERE c.id_encuesta_afectacion = cruce_direccion.id_encuesta_afectacion)"))
 
 log_msg(sprintf("cruce direccion: %d pareja(s) sobre %d afectacion(es) | %d nueva(s), %d retirada(s)",
                 nrow(cruce), n_distinct(cruce$id_encuesta_afectacion),

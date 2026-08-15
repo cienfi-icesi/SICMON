@@ -1,0 +1,246 @@
+##============================================================================##
+# 06_publicar_hoja.R  —  Publicacion del resultado consolidado en la hoja
+#------------------------------------------------------------------------------#
+# Ultimo paso de cada corrida. Sube la base ya consolidada a las pestañas c_* de
+# la misma hoja de Google de la que 00_conectar_hoja.R baja lo crudo, usando la
+# accion "publicar_consolidado" del Apps Script.
+#
+# POR QUE EXISTE ESTE PASO
+# Antes 04_exportar_consulta.R escribia js/datos.js DENTRO del repositorio y el
+# aplicativo lo leia como archivo estatico. Eso tenia dos problemas: metia
+# cedulas, direcciones y estado de salud en un repositorio publico, y obligaba a
+# hacer commit para que el sitio publicado se actualizara. Como nadie se acuerda
+# de hacer un commit cada diez minutos, la consulta vivia desactualizada.
+#
+# Ahora el dato se queda en la hoja y el sitio lo pide por fetch: el repositorio
+# no lleva ni un registro personal y la actualizacion no depende de git.
+#
+# Pestañas que escribe (grano de cada una entre parentesis):
+#   c_personas       (persona, con su hogar y su edificacion)
+#   c_hogares        (formulario EDAN de personas/familia)
+#   c_edificaciones  (formulario de vivienda)
+#   c_afectaciones   (reporte por evento; entidad independiente)
+#   c_fichas         (id_registro + respuestas completas en JSON)
+#   c_diccionario    (libro de codigos: variable -> pregunta y seccion)
+#   c_revisar        (hogares sin edificacion o con asociacion ambigua)
+#   c_duplicados     (bitacora de duplicados marcados)
+#   c_meta           (momento de esta publicacion)
+#
+# Como los dos pasos 00, este NUNCA tumba la corrida: si falta el token o Google
+# no responde, se avisa en el log y la base local queda igual de valida.
+##============================================================================##
+
+## configuracion inicial
+rm(list = ls())
+source("config/packages.R")
+source("config/parameters.R")   # RUTA_DB, URL_HOJA, TOKEN_HOJA, RUTA_TOKEN_HOJA, BYTES_POR_PAGINA_PUBLICAR
+source("config/functions.R")    # conectar_db, log_msg
+
+if (!PUBLICAR_HOJA) {
+  log_msg("publicacion: desactivada (PUBLICAR_HOJA = FALSE); se omite")
+  quit(status = 0)
+}
+
+resultado <- tryCatch({
+
+  if (!file.exists(RUTA_TOKEN_HOJA)) {
+    stop(sprintf(paste("no hay token de extraccion en %s.",
+                       "Cree el archivo con la misma cadena de la propiedad TOKEN_EXPORTACION",
+                       "del script de Google (vea el README)."),
+                 RUTA_TOKEN_HOJA))
+  }
+  token_extraccion <- trimws(readLines(RUTA_TOKEN_HOJA, warn = F)[1])
+
+  con <- conectar_db()
+
+  ##============================================================================##
+  ##=== 1. Las mismas consultas que alimentaban datos.js                     ===##
+  ##============================================================================##
+
+  personas <- dbGetQuery(con, "
+    SELECT p.documento_norm                    AS documento,
+           p.nombres || ' ' || p.apellidos     AS nombre,
+           p.edad, p.genero, p.parentesco, p.etnia,
+           p.estado_salud, p.afiliacion_salud,
+           p.estado_inmueble, p.propiedad_inmueble, p.ubicacion_inmueble,
+           p.ahe_alimentaria, p.ahe_no_alimentaria,
+           p.mat_rehab_vivienda, p.sub_arriendo,
+           p.id_persona, p.id_encuesta, p.id_hogar,
+           p.duplicate                         AS persona_duplicada,
+           f.match_status, f.match_confidence, f.secretaria,
+           v.direccion_completa, v.cumple_requisitos, v.requiere_evacuacion,
+           v.sistema_constructivo,
+           v.id_encuesta                       AS id_encuesta_vivienda,
+           p.archivo_origen, p.last_update
+    FROM personas p
+    LEFT JOIN familias  f ON f.id_encuesta = p.id_encuesta
+    LEFT JOIN viviendas v ON v.id_encuesta = f.id_encuesta_vivienda")
+
+  hogares <- dbGetQuery(con, "
+    SELECT f.id_encuesta, f.id_hogar, f.n_personas, f.secretaria,
+           f.match_status, f.match_method, f.match_confidence,
+           f.id_encuesta_vivienda, f.duplicate, f.id_canonico,
+           f.fecha_actualizacion, f.archivo_origen, f.last_update,
+           v.direccion_completa
+    FROM familias f
+    LEFT JOIN viviendas v ON v.id_encuesta = f.id_encuesta_vivienda")
+
+  edificaciones <- dbGetQuery(con, "
+    SELECT id_encuesta, id_hogar, prop_nombre, prop_cc, prop_cc_norm,
+           inf_nombre, inf_cc, inf_cc_norm,
+           cumple_requisitos, requiere_evacuacion, sistema_constructivo,
+           tipo_inmueble, direccion_completa, latitud, longitud,
+           ubicacion_confirmada, duplicate, id_canonico,
+           fecha_actualizacion, archivo_origen, last_update
+    FROM viviendas")
+
+  afectaciones <- dbGetQuery(con, "
+    SELECT id_encuesta, consecutivo_id, nombre_edificacion, barrio, comuna,
+           direccion_completa, latitud, longitud,
+           descripcion, colapso, requieren_evacuacion,
+           fallecidos, atrapadas, necesitan_evacuar,
+           tipo_edificacion, cantidad_viviendas, observaciones,
+           fotos_cantidad, fotos_nombres, fotos_enlaces,
+           diligencia_nombre, organismo, grupo_voluntarios,
+           secretaria, fecha, fecha_actualizacion, duplicate, id_canonico,
+           archivo_origen, last_update
+    FROM afectaciones")
+
+  revisar <- dbGetQuery(con, "
+    SELECT id_encuesta, id_hogar, n_personas, match_status, secretaria, archivo_origen
+    FROM familias
+    WHERE duplicate = 0 AND match_status IN ('no_match', 'ambiguous')
+    ORDER BY match_status")
+
+  duplicados <- dbGetQuery(con, "
+    SELECT tabla, id_registro, id_canonico, criterio, confianza, timestamp
+    FROM duplicados ORDER BY timestamp DESC")
+
+  ##============================================================================##
+  ##=== 2. Fichas: respuestas completas de cada encuesta, una por fila       ===##
+  ##============================================================================##
+
+  ## ultima version del payload por registro (viviendas: encuesta; personas: persona)
+  crudos <- dbGetQuery(con, "
+    SELECT r.id_registro, r.tabla_origen, r.payload
+    FROM raw_records r
+    JOIN (SELECT id_registro, MAX(raw_id) AS raw_id
+          FROM raw_records GROUP BY id_registro) u
+      ON u.raw_id = r.raw_id")
+
+  ## una celda de Sheets admite 50.000 caracteres y una ficha de vivienda son
+  ## 221 preguntas: cabe de sobra, asi que cada ficha va entera en una celda y
+  ## no hace falta partirla como en la pestaña de respaldos
+  contenidos <- character(nrow(crudos))
+  for (i in seq_len(nrow(crudos))) {
+    fila <- fromJSON(crudos$payload[i])
+    ## solo campos con dato; fuera columnas derivadas (_num, _nums, indicadores 0/1)
+    fila <- fila[!grepl("_num$|_nums$|__", names(fila))]
+    fila <- fila[!sapply(fila, function(v) is.null(v) || is.na(v) || v == "")]
+    contenidos[i] <- toJSON(fila, auto_unbox = T, na = "null")
+  }
+
+  fichas <- data.frame(id_registro = crudos$id_registro,
+                       contenido   = contenidos,
+                       stringsAsFactors = F)
+
+  ## libro de codigos: etiqueta y seccion de cada variable
+  diccionario <- fread("synthetic/insumos/diccionario_variables.csv", encoding = "UTF-8") %>%
+                 as.data.frame() %>%
+                 distinct(variable, .keep_all = T) %>%
+                 select(variable, codigo_pregunta, pregunta, seccion_numero,
+                        seccion_titulo, formulario)
+
+  dbDisconnect(con)
+
+  ##============================================================================##
+  ##=== 3. Envio de cada tabla, pagina por pagina                            ===##
+  ##============================================================================##
+
+  ## el cuerpo va como text/plain aunque sea JSON, por lo mismo que en
+  ## 00_conectar_hoja.R: las Web App de Apps Script no atienden peticiones que
+  ## disparen la verificacion previa del navegador
+  pedir_hoja <- function(cuerpo) {
+    cuerpo$token             <- TOKEN_HOJA
+    cuerpo$token_exportacion <- token_extraccion
+    respuesta <- POST(URL_HOJA,
+                      body = toJSON(cuerpo, auto_unbox = T, na = "null"),
+                      content_type("text/plain"),
+                      timeout(TIEMPO_LIMITE_HOJA))
+    datos <- fromJSON(content(respuesta, as = "text", encoding = "UTF-8"))
+    if (!isTRUE(datos$ok)) {
+      stop(sprintf("el receptor respondio '%s' (accion %s, tabla %s)",
+                   datos$error, cuerpo$accion, cuerpo$tabla))
+    }
+    datos
+  }
+
+  ## una tabla completa: la primera pagina reemplaza y las siguientes anexan
+  ##
+  ## El tamaño de pagina se calcula por PESO, no por numero de filas: una fila de
+  ## c_revisar son seis campos cortos y una de c_fichas son 221 preguntas en
+  ## JSON. Con un numero fijo, la que sirve para fichas deja las demas en
+  ## cientos de peticiones inutiles, y la que sirve para las demas revienta el
+  ## limite de tiempo de Apps Script en fichas.
+  publicar_tabla <- function(nombre, datos) {
+    if (is.null(datos) || nrow(datos) == 0) {
+      pedir_hoja(list(accion = "publicar_consolidado", tabla = nombre,
+                      encabezados = names(datos), filas = list(), reemplazar = T))
+      log_msg(sprintf("publicacion: %s vacia (0 filas)", nombre))
+      return(0)
+    }
+
+    ## todo viaja como texto: la hoja guarda texto plano y asi una cedula con
+    ## ceros a la izquierda no se convierte en numero por el camino
+    datos[] <- lapply(datos, function(x) ifelse(is.na(x), "", as.character(x)))
+
+    peso_fila <- max(1, nchar(toJSON(unname(as.list(datos[1, ])), auto_unbox = T)))
+    por_pagina <- max(1, floor(BYTES_POR_PAGINA_PUBLICAR / peso_fila))
+
+    desde <- 1
+    while (desde <= nrow(datos)) {
+      hasta  <- min(desde + por_pagina - 1, nrow(datos))
+      trozo  <- datos[desde:hasta, , drop = F]
+      pedir_hoja(list(accion      = "publicar_consolidado",
+                      tabla       = nombre,
+                      encabezados = names(datos),
+                      filas       = unname(lapply(seq_len(nrow(trozo)),
+                                                  function(i) unname(as.list(trozo[i, ])))),
+                      reemplazar  = (desde == 1)))
+      desde <- hasta + 1
+    }
+
+    log_msg(sprintf("publicacion: %s -> %d filas, %d columnas (%d por pagina)",
+                    nombre, nrow(datos), ncol(datos), por_pagina))
+    nrow(datos)
+  }
+
+  ## el ping confirma que la implementacion publicada trae estas acciones: pegar
+  ## el codigo en el editor no basta, hay que implementar una version nueva
+  ping <- pedir_hoja(list(accion = "ping"))
+  log_msg(sprintf("publicacion: receptor version %s", ping$version))
+
+  ## export data (pestañas c_* de la hoja; las lee el aplicativo de consulta)
+  publicar_tabla("c_personas",      personas)
+  publicar_tabla("c_hogares",       hogares)
+  publicar_tabla("c_edificaciones", edificaciones)
+  publicar_tabla("c_afectaciones",  afectaciones)
+  publicar_tabla("c_fichas",        fichas)
+  publicar_tabla("c_diccionario",   diccionario)
+  publicar_tabla("c_revisar",       revisar)
+  publicar_tabla("c_duplicados",    duplicados)
+
+  ## la marca va de ULTIMA, cuando ya esta todo arriba: si la corrida se cae a
+  ## la mitad, el aplicativo sigue mostrando la fecha de la ultima publicacion
+  ## completa y no una que corresponde a datos a medias
+  marca <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+  pedir_hoja(list(accion = "marcar_consolidado", actualizado = marca))
+
+  log_msg(sprintf("publicacion: consolidado en la hoja, marcado %s", marca))
+  "ok"
+
+}, error = function(e) {
+  log_msg(sprintf("publicacion: %s — se omite este paso; la base local queda igual de valida",
+                  conditionMessage(e)))
+  "omitido"
+})

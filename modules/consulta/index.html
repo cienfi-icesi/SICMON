@@ -91,7 +91,11 @@
         <label class="check"><input id="chk-duplicados" type="checkbox" /> Mostrar duplicados</label>
         <button id="btn-limpiar" class="boton" type="button">Limpiar filtros</button>
         <button id="btn-csv" class="boton" type="button">Descargar CSV</button>
-        <a class="boton" href="descargas/base_consulta.xlsx" download>Descargar Excel (4 bases)</a>
+        <!-- Antes esto era un enlace a un .xlsx guardado en el repositorio. Ese
+             archivo llevaba la base completa —cédulas incluidas— dentro de un
+             repositorio público, así que se retiró. La descarga ahora se arma
+             en el navegador con los datos que el equipo ya tiene cargados. -->
+        <button id="btn-csv-todo" class="boton" type="button">Descargar las 4 bases (CSV)</button>
         <button id="btn-obs-export" class="boton" type="button" title="Exporta las observaciones registradas en este equipo">Exportar observaciones</button>
       </div>
       <div class="panel-columnas oculto" id="panel-columnas">
@@ -152,7 +156,9 @@
   </div>
 </footer>
 
-<script src="js/datos.js"></script>
+<!-- Los datos NO viajan en el repositorio: esta página se los pide al Apps
+     Script. config-consulta.js solo trae la dirección del receptor. -->
+<script src="js/config-consulta.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

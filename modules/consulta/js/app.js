@@ -1,37 +1,61 @@
 /* ============================================================
    Aplicativo de consulta — lógica
    ------------------------------------------------------------
-   Lee window.DATOS (generado por pipeline/04_exportar_consulta.R)
-   y no depende de ningún servidor: funciona con doble clic.
+   Pide los datos por fetch al Apps Script (js/config-consulta.js)
+   y los deja en DATOS, que es la forma que consume toda la
+   pantalla. Antes ese mismo objeto llegaba de un archivo estático
+   js/datos.js que el pipeline escribía dentro del repositorio;
+   cambió de dónde salen los datos, no cómo se dibujan.
 
-   Dos modos de ingreso:
-     · Ciudadano  sin credenciales; busca por cédula o dirección y
-                  solo ve la información asociada a esa búsqueda.
-     · Equipo     usuario y contraseña; ve las tres bases completas
-                  (edificaciones, afectaciones, personas), filtra,
-                  observa y descarga.
+   POR QUÉ CAMBIÓ
+   Aquel archivo ponía cédulas, direcciones y estado de salud en un
+   repositorio público, y obligaba a hacer commit para que el sitio
+   publicado se actualizara. Ahora el repositorio no lleva ningún
+   dato personal y la consulta se actualiza sola.
 
-   AUTENTICACIÓN PRELIMINAR: igual que en el portal, los usuarios
-   están en texto plano y el aplicativo no debe publicarse así.
+   Dos modos de ingreso, con dos puertas distintas del receptor:
+     · Ciudadano  sin credenciales. Pide 'consultar_cedula' y recibe
+                  UN registro: el de esa cédula, su hogar y su
+                  edificación. Nunca una lista.
+     · Equipo     usuario y contraseña. La contraseña ES el
+                  TOKEN_LECTURA del Apps Script: no está escrita en
+                  ningún archivo de este sitio y quien la valida es
+                  Google, no este código. Se cambia en las
+                  Propiedades del script.
+
+   CONSECUENCIA: este aplicativo ya NO funciona con doble clic desde
+   el disco. El navegador bloquea fetch sobre file://. Hay que
+   abrirlo servido por http, que es como queda en GitHub Pages.
    ============================================================ */
 
 (function () {
   'use strict';
 
-  var DATOS = window.DATOS || { actualizado: '', personas: [], familias: [], viviendas: [],
-                                fichas: {}, diccionario: [], revisar: [], duplicados: [] };
+  var VACIO = { actualizado: '', personas: [], familias: [], viviendas: [], afectaciones: [],
+                fichas: {}, diccionario: [], revisar: [], duplicados: [] };
 
-  /* Usuarios del equipo a cargo de la base (preliminar).
-     La contraseña viaja en este archivo, que cualquiera puede leer con «ver
-     código fuente». Sirve para que la base no quede a la vista de quien entre
-     por casualidad, no para detener a alguien decidido: antes de publicar el
-     portal hay que mover esta autenticación al servidor. */
-  var USUARIOS = [
-    { usuario: 'administrador', password: '123456789', nombre: 'Administrador' }
-  ];
+  var DATOS = JSON.parse(JSON.stringify(VACIO));
 
+  var CFG = window.CONFIG_CONSULTA || {};
   var CLAVE_OBS = 'alcaldia_sismos_observaciones_v1';
   var sesion = null;
+
+  /* Quiénes pueden entrar. Aquí van los NOMBRES DE USUARIO, que no son
+     secretos; la contraseña no está en este archivo ni en ningún otro del
+     sitio: es el TOKEN_LECTURA del Apps Script y quien la compara es Google.
+
+     Para qué sirve entonces esta lista, si la contraseña es la misma para
+     todos: para que el nombre con el que quedan firmadas las observaciones sea
+     uno de los del equipo y no cualquier cosa que alguien teclee. No es
+     autenticación por persona —quien tenga la contraseña puede entrar con
+     cualquiera de estos nombres—; para eso haría falta un usuario y una clave
+     por funcionario, que es una decisión aparte.
+
+     Agregar a alguien = agregar una línea aquí. Quitarle el acceso a TODOS =
+     cambiar TOKEN_LECTURA en las Propiedades del script de Google. */
+  var USUARIOS = [
+    { usuario: 'administrador', nombre: 'Administrador' }
+  ];
 
   /* ---------- utilidades ---------- */
 
@@ -54,6 +78,106 @@
 
   function escapar(v) {
     return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* ---------- red: el receptor del Apps Script ---------- */
+
+  /* Una petición al receptor. El cuerpo va como text/plain aunque sea JSON:
+     las Web App de Apps Script no atienden peticiones que disparen la
+     verificación previa del navegador, y el script lo interpreta igual.
+     Es el mismo patrón que usa la aplicación de campo desde hace meses
+     (../edan/js/sincronizacion.js). */
+  function pedir(cuerpo) {
+    cuerpo.token = CFG.token;
+    var control = new AbortController();
+    var corte = setTimeout(function () { control.abort(); }, CFG.tiempoLimite || 60000);
+
+    return fetch(CFG.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(cuerpo),
+      redirect: 'follow',
+      signal: control.signal
+    })
+      .then(function (r) {
+        clearTimeout(corte);
+        if (!r.ok) throw new Error('El servidor respondió ' + r.status);
+        return r.text();
+      })
+      .then(function (t) {
+        var d = JSON.parse(t);
+        if (!d.ok) throw new Error(d.error || 'error_desconocido');
+        return d;
+      });
+  }
+
+  /* La hoja guarda TODO como texto plano —a propósito: así una cédula con
+     ceros a la izquierda no se convierte en número por el camino—. Pero la
+     pantalla compara `duplicate === 1` de forma estricta, así que estas
+     columnas hay que devolverlas a número al llegar.
+
+     Va por lista explícita y no por «si parece número, conviértelo»: con esa
+     regla las cédulas y los id_hogar también se convertirían, y la búsqueda
+     ciudadana, que compara documento como texto, dejaría de encontrar a nadie. */
+  var NUMERICAS = ['edad', 'duplicate', 'persona_duplicada', 'match_confidence',
+                   'confianza', 'n_personas', 'latitud', 'longitud',
+                   'fallecidos', 'atrapadas', 'necesitan_evacuar',
+                   'cantidad_viviendas', 'fotos_cantidad'];
+
+  function anumerar(fila) {
+    NUMERICAS.forEach(function (campo) {
+      if (!(campo in fila)) return;
+      var v = fila[campo];
+      if (v === '' || v === null || v === undefined) { fila[campo] = null; return; }
+      var n = Number(v);
+      if (!isNaN(n)) fila[campo] = n;
+    });
+    return fila;
+  }
+
+  /* Las tablas del equipo viajan comprimidas —encabezados aparte, filas como
+     listas— porque repetir el nombre de cada campo en cada fila multiplicaría
+     el tamaño de la respuesta. Aquí se vuelven objetos. */
+  function aObjetos(encabezados, filas) {
+    return filas.map(function (fila) {
+      var obj = {};
+      for (var i = 0; i < encabezados.length; i++) obj[encabezados[i]] = fila[i];
+      return anumerar(obj);
+    });
+  }
+
+  /* Una tabla completa: se piden páginas hasta que hay_mas venga en falso. */
+  function traerTabla(nombre, password) {
+    var acumulado = [];
+
+    function pagina(desde) {
+      return pedir({ accion: 'consulta_completa', tabla: nombre,
+                     token_lectura: password, desde: desde,
+                     limite: CFG.filasPorPagina || 2000 })
+        .then(function (d) {
+          if (d.devueltas > 0) acumulado = acumulado.concat(aObjetos(d.encabezados, d.filas));
+          if (d.hay_mas) return pagina(desde + d.devueltas);
+          return { filas: acumulado, actualizado: d.actualizado };
+        });
+    }
+
+    return pagina(1);
+  }
+
+  /* Las fichas llegan como id_registro + JSON y se rearman en el objeto
+     {id: {respuestas}} que espera abrirFicha(). */
+  function aFichas(filas) {
+    var fichas = {};
+    filas.forEach(function (f) {
+      try { fichas[f.id_registro] = JSON.parse(f.contenido); }
+      catch (e) { /* una ficha ilegible no puede tumbar la carga entera */ }
+    });
+    return fichas;
+  }
+
+  function indexarDiccionario() {
+    DICC = {};
+    (DATOS.diccionario || []).forEach(function (d) { DICC[d.variable] = d; });
   }
 
   var ETIQUETA_MATCH = {
@@ -150,8 +274,8 @@
 
   /* ---------- diccionario: etiquetas de variables ---------- */
 
+  /* se llena cuando llegan los datos, con indexarDiccionario() */
   var DICC = {};
-  (DATOS.diccionario || []).forEach(function (d) { DICC[d.variable] = d; });
 
   /* ---------- observaciones (almacenamiento local) ---------- */
 
@@ -203,9 +327,15 @@
 
   /* ---------- fecha de actualización ---------- */
 
-  var fecha = (DATOS.actualizado || '').replace('T', ' ');
-  $('#actualizado').textContent = fecha ? ('Actualizada: ' + fecha) : '';
-  $('#pie-actualizado').textContent = fecha ? ('Base actualizada: ' + fecha) : '';
+  /* la trae el receptor con cada respuesta (pestaña c_meta): es el momento en
+     que el pipeline terminó de publicar, no el de esta consulta */
+  function pintarActualizado() {
+    var fecha = (DATOS.actualizado || '').replace('T', ' ');
+    $('#actualizado').textContent = fecha ? ('Actualizada: ' + fecha) : '';
+    $('#pie-actualizado').textContent = fecha ? ('Base actualizada: ' + fecha) : '';
+  }
+
+  pintarActualizado();
 
   /* ============================================================
      FICHA COMPLETA: todas las respuestas del formulario
@@ -419,23 +549,46 @@
       return;
     }
 
-    /* personas con esa cedula, y edificaciones donde aparece como propietario
-       o como quien atendio la visita */
-    var registros = DATOS.personas.filter(function (p) { return p.documento === cedula; });
-    registros.sort(function (a, b) { return (a.persona_duplicada || 0) - (b.persona_duplicada || 0); });
-    if (registros.length > 0) html += fichaPersonaHTML(registros[0]);
+    /* se le pregunta al receptor por ESA cédula: lo que vuelve es su registro,
+       su hogar y su edificación, no la base. El navegador nunca llega a tener
+       los datos de nadie más. */
+    caja.innerHTML = '<p class="nota">Consultando…</p>';
 
-    var edifs = DATOS.viviendas.filter(function (v) {
-      return normalizarCedula(v.prop_cc) === cedula || normalizarCedula(v.inf_cc) === cedula;
-    });
-    edifs.forEach(function (v) { html += fichaEdificacionHTML(v); });
+    pedir({ accion: 'consultar_cedula', cedula: cedula })
+      .then(function (d) {
+        DATOS.personas    = (d.personas    || []).map(anumerar);
+        DATOS.familias    = (d.familias    || []).map(anumerar);
+        DATOS.viviendas   = (d.viviendas   || []).map(anumerar);
+        DATOS.fichas      = d.fichas      || {};
+        DATOS.diccionario = d.diccionario || [];
+        DATOS.actualizado = d.actualizado || '';
+        indexarDiccionario();
+        pintarActualizado();
 
-    if (!html) {
-      html = '<div class="ficha ficha--no"><h2 class="estado-no">La cédula NO está en la base</h2>' +
-        '<p>No hay ningún registro asociado a la cédula <span class="mono">' + escapar(cedula) + '</span>.</p>' +
-        '<p class="nota">Puede que la encuesta aún no se haya sincronizado, o que la persona no haya sido encuestada.</p></div>';
-    }
-    caja.innerHTML = html;
+        var html = '';
+
+        /* personas con esa cedula, y edificaciones donde aparece como
+           propietario o como quien atendio la visita */
+        var registros = DATOS.personas.filter(function (p) { return p.documento === cedula; });
+        registros.sort(function (a, b) { return (a.persona_duplicada || 0) - (b.persona_duplicada || 0); });
+        if (registros.length > 0) html += fichaPersonaHTML(registros[0]);
+
+        var edifs = DATOS.viviendas.filter(function (v) {
+          return normalizarCedula(v.prop_cc) === cedula || normalizarCedula(v.inf_cc) === cedula;
+        });
+        edifs.forEach(function (v) { html += fichaEdificacionHTML(v); });
+
+        if (!html) {
+          html = '<div class="ficha ficha--no"><h2 class="estado-no">La cédula NO está en la base</h2>' +
+            '<p>No hay ningún registro asociado a la cédula <span class="mono">' + escapar(cedula) + '</span>.</p>' +
+            '<p class="nota">Puede que la encuesta aún no se haya sincronizado, o que la persona no haya sido encuestada.</p></div>';
+        }
+        caja.innerHTML = html;
+      })
+      .catch(function (e) {
+        caja.innerHTML = '<p class="nota nota--error">No se pudo consultar en este momento (' +
+          escapar(e.message) + '). Verifique la conexión e intente de nuevo.</p>';
+      });
   }
 
   $('#btn-buscar').addEventListener('click', buscarCiudadano);
@@ -451,21 +604,81 @@
      MODO EQUIPO: login
      ============================================================ */
 
+  /* Trae las ocho tablas consolidadas y las deja en DATOS.
+     Quien valida la contraseña es el Apps Script, no este código: la contraseña
+     ES el TOKEN_LECTURA del script de Google. Si no coincide, el receptor
+     responde 'no_autorizado' y aquí no llega ni una fila. Por eso ya no hay una
+     lista de usuarios con la clave en texto plano dentro de este archivo. */
+  function cargarEquipo(password) {
+    var tablas = [['c_personas', 'personas'], ['c_hogares', 'familias'],
+                  ['c_edificaciones', 'viviendas'], ['c_afectaciones', 'afectaciones'],
+                  ['c_diccionario', 'diccionario'], ['c_revisar', 'revisar'],
+                  ['c_duplicados', 'duplicados']];
+
+    return Promise.all(tablas.map(function (par) {
+      return traerTabla(par[0], password).then(function (r) {
+        DATOS[par[1]] = r.filas;
+        if (r.actualizado) DATOS.actualizado = r.actualizado;
+      });
+    })).then(function () {
+      return traerTabla('c_fichas', password).then(function (r) {
+        DATOS.fichas = aFichas(r.filas);
+      });
+    });
+  }
+
   $('#form-login').addEventListener('submit', function (ev) {
     ev.preventDefault();
-    var usuario = normalizarTexto($('#login-usuario').value).toLowerCase().replace(/ /g, '');
+    var tecleado = normalizarTexto($('#login-usuario').value).toLowerCase().replace(/ /g, '');
     var password = $('#login-password').value;
-    var encontrado = USUARIOS.filter(function (u) {
-      return u.usuario.replace(/ /g, '') === usuario && String(u.password) === String(password);
+    var boton = $('#form-login button[type="submit"]');
+    var error = $('#login-error');
+
+    if (!tecleado || !password) { error.textContent = 'Escriba usuario y contraseña.';
+                                  error.classList.remove('oculto'); return; }
+
+    /* el usuario se valida aquí y la contraseña allá: son dos comprobaciones
+       distintas, pero el mensaje de error es el mismo a propósito, para no
+       decirle a quien tantea cuál de las dos acertó */
+    var conocido = USUARIOS.filter(function (u) {
+      return u.usuario.replace(/ /g, '') === tecleado;
     })[0];
-    if (!encontrado) { $('#login-error').classList.remove('oculto'); return; }
-    $('#login-error').classList.add('oculto');
-    sesion = { usuario: encontrado.usuario, nombre: encontrado.nombre };
-    sessionStorage.setItem('consulta_sesion', JSON.stringify(sesion));
-    mostrarVista('equipo');
-    pintarPanelColumnas();
-    pintarBase();
-    pintarRevisar();
+    if (!conocido) { error.textContent = 'Usuario o contraseña incorrectos.';
+                     error.classList.remove('oculto'); return; }
+
+    error.classList.add('oculto');
+    boton.disabled = true;
+    boton.textContent = 'Entrando…';
+
+    cargarEquipo(password)
+      .then(function () {
+        sesion = { usuario: conocido.usuario, nombre: conocido.nombre, password: password };
+        sessionStorage.setItem('consulta_sesion', JSON.stringify(sesion));
+        indexarDiccionario();
+        pintarActualizado();
+        mostrarVista('equipo');
+        pintarPanelColumnas();
+        pintarBase();
+        pintarRevisar();
+      })
+      .catch(function (e) {
+        if (e.message === 'no_autorizado') {
+          error.textContent = 'Usuario o contraseña incorrectos.';
+        } else if (e.message === 'consulta_no_habilitada') {
+          /* la propiedad TOKEN_LECTURA no existe en el script de Google, así
+             que la puerta está cerrada para todos. Es el estado seguro, pero
+             el mensaje tiene que decir qué hacer y no dejar a nadie adivinando */
+          error.textContent = 'El acceso del equipo no está habilitado todavía: ' +
+            'falta crear la propiedad TOKEN_LECTURA en el script de Google.';
+        } else {
+          error.textContent = 'No se pudo conectar con la base (' + e.message + ').';
+        }
+        error.classList.remove('oculto');
+      })
+      .then(function () {
+        boton.disabled = false;
+        boton.textContent = 'Ingresar';
+      });
   });
 
   /* ============================================================
@@ -487,13 +700,16 @@
         { titulo: 'Cumple requisitos', campo: 'cumple_requisitos' },
         { titulo: 'Requiere evacuación', campo: 'requiere_evacuacion' },
         { titulo: 'Sistema', campo: 'sistema_constructivo' },
+        { titulo: 'Reporte de afectación', campo: 'reporte_afectacion', mono: true },
         { titulo: 'Duplicado', campo: 'duplicate', render: function (r) { return chipSiNo(r.duplicate === 1); } },
         { titulo: 'Actualizado', campo: 'fecha_actualizacion', mono: true }
       ]
     },
     /* Reportes de afectación: grano EVENTO / edificación atendida por un
-       organismo de socorro. Entidad independiente — no trae cédula ni código
-       de hogar, así que no se enlaza con las otras bases. */
+       organismo de socorro. No trae cédula ni código de hogar, así que no entra
+       en el matching de hogares; con las edificaciones solo comparte la
+       dirección del edificio, y de ahí sale el cruce sugerido de la columna
+       "Edificaciones EDAN" y de la sección 7 de la ficha. */
     afectaciones: {
       titulo: 'Afectaciones',
       filas: function () { return DATOS.afectaciones || []; },
@@ -517,7 +733,10 @@
         { titulo: 'Viviendas', campo: 'cantidad_viviendas' },
         { titulo: 'Fotos', campo: 'fotos_cantidad',
           render: function (r) { return chipFotos(r.fotos_cantidad); } },
+        { titulo: 'Edificaciones EDAN', campo: 'edificaciones_edan',
+          render: function (r) { return chipCruce(r.edificaciones_edan); } },
         { titulo: 'Organismo', campo: 'organismo' },
+        { titulo: 'Duplicado', campo: 'duplicate', render: function (r) { return chipSiNo(r.duplicate === 1); } },
         { titulo: 'Actualizado', campo: 'fecha_actualizacion', mono: true }
       ]
     },
@@ -827,6 +1046,35 @@
     URL.revokeObjectURL(enlace.href);
   });
 
+  /* Las cuatro bases de una vez, sin filtros ni selección de columnas: es el
+     reemplazo del .xlsx que antes se descargaba del repositorio. Va como
+     cuatro CSV y no como un Excel de cuatro hojas porque armar un xlsx real
+     exigiría una librería externa, y este sitio no carga ninguna. */
+  $('#btn-csv-todo').addEventListener('click', function () {
+    Object.keys(BASES).forEach(function (clave) {
+      var base = BASES[clave];
+      if (clave === 'revisar') return;
+      var filas = base.filas();
+      if (!filas.length) return;
+
+      var columnas = Object.keys(filas[0]);
+      var lineas = [columnas.join(';')];
+      filas.forEach(function (r) {
+        lineas.push(columnas.map(function (c) {
+          var v = (r[c] === null || r[c] === undefined) ? '' : String(r[c]);
+          return '"' + v.replace(/"/g, '""') + '"';
+        }).join(';'));
+      });
+
+      var blob = new Blob(['﻿' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' });
+      var enlace = document.createElement('a');
+      enlace.href = URL.createObjectURL(blob);
+      enlace.download = 'base_' + clave + '.csv';
+      enlace.click();
+      URL.revokeObjectURL(enlace.href);
+    });
+  });
+
   /* exportar todas las observaciones de este equipo */
   $('#btn-obs-export').addEventListener('click', function () {
     var todas = leerObs();
@@ -898,14 +1146,35 @@
     $('#tabla-duplicados').innerHTML = encDup + '<tbody>' + (cuerpoDup || '<tr><td colspan="6">Sin duplicados detectados.</td></tr>') + '</tbody>';
   }
 
-  /* ---------- arranque: restaurar sesión si existe ---------- */
+  /* ---------- arranque: restaurar sesión si existe ----------
+
+     La sesión guarda la contraseña porque cada recarga tiene que volver a
+     pedirle las tablas al receptor: aquí ya no queda ninguna copia local de la
+     base. Vive en sessionStorage, que es por pestaña y se borra al cerrarla;
+     no en localStorage, que sobreviviría en el equipo indefinidamente.
+
+     Si la contraseña cambió en las Propiedades del script, la recarga falla
+     con 'no_autorizado' y la sesión se descarta: es el comportamiento que se
+     quiere, revocar desde Google y que todos los navegadores queden fuera. */
 
   try { sesion = JSON.parse(sessionStorage.getItem('consulta_sesion')); } catch (e) { sesion = null; }
-  if (sesion && sesion.usuario) {
+
+  if (sesion && sesion.usuario && sesion.password) {
     mostrarVista('equipo');
-    pintarPanelColumnas();
-    pintarBase();
-    pintarRevisar();
+    $('#conteo-base').textContent = 'Cargando la base…';
+    cargarEquipo(sesion.password)
+      .then(function () {
+        indexarDiccionario();
+        pintarActualizado();
+        pintarPanelColumnas();
+        pintarBase();
+        pintarRevisar();
+      })
+      .catch(function () {
+        sessionStorage.removeItem('consulta_sesion');
+        sesion = null;
+        mostrarVista('rol');
+      });
   } else {
     sesion = null;
     mostrarVista('rol');

@@ -41,11 +41,14 @@ CARPETA_CACHE_DRIVE <- ".secrets"   ## aqui queda el token; NUNCA se sube al rep
 ## canal de Drive, aqui nadie tiene que descargar ni subir nada a mano.
 ## Ver README, seccion "Conexion a la hoja del Apps Script".
 CONECTAR_HOJA <- TRUE
-## Consolidada en una sola implementacion publicada: la misma URL que usan los
-## celulares en campo para escribir (../modules/edan/js/config-sync.js) sirve
-## tambien aqui para leer/extraer. Si se vuelve a publicar un deploy nuevo,
-## actualizar los DOS lugares a la vez.
-URL_HOJA      <- "https://script.google.com/macros/s/AKfycbwXjt0oChd7-8YcTL3Uao6P0t5fZPwVumVijddwpYyFE_5Bt88wF4mtJ4jFzm4050zX_Q/exec"
+## Una sola implementacion publicada para todo. Si se publica un deploy nuevo,
+## la direccion cambia y hay que actualizarla en TRES lugares a la vez:
+##   1. aqui                                 (el pipeline: baja y publica)
+##   2. ../modules/edan/js/config-sync.js    (los celulares en campo: escriben)
+##   3. ../modules/consulta/js/config-consulta.js  (la consulta: lee)
+## Si alguno queda con la direccion vieja, sigue hablando con la implementacion
+## anterior sin dar error: responde bien, solo que a la version de antes.
+URL_HOJA      <- "https://script.google.com/macros/s/AKfycbwHuGE5olZBzOskJoQh0bBo0YqcVSvEiIA0Vhbw1UrW_2bFJqEruqgAUsJG8patB5etxA/exec"
 TOKEN_HOJA    <- "sismo_2026_01234567891011121314"   ## el general; el mismo de ../modules/edan/js/config-sync.js
                                                      ## no es un secreto: viaja al navegador de quien abra la app
 ## el token de EXTRACCION si es secreto y por eso vive en un archivo aparte,
@@ -62,9 +65,26 @@ TABLAS_HOJA           <- c("viviendas", "afectaciones", "personas")
 FILAS_POR_PAGINA_HOJA <- 500   ## debe ser <= FILAS_POR_PAGINA_MAX del Apps Script
 TIEMPO_LIMITE_HOJA    <- 120   ## segundos que se espera una pagina antes de darla por fallida
 
-## modulo de consulta del portal SICMON: el aplicativo vive en este mismo
-## repositorio y este pipeline le regenera js/datos.js y descargas/ en cada corrida
-CARPETA_CONSULTA <- "../modules/consulta"
+## ---- Publicacion del consolidado en la hoja (06_publicar_hoja.R) ----
+## El mismo canal, en sentido contrario: el pipeline devuelve a la hoja la base
+## ya consolidada, en las pestañas c_*, y de ahi la lee el aplicativo de
+## consulta por fetch. Es lo que permite que el sitio publicado se actualice sin
+## un commit y, sobre todo, que el repositorio no lleve datos personales.
+PUBLICAR_HOJA <- TRUE
+## peso maximo de cada pagina de envio, en caracteres del JSON. 300 KB deja
+## margen de sobra frente al limite de Apps Script y evita que la ejecucion se
+## alargue tanto que Google cierre la conexion, que es como fallan estas cosas.
+BYTES_POR_PAGINA_PUBLICAR <- 300000
+
+## salida local del consolidado: copia de trabajo para el equipo (un Excel con
+## las cuatro bases y el datos.js de respaldo).
+##
+## OJO: esta carpeta esta FUERA del repositorio publicado a proposito. Antes
+## este pipeline escribia js/datos.js dentro de modules/consulta y el aplicativo
+## lo leia como archivo estatico; eso publicaba cedulas, direcciones y estado de
+## salud en un repositorio publico. Hoy el aplicativo pide los datos por fetch
+## al Apps Script (ver 06_publicar_hoja.R) y aqui solo queda la copia local.
+CARPETA_SALIDA <- "data/salida"
 
 ## tablero de control: tambien vive en este repositorio, como un modulo mas del
 ## portal. Este pipeline le regenera js/datos_tablero.js en cada corrida

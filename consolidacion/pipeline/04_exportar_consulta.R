@@ -1,11 +1,17 @@
 ##============================================================================##
-# 04_exportar_consulta.R  —  Datos para el aplicativo de consulta
+# 04_exportar_consulta.R  —  Copia local de la base consolidada
 #------------------------------------------------------------------------------#
-# Ultimo paso de cada corrida: vuelca la base oficial a los archivos que lee
-# el modulo de consulta del portal SICMON (CARPETA_CONSULTA, en el repositorio
-# web_damage_cali):
-#   - <modulo>/js/datos.js                    window.DATOS = {...}
-#   - <modulo>/descargas/base_consulta.xlsx   descarga completa (3 hojas)
+# Vuelca la base oficial a CARPETA_SALIDA, como copia de trabajo del equipo:
+#   - data/salida/js/datos.js                  window.DATOS = {...}
+#   - data/salida/descargas/base_consulta.xlsx descarga completa (4 hojas + cruce)
+#
+# ESTO YA NO ALIMENTA AL APLICATIVO PUBLICADO. Antes escribia dentro de
+# modules/consulta y la pagina leia ese datos.js como archivo estatico, lo que
+# obligaba a hacer un commit para actualizar el sitio y ponia cedulas,
+# direcciones y estado de salud en un repositorio publico. Hoy el aplicativo
+# pide los datos por fetch al Apps Script y quien los sube es 06_publicar_hoja.R.
+# Este paso se queda por la comodidad de tener el Excel a mano, y su carpeta
+# esta fuera del repositorio (.gitignore).
 #
 # window.DATOS contiene:
 #   personas    grano persona (con su familia, su match y su vivienda)
@@ -18,8 +24,6 @@
 #   diccionario etiquetas: variable -> pregunta y seccion (libro de codigos)
 #   revisar / duplicados / actualizado
 #
-# El aplicativo funciona con doble clic (file://): por eso los datos van como
-# archivo .js y no como JSON via fetch, que el navegador bloquearia.
 ##============================================================================##
 
 ## configuracion inicial
@@ -30,12 +34,9 @@ source("config/functions.R")    # conectar_db, log_msg
 
 con <- conectar_db()
 
-## el aplicativo vive en el portal (web_damage_cali/modules/consulta)
-if (!dir.exists(CARPETA_CONSULTA)) {
-  stop(sprintf("no existe la carpeta del modulo de consulta: %s", CARPETA_CONSULTA))
-}
-dir.create(file.path(CARPETA_CONSULTA, "js"),        showWarnings = F, recursive = T)
-dir.create(file.path(CARPETA_CONSULTA, "descargas"), showWarnings = F, recursive = T)
+## carpeta local de trabajo; se crea sola si no existe
+dir.create(file.path(CARPETA_SALIDA, "js"),        showWarnings = F, recursive = T)
+dir.create(file.path(CARPETA_SALIDA, "descargas"), showWarnings = F, recursive = T)
 
 ##============================================================================##
 ##=== 1. Personas (grano: persona, con su familia y su vivienda)           ===##
@@ -176,7 +177,7 @@ datos <- list(actualizado  = actualizado,
 
 ## export data (window.DATOS para que funcione con file://)
 writeLines(paste0("window.DATOS = ", toJSON(datos, auto_unbox = T, na = "null"), ";"),
-           file.path(CARPETA_CONSULTA, "js/datos.js"), useBytes = T)
+           file.path(CARPETA_SALIDA, "js/datos.js"), useBytes = T)
 ## OJO: "hogares" es el formulario EDAN de personas/familia; "afectaciones" es
 ## el reporte por evento. Antes la hoja de hogares se rotulaba "afectaciones",
 ## que ahora seria confuso porque ya existe una tabla con ese nombre.
@@ -185,9 +186,9 @@ export(list(personas      = personas,
             edificaciones = viviendas,
             afectaciones  = afectaciones,
             cruce         = cruce),
-       file.path(CARPETA_CONSULTA, "descargas/base_consulta.xlsx"))
+       file.path(CARPETA_SALIDA, "descargas/base_consulta.xlsx"))
 
 log_msg(sprintf("consulta: %d personas, %d hogares, %d edificaciones, %d afectaciones, %d cruce(s), %d fichas -> %s",
                 nrow(personas), nrow(familias), nrow(viviendas), nrow(afectaciones),
-                nrow(cruce), length(fichas), CARPETA_CONSULTA))
+                nrow(cruce), length(fichas), CARPETA_SALIDA))
 dbDisconnect(con)
