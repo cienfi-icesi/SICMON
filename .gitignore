@@ -62,17 +62,14 @@ respaldo_encuestas_*.json
 consolidacion/logs/
 *.log
 
-<<<<<<< HEAD
 # --- Bibliotecas de R -------------------------------------------------------
-# renv.lock SI entra al repositorio: es el que fija las versiones. Lo que no
-# entra son los paquetes en si, que pesan cientos de MB y son binarios de una
+# renv.lock SÍ entra al repositorio: es el que fija las versiones. Lo que no
+# entra son los paquetes en sí, que pesan cientos de MB y son binarios de una
 # plataforma concreta. En GitHub Actions se restauran en .rlib desde el lockfile.
 consolidacion/renv/library/
 consolidacion/renv/staging/
 .rlib/
 
-# --- Sistema ----------------------------------------------------------------
-=======
 # --- Copias en conflicto de Dropbox -----------------------------------------
 # El proyecto vive en una carpeta sincronizada: cuando dos equipos tocan el
 # mismo archivo, Dropbox deja una copia con este nombre al lado. Si se cuela al
@@ -89,7 +86,6 @@ consolidacion/renv/staging/
 .claude/
 
 # --- Sistema y entorno de R -------------------------------------------------
->>>>>>> 67cf61f6646899c3a9242ce650c7fedc3eec54fe
 .DS_Store
 Thumbs.db
 desktop.ini

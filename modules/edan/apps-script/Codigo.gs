@@ -240,11 +240,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-<<<<<<< HEAD
-    version: '1.7.0',
-=======
-    version: '1.6.2',
->>>>>>> 67cf61f6646899c3a9242ce650c7fedc3eec54fe
+    version: '1.8.0',
     hora_servidor: ahora_()
   });
 }
@@ -264,11 +260,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-<<<<<<< HEAD
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.7.0', hora_servidor: ahora_() });
-=======
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.2', hora_servidor: ahora_() });
->>>>>>> 67cf61f6646899c3a9242ce650c7fedc3eec54fe
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.8.0', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);

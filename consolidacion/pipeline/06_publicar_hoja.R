@@ -236,8 +236,6 @@ resultado <- tryCatch({
   ping <- pedir_hoja(list(accion = "ping"))
   log_msg(sprintf("publicacion: receptor version %s", ping$version))
 
-  ##============================================================================##
-<<<<<<< HEAD
   ##=== 3.b Prueba de la cerradura ANTES de subir nada                       ===##
   ##============================================================================##
 
@@ -263,7 +261,6 @@ resultado <- tryCatch({
                                      desde = 1, limite = 1),
                                 exportacion = FALSE)
 
-  ##
   ## EL ENCLAVAMIENTO SOLO APLICA A LA BASE REAL. Lo que protege es que no
   ## salgan datos personales por una puerta abierta; con la base simulada no hay
   ## ninguno que proteger, son personas inventadas. Si aqui se bloqueara tambien
@@ -287,8 +284,10 @@ resultado <- tryCatch({
   } else {
     log_msg(sprintf("publicacion: la puerta de lectura rechaza contrasenas invalidas (%s)",
                     cerradura$error))
-=======
-  ##=== 4. Seguro: no reemplazar una base publicada por una vacia            ===##
+  }
+
+  ##============================================================================##
+  ##=== 3.c Seguro: no reemplazar una base publicada por una vacia           ===##
   ##============================================================================##
 
   ## Publicar es REEMPLAZAR: la primera pagina de cada tabla borra lo que
@@ -321,7 +320,6 @@ resultado <- tryCatch({
                          "FORZAR_PUBLICACION_VACIA <- TRUE."),
                    sum(vivas)))
     }
->>>>>>> 67cf61f6646899c3a9242ce650c7fedc3eec54fe
   }
 
   ## export data (pestañas c_* de la hoja; las lee el aplicativo de consulta)
