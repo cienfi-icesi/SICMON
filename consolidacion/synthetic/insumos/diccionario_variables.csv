@@ -1,0 +1,250 @@
+﻿formulario,codigo_pregunta,variable,seccion_numero,seccion_titulo,pregunta,tipo_campo,obligatoria,nivel_dato,numero_respuesta,valor_respuesta,etiqueta_respuesta
+Formulario de Vivienda,V001,viv_codigo,1,Información general,Código,texto,no,encuesta,,"",""
+Formulario de Vivienda,V002,viv_ficha_no,1,Información general,Ficha No.,texto,no,encuesta,,"",""
+Formulario de Vivienda,V003,viv_alcaldia_gobernacion,1,Información general,Alcaldía / Gobernación,texto,no,encuesta,,"",""
+Formulario de Vivienda,V004,viv_prof_nombre,1,Información general,Nombre del profesional responsable de la inspección y evaluación,texto,sí,encuesta,,"",""
+Formulario de Vivienda,V005,viv_prof_tarjeta,1,Información general,Tarjeta profesional,texto,no,encuesta,,"",""
+Formulario de Vivienda,V006,viv_prof_profesion,1,Información general,Profesión,texto,no,encuesta,,"",""
+Formulario de Vivienda,V007,viv_prof_cc,1,Información general,C.C. No. (del profesional),texto,no,encuesta,,"",""
+Formulario de Vivienda,V008,viv_prof_cc_de,1,Información general,De (lugar de expedición),texto,no,encuesta,,"",""
+Formulario de Vivienda,V009,viv_prof_telefono,1,Información general,Teléfono,texto,no,encuesta,,"",""
+Formulario de Vivienda,V010,viv_prof_direccion,1,Información general,Dirección,texto,no,encuesta,,"",""
+Formulario de Vivienda,V011,viv_fecha_evaluacion,1,Información general,Fecha de evaluación,fecha,sí,encuesta,,"",""
+Formulario de Vivienda,V012,viv_prop_nombres_apellidos,1,Información general,Nombres y apellidos,texto,sí,encuesta,,"",""
+Formulario de Vivienda,V013,viv_prop_cc,1,Información general,C.C. No.,texto,no,encuesta,,"",""
+Formulario de Vivienda,V014,viv_prop_cc_de,1,Información general,De (lugar de expedición),texto,no,encuesta,,"",""
+Formulario de Vivienda,V015,viv_prop_telefono,1,Información general,Teléfono,texto,no,encuesta,,"",""
+Formulario de Vivienda,V016,viv_prop_direccion,1,Información general,Dirección,texto,no,encuesta,,"",""
+Formulario de Vivienda,V017,viv_departamento,2,Localización de la vivienda,Departamento,texto,no,encuesta,,"",""
+Formulario de Vivienda,V018,viv_municipio,2,Localización de la vivienda,Municipio,texto,no,encuesta,,"",""
+Formulario de Vivienda,V019,tipo_via,2,Localización de la vivienda,Tipo de vía,texto,no,encuesta,,"",""
+Formulario de Vivienda,V020,numero_via,2,Localización de la vivienda,Número de la vía,texto,no,encuesta,,"",""
+Formulario de Vivienda,V021,sufijo_via,2,Localización de la vivienda,Sufijo de la vía,texto,no,encuesta,,"",""
+Formulario de Vivienda,V022,sufijo_via_otro,2,Localización de la vivienda,Sufijo de la vía (otro),texto,no,encuesta,,"",""
+Formulario de Vivienda,V023,numero_generador,2,Localización de la vivienda,Número generador o cruce,texto,no,encuesta,,"",""
+Formulario de Vivienda,V024,placa_inmueble,2,Localización de la vivienda,Placa del inmueble,texto,no,encuesta,,"",""
+Formulario de Vivienda,V025,tipo_inmueble,2,Localización de la vivienda,Tipo de inmueble,texto,no,encuesta,,"",""
+Formulario de Vivienda,V026,nombre_conjunto,2,Localización de la vivienda,Nombre del conjunto,texto,no,encuesta,,"",""
+Formulario de Vivienda,V027,tipo_unidad,2,Localización de la vivienda,Tipo de unidad,texto,no,encuesta,,"",""
+Formulario de Vivienda,V028,numero_unidad,2,Localización de la vivienda,Número de apartamento o casa,texto,no,encuesta,,"",""
+Formulario de Vivienda,V029,torre_bloque,2,Localización de la vivienda,Torre o bloque,texto,no,encuesta,,"",""
+Formulario de Vivienda,V030,direccion_completa,2,Localización de la vivienda,Dirección completa,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V031,latitud,2,Localización de la vivienda,Latitud,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V032,longitud,2,Localización de la vivienda,Longitud,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V033,sistema_coordenadas,2,Localización de la vivienda,Sistema de coordenadas,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V034,fuente_georreferenciacion,2,Localización de la vivienda,Fuente de la georreferenciación,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V035,precision_gps_m,2,Localización de la vivienda,Precisión del GPS (m),derivado,no,encuesta,,"",""
+Formulario de Vivienda,V036,direccion_geocodificada,2,Localización de la vivienda,Dirección devuelta por geocodificación,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V037,fecha_georreferenciacion,2,Localización de la vivienda,Fecha de la georreferenciación,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V038,ubicacion_confirmada,2,Localización de la vivienda,¿El diligenciador confirmó la ubicación?,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V039,fecha_confirmacion_ubicacion,2,Localización de la vivienda,Fecha de confirmación de la ubicación,derivado,no,encuesta,,"",""
+Formulario de Vivienda,V040,viv_corregimiento,2,Localización de la vivienda,Corregimiento,texto,no,encuesta,,"",""
+Formulario de Vivienda,V041,viv_vereda,2,Localización de la vivienda,Vereda,texto,no,encuesta,,"",""
+Formulario de Vivienda,V042,viv_req_no_beneficiario,3,Requisitos del propietario para recibir el apoyo en banco de materiales,No haber sido beneficiario del mismo programa o de algún otro programa de gobierno relacionado con la rehabilitación o construcción total de viviendas por ese mismo evento,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V042,viv_req_no_beneficiario,3,Requisitos del propietario para recibir el apoyo en banco de materiales,No haber sido beneficiario del mismo programa o de algún otro programa de gobierno relacionado con la rehabilitación o construcción total de viviendas por ese mismo evento,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V043,viv_req_propietario,3,Requisitos del propietario para recibir el apoyo en banco de materiales,"Ser el propietario de la vivienda afectada o del lote destinado para la construcción de vivienda nueva (presentar escritura pública, certificado de compra-venta o sana posesión; los arrendatarios no son beneficiarios)",unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V043,viv_req_propietario,3,Requisitos del propietario para recibir el apoyo en banco de materiales,"Ser el propietario de la vivienda afectada o del lote destinado para la construcción de vivienda nueva (presentar escritura pública, certificado de compra-venta o sana posesión; los arrendatarios no son beneficiarios)",unica,no,encuesta,2,no,No
+Formulario de Vivienda,V044,viv_req_certificacion_alcaldia,3,Requisitos del propietario para recibir el apoyo en banco de materiales,"Certificación de la Alcaldía de que el predio no se encuentra en zona de alto riesgo no mitigable ni de infraestructura básica a nivel nacional, regional o municipal",unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V044,viv_req_certificacion_alcaldia,3,Requisitos del propietario para recibir el apoyo en banco de materiales,"Certificación de la Alcaldía de que el predio no se encuentra en zona de alto riesgo no mitigable ni de infraestructura básica a nivel nacional, regional o municipal",unica,no,encuesta,2,no,No
+Formulario de Vivienda,V045,viv_cumple_requisitos,4,El afectado cumple con los requisitos para la auto-reparación de la vivienda,¿Cumple los requisitos?,unica,sí,encuesta,1,si,Sí
+Formulario de Vivienda,V045,viv_cumple_requisitos,4,El afectado cumple con los requisitos para la auto-reparación de la vivienda,¿Cumple los requisitos?,unica,sí,encuesta,2,no,No
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,1,inundacion,Inundación
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,2,vendaval,Vendaval
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,3,sismo,Sismo
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,4,avenida_torrencial,Avenida torrencial
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,5,remocion_masa,Remoción en masa
+Formulario de Vivienda,V046,viv_tipo_evento,5,Inspección de la vivienda,Tipo de evento,unica,sí,encuesta,6,otro,"Otro, ¿cuál?"
+Formulario de Vivienda,V047,viv_tipo_evento_otro,5,Inspección de la vivienda,¿Cuál otro evento?,texto,no,encuesta,,"",""
+Formulario de Vivienda,V048,viv_sistema_constructivo,5,Inspección de la vivienda,Sistema constructivo,unica,sí,encuesta,1,mamposteria,Mampostería
+Formulario de Vivienda,V048,viv_sistema_constructivo,5,Inspección de la vivienda,Sistema constructivo,unica,sí,encuesta,2,madera,Madera
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,1,L,(L) Ladrillo
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,2,Bl,(Bl) Bloque
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,3,M,(M) Madera
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,4,G,(G) Guadua
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,5,Ba,(Ba) Bahareque
+Formulario de Vivienda,V049,viv_infra_muros,5,Inspección de la vivienda,Muros divisorios,multiple,no,encuesta,6,O,(O) Otro
+Formulario de Vivienda,V050,viv_infra_muros_otro,5,Inspección de la vivienda,Muros — ¿cuál otro material?,texto,no,encuesta,,"",""
+Formulario de Vivienda,V051,viv_infra_pisos,5,Inspección de la vivienda,Pisos,multiple,no,encuesta,1,C,(C) Cemento
+Formulario de Vivienda,V051,viv_infra_pisos,5,Inspección de la vivienda,Pisos,multiple,no,encuesta,2,B,(B) Baldosa
+Formulario de Vivienda,V051,viv_infra_pisos,5,Inspección de la vivienda,Pisos,multiple,no,encuesta,3,M,(M) Madera
+Formulario de Vivienda,V051,viv_infra_pisos,5,Inspección de la vivienda,Pisos,multiple,no,encuesta,4,T,(T) Tierra
+Formulario de Vivienda,V051,viv_infra_pisos,5,Inspección de la vivienda,Pisos,multiple,no,encuesta,5,O,(O) Otro
+Formulario de Vivienda,V052,viv_infra_pisos_otro,5,Inspección de la vivienda,Pisos — ¿cuál otro material?,texto,no,encuesta,,"",""
+Formulario de Vivienda,V053,viv_infra_estructura,5,Inspección de la vivienda,Estructura,multiple,no,encuesta,1,M,(M) Madera
+Formulario de Vivienda,V053,viv_infra_estructura,5,Inspección de la vivienda,Estructura,multiple,no,encuesta,2,Co,(Co) Concreto
+Formulario de Vivienda,V053,viv_infra_estructura,5,Inspección de la vivienda,Estructura,multiple,no,encuesta,3,Ma,(Ma) Mampostería
+Formulario de Vivienda,V053,viv_infra_estructura,5,Inspección de la vivienda,Estructura,multiple,no,encuesta,4,O,(O) Otro
+Formulario de Vivienda,V054,viv_infra_estructura_otro,5,Inspección de la vivienda,Estructura — ¿cuál otro material?,texto,no,encuesta,,"",""
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,1,Pc,(Pc) Placa concreto
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,2,M,(M) Madera
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,3,Ac,(Ac) Asbesto-cemento
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,4,Tb,(Tb) Teja de barro
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,5,Z,(Z) Zinc
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,6,P,(P) Palma
+Formulario de Vivienda,V055,viv_infra_cubierta,5,Inspección de la vivienda,Cubierta,multiple,no,encuesta,7,O,(O) Otro
+Formulario de Vivienda,V056,viv_infra_cubierta_otro,5,Inspección de la vivienda,Cubierta — ¿cuál otro material?,texto,no,encuesta,,"",""
+Formulario de Vivienda,V057,viv_mam_vigas_columnas_afectado,5,Inspección de la vivienda,Vigas y columnas — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V057,viv_mam_vigas_columnas_afectado,5,Inspección de la vivienda,Vigas y columnas — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V058,viv_mam_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V058,viv_mam_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V058,viv_mam_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V058,viv_mam_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V059,viv_mam_muros_carga_afectado,5,Inspección de la vivienda,Muros de carga — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V059,viv_mam_muros_carga_afectado,5,Inspección de la vivienda,Muros de carga — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V060,viv_mam_muros_carga_nivel,5,Inspección de la vivienda,Muros de carga — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V060,viv_mam_muros_carga_nivel,5,Inspección de la vivienda,Muros de carga — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V060,viv_mam_muros_carga_nivel,5,Inspección de la vivienda,Muros de carga — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V060,viv_mam_muros_carga_nivel,5,Inspección de la vivienda,Muros de carga — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V061,viv_mam_muros_divisorios_afectado,5,Inspección de la vivienda,Muros divisorios — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V061,viv_mam_muros_divisorios_afectado,5,Inspección de la vivienda,Muros divisorios — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V062,viv_mam_muros_divisorios_nivel,5,Inspección de la vivienda,Muros divisorios — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V062,viv_mam_muros_divisorios_nivel,5,Inspección de la vivienda,Muros divisorios — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V062,viv_mam_muros_divisorios_nivel,5,Inspección de la vivienda,Muros divisorios — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V062,viv_mam_muros_divisorios_nivel,5,Inspección de la vivienda,Muros divisorios — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V063,viv_mam_placa_piso_afectado,5,Inspección de la vivienda,Placa de piso — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V063,viv_mam_placa_piso_afectado,5,Inspección de la vivienda,Placa de piso — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V064,viv_mam_placa_piso_nivel,5,Inspección de la vivienda,Placa de piso — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V064,viv_mam_placa_piso_nivel,5,Inspección de la vivienda,Placa de piso — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V064,viv_mam_placa_piso_nivel,5,Inspección de la vivienda,Placa de piso — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V064,viv_mam_placa_piso_nivel,5,Inspección de la vivienda,Placa de piso — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V064,viv_mam_placa_piso_nivel,5,Inspección de la vivienda,Placa de piso — Nivel de daño,unica,no,encuesta,5,na,No aplica (N/A)
+Formulario de Vivienda,V065,viv_mam_cubierta_afectado,5,Inspección de la vivienda,Cubierta — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V065,viv_mam_cubierta_afectado,5,Inspección de la vivienda,Cubierta — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V066,viv_mam_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V066,viv_mam_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V066,viv_mam_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V066,viv_mam_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V067,viv_mam_hidrosanitarias_afectado,5,Inspección de la vivienda,Instalaciones hidrosanitarias — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V067,viv_mam_hidrosanitarias_afectado,5,Inspección de la vivienda,Instalaciones hidrosanitarias — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V068,viv_mam_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V068,viv_mam_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V068,viv_mam_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V068,viv_mam_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V068,viv_mam_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,5,na,No aplica (N/A)
+Formulario de Vivienda,V069,viv_mam_electricas_afectado,5,Inspección de la vivienda,Instalaciones eléctricas — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V069,viv_mam_electricas_afectado,5,Inspección de la vivienda,Instalaciones eléctricas — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V070,viv_mam_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V070,viv_mam_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V070,viv_mam_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V070,viv_mam_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V071,viv_mad_vigas_columnas_afectado,5,Inspección de la vivienda,Vigas y columnas — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V071,viv_mad_vigas_columnas_afectado,5,Inspección de la vivienda,Vigas y columnas — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V072,viv_mad_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V072,viv_mad_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V072,viv_mad_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V072,viv_mad_vigas_columnas_nivel,5,Inspección de la vivienda,Vigas y columnas — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V073,viv_mad_entrepisos_afectado,5,Inspección de la vivienda,Entrepisos — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V073,viv_mad_entrepisos_afectado,5,Inspección de la vivienda,Entrepisos — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V074,viv_mad_entrepisos_nivel,5,Inspección de la vivienda,Entrepisos — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V074,viv_mad_entrepisos_nivel,5,Inspección de la vivienda,Entrepisos — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V074,viv_mad_entrepisos_nivel,5,Inspección de la vivienda,Entrepisos — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V074,viv_mad_entrepisos_nivel,5,Inspección de la vivienda,Entrepisos — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V075,viv_mad_muros_madera_afectado,5,Inspección de la vivienda,Muros en madera — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V075,viv_mad_muros_madera_afectado,5,Inspección de la vivienda,Muros en madera — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V076,viv_mad_muros_madera_nivel,5,Inspección de la vivienda,Muros en madera — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V076,viv_mad_muros_madera_nivel,5,Inspección de la vivienda,Muros en madera — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V076,viv_mad_muros_madera_nivel,5,Inspección de la vivienda,Muros en madera — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V076,viv_mad_muros_madera_nivel,5,Inspección de la vivienda,Muros en madera — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V076,viv_mad_muros_madera_nivel,5,Inspección de la vivienda,Muros en madera — Nivel de daño,unica,no,encuesta,5,na,No aplica (N/A)
+Formulario de Vivienda,V077,viv_mad_cubierta_afectado,5,Inspección de la vivienda,Cubierta — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V077,viv_mad_cubierta_afectado,5,Inspección de la vivienda,Cubierta — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V078,viv_mad_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V078,viv_mad_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V078,viv_mad_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V078,viv_mad_cubierta_nivel,5,Inspección de la vivienda,Cubierta — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V079,viv_mad_hidrosanitarias_afectado,5,Inspección de la vivienda,Instalaciones hidrosanitarias — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V079,viv_mad_hidrosanitarias_afectado,5,Inspección de la vivienda,Instalaciones hidrosanitarias — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V080,viv_mad_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V080,viv_mad_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V080,viv_mad_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V080,viv_mad_hidrosanitarias_nivel,5,Inspección de la vivienda,Instalaciones hidrosanitarias — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V081,viv_mad_electricas_afectado,5,Inspección de la vivienda,Instalaciones eléctricas — ¿El elemento fue afectado?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V081,viv_mad_electricas_afectado,5,Inspección de la vivienda,Instalaciones eléctricas — ¿El elemento fue afectado?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V082,viv_mad_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,1,leve,Leve
+Formulario de Vivienda,V082,viv_mad_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,2,moderado,Moderado
+Formulario de Vivienda,V082,viv_mad_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,3,severo,Severo
+Formulario de Vivienda,V082,viv_mad_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,4,colapso_total,Colapso total
+Formulario de Vivienda,V082,viv_mad_electricas_nivel,5,Inspección de la vivienda,Instalaciones eléctricas — Nivel de daño,unica,no,encuesta,5,na,No aplica (N/A)
+Formulario de Vivienda,V083,viv_requiere_evacuacion,5,Inspección de la vivienda,¿Requiere evacuación la vivienda?,unica,no,encuesta,1,si,Sí
+Formulario de Vivienda,V083,viv_requiere_evacuacion,5,Inspección de la vivienda,¿Requiere evacuación la vivienda?,unica,no,encuesta,2,no,No
+Formulario de Vivienda,V084,viv_combo_mamposteria,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en mampostería,unica,no,encuesta,1,combo_1,Combo 1 — Leve
+Formulario de Vivienda,V084,viv_combo_mamposteria,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en mampostería,unica,no,encuesta,2,combo_2,Combo 2 — Moderado
+Formulario de Vivienda,V084,viv_combo_mamposteria,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en mampostería,unica,no,encuesta,3,combo_3,Combo 3 — Severo
+Formulario de Vivienda,V085,viv_combo_madera,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en madera,unica,no,encuesta,1,combo_4,Combo 4 — Leve
+Formulario de Vivienda,V085,viv_combo_madera,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en madera,unica,no,encuesta,2,combo_5,Combo 5 — Moderado
+Formulario de Vivienda,V085,viv_combo_madera,6,Banco de materiales requerido para la rehabilitación,Combo de materiales — Vivienda en madera,unica,no,encuesta,3,combo_6,Combo 6 — Severo
+Formulario de Vivienda,V086,viv_kit_cubierta_mamposteria,6,Banco de materiales requerido para la rehabilitación,Kit cubiertas — Vivienda en mampostería,unica,no,encuesta,1,zinc,Cubierta zinc
+Formulario de Vivienda,V086,viv_kit_cubierta_mamposteria,6,Banco de materiales requerido para la rehabilitación,Kit cubiertas — Vivienda en mampostería,unica,no,encuesta,2,fibrocemento,Cubierta fibrocemento
+Formulario de Vivienda,V087,viv_kit_cubierta_madera,6,Banco de materiales requerido para la rehabilitación,Kit cubiertas — Vivienda en madera,unica,no,encuesta,1,zinc,Cubierta zinc
+Formulario de Vivienda,V088,viv_combo_colapso_total,6,Banco de materiales requerido para la rehabilitación,Combo vivienda colapso total,unica,no,encuesta,1,mamposteria,Mampostería
+Formulario de Vivienda,V088,viv_combo_colapso_total,6,Banco de materiales requerido para la rehabilitación,Combo vivienda colapso total,unica,no,encuesta,2,madera,Madera
+Formulario de Vivienda,V089,viv_inf_nombre,7,Datos de la persona que suministra la información en la visita,Nombre,texto,no,encuesta,,"",""
+Formulario de Vivienda,V090,viv_inf_cc,7,Datos de la persona que suministra la información en la visita,C.C. No.,texto,no,encuesta,,"",""
+Formulario de Vivienda,V091,viv_inf_parentesco,7,Datos de la persona que suministra la información en la visita,Parentesco,texto,no,encuesta,,"",""
+Formulario de Vivienda,V092,viv_inf_telefono,7,Datos de la persona que suministra la información en la visita,Teléfono cel./fijo,texto,no,encuesta,,"",""
+Formulario de Vivienda,V093,viv_inf_firma,7,Datos de la persona que suministra la información en la visita,Firma,confirmacion,no,encuesta,,"",""
+Formulario de Vivienda,V094,viv_declaracion_tipo,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,Declaración de conformidad — el apoyo al que no puede acceder es para,unica,no,encuesta,1,rehabilitacion,Rehabilitación
+Formulario de Vivienda,V094,viv_declaracion_tipo,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,Declaración de conformidad — el apoyo al que no puede acceder es para,unica,no,encuesta,2,construccion,Construcción
+Formulario de Vivienda,V095,viv_nc_nombre,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,Nombre,texto,no,encuesta,,"",""
+Formulario de Vivienda,V096,viv_nc_cc,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,C.C. No.,texto,no,encuesta,,"",""
+Formulario de Vivienda,V097,viv_nc_telefono,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,Teléfono cel./fijo,texto,no,encuesta,,"",""
+Formulario de Vivienda,V098,viv_nc_firma,8,Afectado que no cumple con los requisitos para la auto-rehabilitación de la vivienda,Firma,confirmacion,no,encuesta,,"",""
+Formulario de Vivienda,V099,viv_firma_profesional_nombre,9,Firma y aprobación de la inspección y evaluación de la vivienda,Firma del profesional responsable de la inspección y evaluación — Nombre,texto,no,encuesta,,"",""
+Formulario de Vivienda,V100,viv_firma_profesional_ok,9,Firma y aprobación de la inspección y evaluación de la vivienda,Firma del profesional responsable,confirmacion,no,encuesta,,"",""
+Formulario de Vivienda,V101,viv_aprobo_coordinador_nombre,9,Firma y aprobación de la inspección y evaluación de la vivienda,Aprobó: firma coordinador del Consejo Territorial que realiza la inspección y evaluación — Nombre,texto,no,encuesta,,"",""
+Formulario de Vivienda,V102,viv_aprobo_coordinador_ok,9,Firma y aprobación de la inspección y evaluación de la vivienda,Firma del coordinador del Consejo Territorial,confirmacion,no,encuesta,,"",""
+Formulario de Personas / Familia,P001,per_nombres,1-4,Personas del hogar,Nombres,texto,sí,persona,,"",""
+Formulario de Personas / Familia,P002,per_apellidos,1-4,Personas del hogar,Apellidos,texto,sí,persona,,"",""
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,1,1,1 · Registro civil
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,2,2,2 · Tarjeta de identidad
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,3,3,3 · Cédula de ciudadanía
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,4,4,4 · Cédula de extranjería
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,5,5,5 · Indocumentado
+Formulario de Personas / Familia,P003,per_tipo_documento,1-4,Personas del hogar,Tipo de documento,unica,no,persona,6,6,6 · No sabe / No responde
+Formulario de Personas / Familia,P004,per_numero_documento,1-4,Personas del hogar,Número de documento,texto,no,persona,,"",""
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,1,1,1 · Jefe de hogar
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,2,2,2 · Esposo(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,3,3,3 · Hijo(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,4,4,4 · Primo(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,5,5,5 · Tío(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,6,6,6 · Nieto(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,7,7,7 · Suegro(a)
+Formulario de Personas / Familia,P005,per_parentesco,1-4,Personas del hogar,Parentesco con el jefe de hogar,unica,no,persona,8,8,8 · Yerno / Nuera
+Formulario de Personas / Familia,P006,per_genero,1-4,Personas del hogar,Género,unica,no,persona,1,F,F · Femenino
+Formulario de Personas / Familia,P006,per_genero,1-4,Personas del hogar,Género,unica,no,persona,2,M,M · Masculino
+Formulario de Personas / Familia,P007,per_edad,1-4,Personas del hogar,Edad,numero,no,persona,,"",""
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,1,1,1 · Afrocolombiano
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,2,2,2 · Indígena
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,3,3,3 · Gitano - Rom
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,4,4,4 · Raizal
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,5,5,5 · Otro
+Formulario de Personas / Familia,P008,per_etnia,1-4,Personas del hogar,Etnia,unica,no,persona,6,6,6 · Sin información
+Formulario de Personas / Familia,P009,per_estado_salud,1-4,Personas del hogar,Estado de salud,unica,no,persona,1,1,1 · Requiere asistencia médica
+Formulario de Personas / Familia,P009,per_estado_salud,1-4,Personas del hogar,Estado de salud,unica,no,persona,2,2,2 · No requiere asistencia médica
+Formulario de Personas / Familia,P010,per_afiliacion_salud,1-4,Personas del hogar,Afiliación al régimen de salud,unica,no,persona,1,1,1 · Contributivo
+Formulario de Personas / Familia,P010,per_afiliacion_salud,1-4,Personas del hogar,Afiliación al régimen de salud,unica,no,persona,2,2,2 · Subsidiado
+Formulario de Personas / Familia,P010,per_afiliacion_salud,1-4,Personas del hogar,Afiliación al régimen de salud,unica,no,persona,3,3,3 · Sin afiliación
+Formulario de Personas / Familia,P011,per_ubicacion_inmueble,1-4,Personas del hogar,Ubicación del inmueble,unica,no,persona,1,rural,Rural
+Formulario de Personas / Familia,P011,per_ubicacion_inmueble,1-4,Personas del hogar,Ubicación del inmueble,unica,no,persona,2,urbano,Urbano
+Formulario de Personas / Familia,P012,per_propiedad_inmueble,1-4,Personas del hogar,Propiedad del inmueble,unica,no,persona,1,propia,Propia
+Formulario de Personas / Familia,P012,per_propiedad_inmueble,1-4,Personas del hogar,Propiedad del inmueble,unica,no,persona,2,arriendo,Arriendo
+Formulario de Personas / Familia,P013,per_estado_inmueble,1-4,Personas del hogar,Estado del inmueble,unica,no,persona,1,1,1 · Habitable
+Formulario de Personas / Familia,P013,per_estado_inmueble,1-4,Personas del hogar,Estado del inmueble,unica,no,persona,2,2,2 · No habitable
+Formulario de Personas / Familia,P013,per_estado_inmueble,1-4,Personas del hogar,Estado del inmueble,unica,no,persona,3,3,3 · Destruida
+Formulario de Personas / Familia,P014,per_ahe_alimentaria,1-4,Personas del hogar,Ayuda humanitaria de emergencia — Alimentaria (AHE ALIM.),unica,no,persona,1,si,Sí
+Formulario de Personas / Familia,P014,per_ahe_alimentaria,1-4,Personas del hogar,Ayuda humanitaria de emergencia — Alimentaria (AHE ALIM.),unica,no,persona,2,no,No
+Formulario de Personas / Familia,P015,per_ahe_no_alimentaria,1-4,Personas del hogar,Ayuda humanitaria de emergencia — No alimentaria (AHE NO ALIM.),unica,no,persona,1,si,Sí
+Formulario de Personas / Familia,P015,per_ahe_no_alimentaria,1-4,Personas del hogar,Ayuda humanitaria de emergencia — No alimentaria (AHE NO ALIM.),unica,no,persona,2,no,No
+Formulario de Personas / Familia,P016,per_mat_rehab_vivienda,1-4,Personas del hogar,Material para rehabilitación de vivienda (MAT. REHAB. DE VIVIENDA),unica,no,persona,1,si,Sí
+Formulario de Personas / Familia,P016,per_mat_rehab_vivienda,1-4,Personas del hogar,Material para rehabilitación de vivienda (MAT. REHAB. DE VIVIENDA),unica,no,persona,2,no,No
+Formulario de Personas / Familia,P017,per_sub_arriendo,1-4,Personas del hogar,Subsidio de arriendo (SUB. ARRIENDO),unica,no,persona,1,si,Sí
+Formulario de Personas / Familia,P017,per_sub_arriendo,1-4,Personas del hogar,Subsidio de arriendo (SUB. ARRIENDO),unica,no,persona,2,no,No
+Formulario de Personas / Familia,P018,edan_elaborado_por,5,Datos finales del formato,Elaborado por,texto,sí,encuesta,,"",""
+Formulario de Personas / Familia,P019,edan_elaborado_por_firma,5,Datos finales del formato,Firma de quien elabora,confirmacion,no,encuesta,,"",""
+Formulario de Personas / Familia,P020,edan_entidad_operativa,5,Datos finales del formato,Entidad operativa,texto,no,encuesta,,"",""
+Formulario de Personas / Familia,P021,edan_observaciones,5,Datos finales del formato,Observaciones,textarea,no,encuesta,,"",""
+Formulario de Personas / Familia,P022,edan_vobo_cmgrd_nombre,5,Datos finales del formato,Vo.Bo. CMGRD — Presidente CMGRD (nombre),texto,no,encuesta,,"",""
+Formulario de Personas / Familia,P023,edan_vobo_cmgrd_firma,5,Datos finales del formato,Vo.Bo. CMGRD,confirmacion,no,encuesta,,"",""
+Formulario de Personas / Familia,P024,edan_vobo_cdgrd_nombre,5,Datos finales del formato,Vo.Bo. CDGRD (nombre),texto,no,encuesta,,"",""
+Formulario de Personas / Familia,P025,edan_vobo_cdgrd_firma,5,Datos finales del formato,Vo.Bo. CDGRD,confirmacion,no,encuesta,,"",""
+Formulario de Vivienda,V103,viv_prof_organismo,1,Información general,Nombre del organismo al que pertenece,texto,no,encuesta,,"",""

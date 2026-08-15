@@ -1,0 +1,345 @@
+[2026-08-14 16:59:33] === corrida 5 iniciada === 
+[2026-08-14 16:59:33] ingestion: 6 archivo(s) en la carpeta 
+[2026-08-14 16:59:33] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 16:59:33] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 16:59:34] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 16:59:34] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 16:59:34] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 16:59:34] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=2 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 16:59:35] consulta: 8 personas, 6 afectaciones, 7 edificaciones, 15 fichas 
+[2026-08-14 16:59:35] === corrida 5 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 17:01:36] === corrida 6 iniciada === 
+[2026-08-14 17:01:36] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 17:01:36] ingestion: 2 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 17:01:36] personas_gestion_riesgo_20260815_0900.xlsx: procesado (2 filas) 
+[2026-08-14 17:01:36] viviendas_gestion_riesgo_20260815_0900.xlsx: procesado (1 filas) 
+[2026-08-14 17:01:36] ingestion: 2 archivos | 3 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 17:01:37] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 17:01:37] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 17:01:37] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 17:01:38] match PER-J3-K: (nuevo) -> matched_hogar (VIV-J3-K) 
+[2026-08-14 17:01:38] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 1 cambio(s) en esta corrida 
+[2026-08-14 17:01:38] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas 
+[2026-08-14 17:01:38] === corrida 6 terminada (ok): 2 archivos | 3 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 17:02:17] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas 
+[2026-08-14 17:09:38] tablero: 9 personas, 7 viviendas exportadas 
+[2026-08-14 17:13:58] tablero: 9 personas, 7 viviendas exportadas 
+[2026-08-14 17:15:29] === corrida 1 iniciada === 
+[2026-08-14 17:15:30] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 17:15:30] ingestion: 8 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 17:15:30] personas_gestion_riesgo_20260813_0800.xlsx: procesado (5 filas) 
+[2026-08-14 17:15:30] personas_gestion_riesgo_20260814_0800.xlsx: procesado (6 filas) 
+[2026-08-14 17:15:30] personas_gestion_riesgo_20260815_0900.xlsx: procesado (2 filas) 
+[2026-08-14 17:15:30] personas_vivienda_20260813.xlsx: procesado (2 filas) 
+[2026-08-14 17:15:30] viviendas_gestion_riesgo_20260813_0800.xlsx: procesado (3 filas) 
+[2026-08-14 17:15:30] viviendas_gestion_riesgo_20260814_0800.xlsx: procesado (4 filas) 
+[2026-08-14 17:15:30] viviendas_gestion_riesgo_20260815_0900.xlsx: procesado (1 filas) 
+[2026-08-14 17:15:30] viviendas_vivienda_20260813.xlsx: procesado (3 filas) 
+[2026-08-14 17:15:30] ingestion: 8 archivos | 18 insertados | 1 actualizados | 7 sin cambio 
+[2026-08-14 17:15:30] dedup personas: 1 duplicado(s) vigentes, 1 cambio(s) en esta corrida 
+[2026-08-14 17:15:30] dedup viviendas: 1 duplicado(s) vigentes, 1 cambio(s) en esta corrida 
+[2026-08-14 17:15:30] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 17:15:31] match PER-J1-A: (nuevo) -> matched_hogar (VIV-J1-A) 
+[2026-08-14 17:15:31] match PER-J1-B: (nuevo) -> matched_cedula (VIV-J1-B) 
+[2026-08-14 17:15:31] match PER-J1-D: (nuevo) -> no_match 
+[2026-08-14 17:15:31] match PER-J1-I: (nuevo) -> matched_cedula (VIV-J1-C) 
+[2026-08-14 17:15:31] match PER-J2-G: (nuevo) -> matched_hogar (VIV-J2-G) 
+[2026-08-14 17:15:31] match PER-J3-K: (nuevo) -> matched_hogar (VIV-J3-K) 
+[2026-08-14 17:15:31] match PER-J1-F: (nuevo) -> ambiguous 
+[2026-08-14 17:15:31] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 7 cambio(s) en esta corrida 
+[2026-08-14 17:15:31] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas 
+[2026-08-14 17:15:31] === corrida 1 terminada (ok): 8 archivos | 18 insertados | 1 actualizados | 7 sin cambio === 
+[2026-08-14 17:27:52] tablero: 9 personas, 7 viviendas exportadas 
+[2026-08-14 17:38:51] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 17:40:32] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 18:01:21] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 18:27:58] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 19:02:26] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas (+ copia al portal) 
+[2026-08-14 19:06:09] === corrida 2 iniciada === 
+[2026-08-14 19:06:09] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 19:06:09] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 19:06:09] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 19:06:10] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 19:06:10] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 19:06:10] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 19:06:11] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 19:06:11] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas -> ../web_damage_cali/modules/consulta 
+[2026-08-14 19:06:11] === corrida 2 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:01:32] === corrida 3 iniciada === 
+[2026-08-14 20:01:33] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 20:01:33] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 20:01:33] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 20:01:33] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 20:01:34] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:01:34] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:01:34] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:01:34] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 20:01:35] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas -> ../web_damage_cali/modules/consulta 
+[2026-08-14 20:01:35] === corrida 3 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:02:46] === corrida 4 iniciada === 
+[2026-08-14 20:02:47] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 20:02:47] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 20:02:47] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 20:02:47] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 20:02:48] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:02:48] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:02:48] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:02:48] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 20:02:49] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas -> ../web_damage_cali/modules/consulta 
+[2026-08-14 20:02:49] === corrida 4 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:14:54] === corrida 5 iniciada === 
+[2026-08-14 20:14:54] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 20:14:54] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 20:14:54] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 20:14:55] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 20:14:55] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:14:55] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:14:55] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:14:56] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 20:14:56] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas -> ../modules/consulta 
+[2026-08-14 20:14:57] ERROR: pipeline/05_exportar_tablero.R termino con codigo 1; la corrida se detiene 
+[2026-08-14 20:14:57] === corrida 5 terminada (error): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:16:00] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 20:16:10] === corrida 6 iniciada === 
+[2026-08-14 20:16:10] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 20:16:11] ingestion: 8 archivo(s) en la carpeta 
+[2026-08-14 20:16:11] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 20:16:11] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 20:16:11] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:16:11] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:16:11] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:16:12] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=3 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 20:16:12] consulta: 10 personas, 7 afectaciones, 8 edificaciones, 18 fichas -> ../modules/consulta 
+[2026-08-14 20:16:13] tablero: 9 personas, 7 viviendas, 4 casos por revisar 
+[2026-08-14 20:16:13] === corrida 6 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:20:30] === corrida 7 iniciada === 
+[2026-08-14 20:20:31] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 20:20:31] ingestion: 10 archivo(s) en la carpeta 
+[2026-08-14 20:20:31] ingestion: 2 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 20:20:31] personas_jornada4_20260816_0700.xlsx: procesado (55 filas) 
+[2026-08-14 20:20:32] viviendas_jornada4_20260816_0700.xlsx: procesado (20 filas) 
+[2026-08-14 20:20:32] ingestion: 2 archivos | 75 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 20:20:32] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:20:32] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:20:32] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 20:20:33] match PER-J4-01: (nuevo) -> matched_hogar (VIV-J4-01) 
+[2026-08-14 20:20:33] match PER-J4-02: (nuevo) -> matched_hogar (VIV-J4-02) 
+[2026-08-14 20:20:33] match PER-J4-03: (nuevo) -> matched_hogar (VIV-J4-03) 
+[2026-08-14 20:20:33] match PER-J4-04: (nuevo) -> matched_hogar (VIV-J4-04) 
+[2026-08-14 20:20:33] match PER-J4-05: (nuevo) -> matched_hogar (VIV-J4-05) 
+[2026-08-14 20:20:33] match PER-J4-06: (nuevo) -> matched_hogar (VIV-J4-06) 
+[2026-08-14 20:20:33] match PER-J4-07: (nuevo) -> matched_hogar (VIV-J4-07) 
+[2026-08-14 20:20:33] match PER-J4-08: (nuevo) -> matched_hogar (VIV-J4-08) 
+[2026-08-14 20:20:33] match PER-J4-09: (nuevo) -> matched_hogar (VIV-J4-09) 
+[2026-08-14 20:20:33] match PER-J4-10: (nuevo) -> matched_hogar (VIV-J4-10) 
+[2026-08-14 20:20:33] match PER-J4-11: (nuevo) -> matched_hogar (VIV-J4-11) 
+[2026-08-14 20:20:33] match PER-J4-12: (nuevo) -> matched_hogar (VIV-J4-12) 
+[2026-08-14 20:20:33] match PER-J4-13: (nuevo) -> matched_hogar (VIV-J4-13) 
+[2026-08-14 20:20:33] match PER-J4-14: (nuevo) -> matched_hogar (VIV-J4-14) 
+[2026-08-14 20:20:33] match PER-J4-15: (nuevo) -> matched_hogar (VIV-J4-15) 
+[2026-08-14 20:20:33] match PER-J4-16: (nuevo) -> matched_hogar (VIV-J4-16) 
+[2026-08-14 20:20:33] match PER-J4-17: (nuevo) -> matched_hogar (VIV-J4-17) 
+[2026-08-14 20:20:33] match PER-J4-18: (nuevo) -> matched_hogar (VIV-J4-18) 
+[2026-08-14 20:20:33] match PER-J4-19: (nuevo) -> matched_hogar (VIV-J4-19) 
+[2026-08-14 20:20:33] match PER-J4-20: (nuevo) -> matched_hogar (VIV-J4-20) 
+[2026-08-14 20:20:33] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=1 | 20 cambio(s) en esta corrida 
+[2026-08-14 20:20:33] consulta: 65 personas, 27 afectaciones, 28 edificaciones, 93 fichas -> ../modules/consulta 
+[2026-08-14 20:20:34] tablero: 64 personas, 27 viviendas, 4 casos por revisar 
+[2026-08-14 20:20:34] === corrida 7 terminada (ok): 2 archivos | 75 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 20:24:20] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:04:19] === corrida 8 iniciada === 
+[2026-08-14 21:04:19] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:04:20] hoja: no hay token de extraccion en .secrets/token_exportacion.txt. Cree el archivo con la misma cadena de la propiedad TOKEN_EXPORTACION del script de Google (vea el README, seccion "Conexion a la hoja del Apps Script"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:04:20] ingestion: 11 archivo(s) en la carpeta 
+[2026-08-14 21:04:20] ingestion: 1 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:04:20] viviendas_app_real_20260814.csv: procesado (20 filas) 
+[2026-08-14 21:04:20] ingestion: 1 archivos | 20 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:04:21] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:04:21] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:04:21] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:04:21] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 21:04:22] consulta: 65 personas, 27 afectaciones, 48 edificaciones, 113 fichas -> ../modules/consulta 
+[2026-08-14 21:04:22] tablero: 64 personas, 47 viviendas, 4 casos por revisar 
+[2026-08-14 21:04:23] === corrida 8 terminada (ok): 1 archivos | 20 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:24:03] hoja: receptor version 1.2.0, hora del servidor 2026-08-14 21:24:03 
+[2026-08-14 21:24:05] hoja: el receptor respondio 'accion_no_reconocida' (accion inventario) — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:30:49] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:30:48 
+[2026-08-14 21:30:53] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:31:01] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:31:04] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:31:04] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:31:14] === corrida 9 iniciada === 
+[2026-08-14 21:31:14] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:31:16] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:31:16 
+[2026-08-14 21:31:25] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:31:27] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:31:29] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:31:29] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:31:29] ingestion: 13 archivo(s) en la carpeta 
+[2026-08-14 21:31:29] ingestion: 2 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:31:30] personas_hoja.csv: procesado (7 filas) 
+[2026-08-14 21:31:30] viviendas_hoja.csv: procesado (4 filas) 
+[2026-08-14 21:31:30] ingestion: 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:31:30] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:31:30] dedup viviendas: 4 duplicado(s) vigentes, 3 cambio(s) en esta corrida 
+[2026-08-14 21:31:30] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:31:31] match PER-20260814-42H2QF: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-6R6ASR: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-MNEVEG: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-NATG7J: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-R3QZKG: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-U2UZK8: (nuevo) -> no_match 
+[2026-08-14 21:31:31] match PER-20260814-V5U86Q: (nuevo) -> no_match 
+[2026-08-14 21:31:31] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=8 | 7 cambio(s) en esta corrida 
+[2026-08-14 21:31:31] consulta: 72 personas, 34 afectaciones, 52 edificaciones, 124 fichas -> ../modules/consulta 
+[2026-08-14 21:31:32] tablero: 71 personas, 48 viviendas, 14 casos por revisar 
+[2026-08-14 21:31:32] === corrida 9 terminada (ok): 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:37:07] tablero: 71 personas, 48 viviendas, 14 casos por revisar 
+[2026-08-14 21:44:37] === corrida 10 iniciada === 
+[2026-08-14 21:44:37] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/onedrive_sim 
+[2026-08-14 21:44:39] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:44:39 
+[2026-08-14 21:44:49] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:44:56] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:45:02] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:45:02] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:45:03] ingestion: 13 archivo(s) en la carpeta 
+[2026-08-14 21:45:03] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:45:03] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:45:04] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:45:04] dedup viviendas: 4 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:45:04] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:45:04] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=8 | 0 cambio(s) en esta corrida 
+[2026-08-14 21:45:05] consulta: 72 personas, 34 afectaciones, 52 edificaciones, 124 fichas -> ../modules/consulta 
+[2026-08-14 21:45:05] tablero: 71 personas, 48 viviendas, 14 casos por revisar 
+[2026-08-14 21:45:05] === corrida 10 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:52:38] === corrida 1 iniciada === 
+[2026-08-14 21:52:38] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-14 21:52:40] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:52:40 
+[2026-08-14 21:52:43] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:52:44] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:52:47] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:52:47] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:52:47] ingestion: 2 archivo(s) en la carpeta 
+[2026-08-14 21:52:47] ingestion: 2 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:52:47] personas_hoja.csv: procesado (7 filas) 
+[2026-08-14 21:52:47] viviendas_hoja.csv: procesado (4 filas) 
+[2026-08-14 21:52:47] ingestion: 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:52:48] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:52:48] dedup viviendas: 3 duplicado(s) vigentes, 3 cambio(s) en esta corrida 
+[2026-08-14 21:52:48] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:52:49] match PER-20260814-42H2QF: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-6R6ASR: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-MNEVEG: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-NATG7J: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-R3QZKG: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-U2UZK8: (nuevo) -> no_match 
+[2026-08-14 21:52:49] match PER-20260814-V5U86Q: (nuevo) -> no_match 
+[2026-08-14 21:52:49] matching: no_match=7 | 7 cambio(s) en esta corrida 
+[2026-08-14 21:52:49] consulta: 7 personas, 7 afectaciones, 4 edificaciones, 11 fichas -> ../modules/consulta 
+[2026-08-14 21:52:50] tablero: 7 personas, 1 viviendas, 10 casos por revisar 
+[2026-08-14 21:52:50] === corrida 1 terminada (ok): 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:53:55] === corrida 1 iniciada === 
+[2026-08-14 21:53:55] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-14 21:53:57] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:53:57 
+[2026-08-14 21:54:02] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:54:04] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:54:07] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:54:07] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:54:07] ingestion: 2 archivo(s) en la carpeta 
+[2026-08-14 21:54:07] ingestion: 2 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:54:08] personas_hoja.csv: procesado (7 filas) 
+[2026-08-14 21:54:08] viviendas_hoja.csv: procesado (4 filas) 
+[2026-08-14 21:54:08] ingestion: 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:54:08] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:08] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:08] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:09] match PER-20260814-42H2QF: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-6R6ASR: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-MNEVEG: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-NATG7J: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-R3QZKG: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-U2UZK8: (nuevo) -> no_match 
+[2026-08-14 21:54:09] match PER-20260814-V5U86Q: (nuevo) -> no_match 
+[2026-08-14 21:54:09] matching: no_match=7 | 7 cambio(s) en esta corrida 
+[2026-08-14 21:54:09] consulta: 7 personas, 7 afectaciones, 4 edificaciones, 11 fichas -> ../modules/consulta 
+[2026-08-14 21:54:10] tablero: 7 personas, 4 viviendas, 7 casos por revisar 
+[2026-08-14 21:54:10] === corrida 1 terminada (ok): 2 archivos | 11 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:54:43] === corrida 2 iniciada === 
+[2026-08-14 21:54:43] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-14 21:54:45] hoja: receptor version 1.4.0, hora del servidor 2026-08-14 21:54:45 
+[2026-08-14 21:54:48] hoja: viviendas=4 | personas_hogares=7 | personas=7 | indice=11 | diccionario=0 
+[2026-08-14 21:54:51] hoja: viviendas -> viviendas_hoja.csv (4 filas, 225 columnas) 
+[2026-08-14 21:54:53] hoja: personas -> personas_hoja.csv (7 filas, 64 columnas) 
+[2026-08-14 21:54:53] hoja: 2 de 2 tabla(s) descargada(s) 
+[2026-08-14 21:54:54] ingestion: 2 archivo(s) en la carpeta 
+[2026-08-14 21:54:54] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:54:54] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 21:54:55] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:55] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:55] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:55] matching: no_match=7 | 0 cambio(s) en esta corrida 
+[2026-08-14 21:54:56] consulta: 7 personas, 7 afectaciones, 4 edificaciones, 11 fichas -> ../modules/consulta 
+[2026-08-14 21:54:56] tablero: 7 personas, 4 viviendas, 7 casos por revisar 
+[2026-08-14 21:54:56] === corrida 2 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-14 21:58:20] === corrida 1 iniciada === 
+[2026-08-14 21:58:20] MODO SIMULACION: datos ficticios de data/pruebas -> base_simulada.sqlite 
+[2026-08-14 21:58:21] ingestion: 11 archivo(s) en la carpeta 
+[2026-08-14 21:58:21] ingestion: 11 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 21:58:21] personas_gestion_riesgo_20260813_0800.xlsx: procesado (5 filas) 
+[2026-08-14 21:58:21] personas_gestion_riesgo_20260814_0800.xlsx: procesado (6 filas) 
+[2026-08-14 21:58:21] personas_gestion_riesgo_20260815_0900.xlsx: procesado (2 filas) 
+[2026-08-14 21:58:21] personas_jornada4_20260816_0700.xlsx: procesado (55 filas) 
+[2026-08-14 21:58:21] personas_vivienda_20260813.xlsx: procesado (2 filas) 
+[2026-08-14 21:58:21] viviendas_app_real_20260814.csv: procesado (20 filas) 
+[2026-08-14 21:58:21] viviendas_gestion_riesgo_20260813_0800.xlsx: procesado (3 filas) 
+[2026-08-14 21:58:21] viviendas_gestion_riesgo_20260814_0800.xlsx: procesado (4 filas) 
+[2026-08-14 21:58:21] viviendas_gestion_riesgo_20260815_0900.xlsx: procesado (1 filas) 
+[2026-08-14 21:58:21] viviendas_jornada4_20260816_0700.xlsx: procesado (20 filas) 
+[2026-08-14 21:58:21] viviendas_vivienda_20260813.xlsx: procesado (3 filas) 
+[2026-08-14 21:58:21] ingestion: 11 archivos | 113 insertados | 1 actualizados | 7 sin cambio 
+[2026-08-14 21:58:22] dedup personas: 1 duplicado(s) vigentes, 1 cambio(s) en esta corrida 
+[2026-08-14 21:58:22] dedup viviendas: 1 duplicado(s) vigentes, 1 cambio(s) en esta corrida 
+[2026-08-14 21:58:22] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 21:58:22] match PER-J1-A: (nuevo) -> matched_hogar (VIV-J1-A) 
+[2026-08-14 21:58:22] match PER-J1-B: (nuevo) -> matched_cedula (VIV-J1-B) 
+[2026-08-14 21:58:22] match PER-J1-D: (nuevo) -> no_match 
+[2026-08-14 21:58:22] match PER-J1-I: (nuevo) -> matched_cedula (VIV-J1-C) 
+[2026-08-14 21:58:22] match PER-J2-G: (nuevo) -> matched_hogar (VIV-J2-G) 
+[2026-08-14 21:58:22] match PER-J3-K: (nuevo) -> matched_hogar (VIV-J3-K) 
+[2026-08-14 21:58:22] match PER-J4-01: (nuevo) -> matched_hogar (VIV-J4-01) 
+[2026-08-14 21:58:22] match PER-J4-02: (nuevo) -> matched_hogar (VIV-J4-02) 
+[2026-08-14 21:58:22] match PER-J4-03: (nuevo) -> matched_hogar (VIV-J4-03) 
+[2026-08-14 21:58:22] match PER-J4-04: (nuevo) -> matched_hogar (VIV-J4-04) 
+[2026-08-14 21:58:22] match PER-J4-05: (nuevo) -> matched_hogar (VIV-J4-05) 
+[2026-08-14 21:58:22] match PER-J4-06: (nuevo) -> matched_hogar (VIV-J4-06) 
+[2026-08-14 21:58:22] match PER-J4-07: (nuevo) -> matched_hogar (VIV-J4-07) 
+[2026-08-14 21:58:22] match PER-J4-08: (nuevo) -> matched_hogar (VIV-J4-08) 
+[2026-08-14 21:58:22] match PER-J4-09: (nuevo) -> matched_hogar (VIV-J4-09) 
+[2026-08-14 21:58:22] match PER-J4-10: (nuevo) -> matched_hogar (VIV-J4-10) 
+[2026-08-14 21:58:22] match PER-J4-11: (nuevo) -> matched_hogar (VIV-J4-11) 
+[2026-08-14 21:58:22] match PER-J4-12: (nuevo) -> matched_hogar (VIV-J4-12) 
+[2026-08-14 21:58:22] match PER-J4-13: (nuevo) -> matched_hogar (VIV-J4-13) 
+[2026-08-14 21:58:22] match PER-J4-14: (nuevo) -> matched_hogar (VIV-J4-14) 
+[2026-08-14 21:58:22] match PER-J4-15: (nuevo) -> matched_hogar (VIV-J4-15) 
+[2026-08-14 21:58:22] match PER-J4-16: (nuevo) -> matched_hogar (VIV-J4-16) 
+[2026-08-14 21:58:22] match PER-J4-17: (nuevo) -> matched_hogar (VIV-J4-17) 
+[2026-08-14 21:58:22] match PER-J4-18: (nuevo) -> matched_hogar (VIV-J4-18) 
+[2026-08-14 21:58:22] match PER-J4-19: (nuevo) -> matched_hogar (VIV-J4-19) 
+[2026-08-14 21:58:22] match PER-J4-20: (nuevo) -> matched_hogar (VIV-J4-20) 
+[2026-08-14 21:58:22] match PER-J1-F: (nuevo) -> ambiguous 
+[2026-08-14 21:58:22] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=1 | 27 cambio(s) en esta corrida 
+[2026-08-14 21:58:23] tablero: 64 personas, 47 viviendas, 4 casos por revisar 
+[2026-08-14 21:58:23] === corrida 1 terminada (ok): 11 archivos | 113 insertados | 1 actualizados | 7 sin cambio === 
+[2026-08-14 22:04:32] === corrida 2 iniciada === 
+[2026-08-14 22:04:33] drive: conexion desactivada (CONECTAR_DRIVE = FALSE); se omite 
+[2026-08-14 22:04:33] hoja: conexion desactivada (CONECTAR_HOJA = FALSE); se omite 
+[2026-08-14 22:04:34] ingestion: 11 archivo(s) en la carpeta 
+[2026-08-14 22:04:34] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-14 22:04:34] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-14 22:04:34] dedup personas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 22:04:34] dedup viviendas: 1 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 22:04:34] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-14 22:04:35] matching: ambiguous=1 | matched_cedula=2 | matched_hogar=23 | no_match=1 | 0 cambio(s) en esta corrida 
+[2026-08-14 22:04:36] consulta: 65 personas, 27 afectaciones, 48 edificaciones, 113 fichas -> ../modules/consulta 
+[2026-08-14 22:04:36] tablero: 64 personas, 47 viviendas, 4 casos por revisar 
+[2026-08-14 22:04:36] === corrida 2 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 

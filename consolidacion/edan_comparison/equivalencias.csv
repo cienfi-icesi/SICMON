@@ -1,0 +1,20 @@
+variable,esta,columna_historica,observacion
+viv_departamento,ambigua,,Implicito: toda la base historica es de Cali (Valle del Cauca); no existe como columna
+viv_municipio,ambigua,,Implicito: toda la base historica es de Cali; no existe como columna
+tipo_via,parcial,Direccion completa,Solo como texto libre dentro de la direccion; requiere parseo
+numero_via,parcial,Direccion completa,Solo como texto libre dentro de la direccion; requiere parseo
+sufijo_via,parcial,Direccion completa,Solo como texto libre dentro de la direccion; requiere parseo
+numero_generador,parcial,Direccion completa,Solo como texto libre; la mayoria de direcciones son del tipo "carrera X con calle Y" sin numero
+placa_inmueble,parcial,Direccion completa,Solo como texto libre; la mayoria de direcciones no traen placa
+tipo_inmueble,parcial,Tipo,Existe pero con categorias distintas (Casa/Edificio/... vs Casa/Conjunto residencial)
+direccion_completa,si,Direccion completa,Texto libre sin estructura; es la llave disponible para el cruce
+latitud,parcial,COORDENADAS,Una sola celda "lat lon" y diligenciada en 1 de 873 registros
+longitud,parcial,COORDENADAS,Una sola celda "lat lon" y diligenciada en 1 de 873 registros
+viv_corregimiento,parcial,Comuna - Corregimiento,La base mezcla comuna urbana y corregimiento en una sola columna
+viv_tipo_evento,ambigua,,Implicito: toda la base historica corresponde al sismo; no existe como columna
+viv_requiere_evacuacion,ambigua,Personas Evacuadas,La base registra evacuacion efectiva (y en 98 de 873); el formulario pregunta si la REQUIERE
+edan_observaciones,parcial,Observaciones generales (FORMULARIO),Existe pero diligenciada en 1 de 873 registros
+viv_prop_cc,no,,CLAVE: la base historica NO registra cedulas; el cruce con el formulario solo sera posible por direccion
+per_numero_documento,no,,CLAVE: la base historica NO registra cedulas de las personas afectadas
+per_estado_salud,ambigua,Fallecidos / Rescatados / Hospital/Clinica,Conteos agregados por edificacion; el formulario registra estado por persona
+per_estado_inmueble,ambigua,Normalizacion / Danos,Clasificacion global del dano de la edificacion; no por hogar

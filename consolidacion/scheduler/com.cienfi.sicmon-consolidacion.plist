@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Corrida del pipeline de consolidacion cada 10 minutos (launchd, macOS).
+
+  Instalacion:
+    cp scheduler/com.cienfi.sicmon-consolidacion.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.cienfi.sicmon-consolidacion.plist
+
+  Desinstalacion:
+    launchctl unload ~/Library/LaunchAgents/com.cienfi.sicmon-consolidacion.plist
+
+  Si el repo se mueve de carpeta hay que actualizar WorkingDirectory (y los
+  dos Path de abajo). CARPETA_TABLERO en config/parameters.R usa una ruta
+  relativa a este WorkingDirectory: si alcaldia_sismos tambien se mueve,
+  actualizar esa tambien.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cienfi.sicmon-consolidacion</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/Rscript</string>
+    <string>pipeline/run_pipeline.R</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/eduardmartinez/Library/CloudStorage/Dropbox/CIENFI/repositorios/web_damage_cali/consolidacion</string>
+
+  <key>StartInterval</key>
+  <integer>600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/eduardmartinez/Library/CloudStorage/Dropbox/CIENFI/repositorios/web_damage_cali/consolidacion/logs/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/eduardmartinez/Library/CloudStorage/Dropbox/CIENFI/repositorios/web_damage_cali/consolidacion/logs/launchd_error.log</string>
+</dict>
+</plist>

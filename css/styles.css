@@ -1,0 +1,259 @@
+/* ============================================================
+   SICMON · Sistema de Información para la Captura,
+   Consulta y Monitoreo de Desastres
+   CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali
+   ------------------------------------------------------------
+   Hoja de estilos única. Colores, tipografía y geometría se
+   controlan desde las variables de :root.
+   ============================================================ */
+
+:root {
+  /* Paleta */
+  --azul: #395CE0;
+  --azul-hover: #2743B8;
+  --azul-fondo: #EEF1FD;
+  --negro: #0B0B0C;
+  --tinta: #26272B;
+  --gris-oscuro: #5A5C61;
+  --gris: #88898C;
+  --gris-claro: #C9CCD4;
+  --linea: #E4E5E8;
+  --borde: #D9DBE0;
+  --neutro: #F7F8FA;
+  --blanco: #FFFFFF;
+
+  /* Tipografía */
+  --fuente: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  /* Geometría */
+  --radio: 8px;
+  --radio-boton: 6px;
+  --ancho: 1240px;
+  --pad-x: 48px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--fuente);
+  color: var(--negro);
+  background: var(--blanco);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, p, ul, li { margin: 0; padding: 0; }
+ul { list-style: none; }
+img { display: block; }
+a { color: var(--azul); text-decoration: none; }
+a:hover { color: var(--azul-hover); }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 3px; }
+
+.contenedor {
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+
+/* ---------- Encabezado institucional ---------- */
+.encabezado { border-bottom: 1px solid var(--linea); background: var(--blanco); }
+.encabezado__fila {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.marcas { display: flex; align-items: center; gap: 20px; }
+.marcas img.logo-cienfi { height: 22px; width: auto; }
+.marcas img.logo-icesi { height: 28px; width: auto; }
+.marcas img.logo-alcaldia { height: 40px; width: auto; }
+.marcas__sep { width: 1px; height: 28px; background: var(--linea); }
+.marcas__sep--aliado { height: 34px; margin: 0 4px; background: var(--gris-claro); }
+.sello {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gris);
+}
+
+/* ---------- Presentación del sistema ---------- */
+.presentacion { padding: 76px 0 64px; }
+.etiqueta { display: flex; align-items: center; gap: 10px; }
+.etiqueta::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--azul);
+  flex: 0 0 auto;
+}
+.etiqueta span {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gris-oscuro);
+}
+.sigla {
+  margin-top: 26px;
+  font-size: clamp(56px, 6.6vw, 96px);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+.desarrollado {
+  margin-top: 18px;
+  font-size: clamp(20px, 1.9vw, 26px);
+  line-height: 1.25;
+  letter-spacing: -0.024em;
+  font-weight: 600;
+  max-width: 30ch;
+}
+.explicacion {
+  margin-top: 30px;
+  padding-left: 24px;
+  border-left: 2px solid var(--azul);
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--tinta);
+  max-width: 88ch;
+  text-wrap: pretty;
+}
+
+/* ---------- Accesos del sistema ---------- */
+.accesos { padding: 0 0 96px; }
+.accesos__regla { height: 1px; background: var(--linea); }
+.accesos__rejilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.acceso {
+  display: flex;
+  flex-direction: column;
+  padding: 44px 40px 8px;
+  border-left: 1px solid var(--linea);
+}
+.acceso:first-child { padding-left: 0; border-left: 0; }
+.acceso:last-child { padding-right: 0; }
+.acceso__tope {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.acceso__num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--azul);
+}
+.acceso__ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--neutro);
+}
+.acceso__ico img { width: 19px; height: 19px; }
+.acceso__titulo {
+  margin-top: 22px;
+  font-size: 23px;
+  line-height: 1.2;
+  letter-spacing: -0.024em;
+  font-weight: 700;
+}
+.acceso__desc {
+  margin-top: 12px;
+  min-height: 72px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--gris-oscuro);
+  max-width: 34ch;
+  text-wrap: pretty;
+}
+.acceso__accion { margin-top: auto; padding-top: 40px; }
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+  height: 46px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: var(--radio-boton);
+  background: var(--azul);
+  color: var(--blanco);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background-color .16s;
+}
+.boton:hover { background: var(--azul-hover); color: var(--blanco); }
+/* Mientras el destino del aplicativo no está configurado, el botón
+   conserva su apariencia primaria; js/app.js impide la navegación. */
+.boton[aria-disabled="true"] { cursor: default; }
+
+/* ---------- Pie institucional ---------- */
+.pie {
+  margin-top: auto;
+  border-top: 1px solid var(--linea);
+  background: var(--neutro);
+}
+.pie__fila {
+  min-height: 82px;
+  padding: 22px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+.pie .marcas img.logo-cienfi { height: 18px; }
+.pie .marcas img.logo-icesi { height: 23px; }
+.pie .marcas img.logo-alcaldia { height: 32px; }
+.pie .marcas__sep { height: 22px; }
+.pie .marcas__sep--aliado { height: 28px; }
+.pie__texto { font-size: 12.5px; color: var(--gris); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  :root { --pad-x: 32px; }
+  .presentacion { padding: 60px 0 52px; }
+  .accesos__rejilla { grid-template-columns: 1fr; }
+  .acceso {
+    padding: 32px 0;
+    border-left: 0;
+    border-top: 1px solid var(--linea);
+  }
+  .acceso:first-child { border-top: 0; padding-top: 32px; }
+  .acceso__desc { min-height: 0; max-width: 60ch; }
+  .acceso__accion { padding-top: 24px; }
+  .accesos { padding-bottom: 64px; }
+}
+
+@media (max-width: 640px) {
+  :root { --pad-x: 20px; }
+  .encabezado__fila { min-height: 64px; gap: 14px; }
+  .marcas { gap: 14px; }
+  .marcas__sep { display: none; }
+  .marcas img.logo-cienfi { height: 18px; }
+  .marcas img.logo-icesi { height: 23px; }
+  .marcas img.logo-alcaldia { height: 32px; }
+  .sello { display: none; }
+  .presentacion { padding: 44px 0 40px; }
+  .explicacion { font-size: 15.5px; padding-left: 18px; }
+  .boton { width: 100%; justify-content: center; }
+  .pie__fila { flex-direction: column; align-items: flex-start; gap: 18px; }
+}

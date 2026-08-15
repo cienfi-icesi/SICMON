@@ -1,0 +1,317 @@
+/* ============================================================================
+   shared.css — Identidad visual común del portal y de sus módulos.
+
+   Esta hoja define los elementos que TODAS las páginas de la plataforma
+   comparten: paleta, tipografía, encabezado institucional, botones, píldoras,
+   paneles y pie de página. Un módulo nuevo que la enlace ya se ve como parte
+   de la plataforma sin escribir una línea de CSS.
+
+   La paleta y las reglas de accesibilidad táctil provienen del aplicativo
+   EDAN (modules/edan/styles.css), para que la transición entre el portal y
+   cualquier módulo no se sienta como un cambio de sitio.
+
+   Reglas que no se deben romper al editar este archivo:
+     · Los controles de escritura nunca bajan de 16px: por debajo, Safari en
+       iPhone hace zoom automático al enfocar un campo.
+     · Ninguna área de toque baja de 44px de alto.
+     · Nunca se desactiva el zoom del usuario.
+     · La página nunca desplaza en horizontal.
+   ========================================================================== */
+
+:root {
+  /* Paleta institucional — idéntica a la del aplicativo EDAN */
+  --azul: #395CE0;
+  --azul-oscuro: #2743B8;
+  --naranja: #C0562F;
+
+  --fondo: #F7F8FA;
+  --superficie: #ffffff;
+  --superficie-suave: #EEF1FD;
+  --tinta: #26272B;
+  --tinta-suave: #5A5C61;
+  --linea: #E4E5E8;
+
+  --peligro: #B3261E;
+  --exito: #147A3D;
+  --alerta: #8A6D1F;
+
+  --radio: 10px;
+  --sombra: 0 1px 2px rgba(11, 11, 12, .05);
+  --pad-vista: 22px;
+
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-size: 16px;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button, input, textarea, select { font: inherit; }
+
+a { color: var(--azul); }
+
+button, .btn, .tarjeta-modulo, label { touch-action: manipulation; }
+button, .btn, .tarjeta-modulo { -webkit-tap-highlight-color: rgba(57, 92, 224, .15); }
+
+.oculto { display: none !important; }
+
+h1, h2, h3, p, li, td, th { overflow-wrap: anywhere; }
+h1, h2, h3 { margin: 0; letter-spacing: -.015em; color: #0B0B0C; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.2rem; }
+h3 { font-size: 1rem; }
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--azul);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .72rem;
+  font-weight: 800;
+}
+.subtitle { margin: 6px 0 0; color: var(--tinta-suave); line-height: 1.5; }
+.hint { color: var(--tinta-suave); font-size: .85rem; line-height: 1.5; margin: 0; }
+
+code {
+  background: var(--superficie-suave);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: .85em;
+}
+
+/* ============================================================================
+   ENCABEZADO INSTITUCIONAL
+   Se repite en el portal y en cada módulo. El bloque de logos usa el mismo
+   criterio del EDAN: altura propia por logo, porque las proporciones son muy
+   distintas (el de CIENFI es una marca horizontal de 6.4:1).
+   ========================================================================== */
+.barra-institucional {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px var(--pad-vista);
+  background: rgba(255, 255, 255, .95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--linea);
+}
+
+.barra-marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.barra-logos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 14px;
+  border-right: 1px solid var(--linea);
+}
+.barra-logos img { height: 36px; width: auto; object-fit: contain; }
+.sep-marcas { width: 1px; height: 24px; background: var(--linea); flex: 0 0 auto; }
+.sep-marcas--aliado { height: 30px; background: #C9CCD4; }
+.pie-logos .sep-marcas { height: 18px; }
+.pie-logos .sep-marcas--aliado { height: 24px; }
+.barra-logos img[alt="CIENFI"] { height: 19px; }
+.barra-logos img[alt="Universidad Icesi"] { height: 27px; }
+
+.barra-textos { min-width: 0; }
+.barra-textos h1 { font-size: 1.05rem; }
+.barra-acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* ============================================================================
+   CONTENIDO
+   ========================================================================== */
+.contenido {
+  padding: var(--pad-vista);
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+}
+
+.panel {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(24, 32, 58, .04);
+  margin-bottom: 18px;
+}
+.panel-hero {
+  background: var(--superficie);
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* ============================================================================
+   BOTONES
+   Sirven tanto en <button> como en <a class="btn">.
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  padding: 11px 16px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, background .12s;
+  min-height: 44px;
+}
+@media (hover: hover) { .btn:hover { transform: translateY(-1px); } }
+.btn:active { transform: translateY(0); }
+.btn:focus-visible { outline: 3px solid rgba(57, 92, 224, .45); outline-offset: 2px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.btn-primario {
+  background: var(--azul);
+  color: #fff;
+}
+@media (hover: hover) { .btn-primario:hover { background: var(--azul-oscuro); } }
+.btn-secundario { background: #fff; color: var(--tinta); border-color: var(--linea); }
+.btn-primario-linea { background: #fff; color: var(--azul); border-color: rgba(57, 92, 224, .38); }
+.btn-bloque { width: 100%; }
+
+/* ============================================================================
+   PÍLDORAS DE ESTADO
+   Distinguen a simple vista un módulo operativo de uno preliminar.
+   ========================================================================== */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--superficie-suave);
+  color: var(--azul);
+  font-weight: 700;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.pill-ok { background: #e9f7ef; color: var(--exito); }
+.pill-atencion { background: #fff6e0; color: var(--alerta); }
+.pill-suave { background: #f1f2f7; color: #3b4560; }
+
+/* ============================================================================
+   AVISOS
+   ========================================================================== */
+.aviso {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff8e6;
+  border: 1px solid #f2d79c;
+  color: #6f5205;
+  font-size: .92rem;
+  line-height: 1.55;
+}
+.aviso-info {
+  background: #eef4ff;
+  border-color: #b9cdf5;
+  color: #1c3d78;
+}
+.aviso strong { font-weight: 800; }
+
+/* ============================================================================
+   LISTAS DE CONTENIDO PREVISTO (módulos preliminares)
+   ========================================================================== */
+.lista-marcada { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 10px; }
+.lista-marcada li {
+  position: relative;
+  padding-left: 26px;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+.lista-marcada li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: .55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--azul);
+  opacity: .55;
+}
+.lista-marcada strong { color: var(--tinta); }
+
+/* ============================================================================
+   PIE DE PÁGINA
+   ========================================================================== */
+.pie {
+  border-top: 1px solid var(--linea);
+  background: var(--superficie);
+  padding: 18px var(--pad-vista);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.pie-logos { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.pie-logos img { height: 26px; width: auto; object-fit: contain; opacity: .75; }
+.pie-logos img[alt="CIENFI"] { height: 16px; }
+
+/* ============================================================================
+   ADAPTACIÓN A PANTALLAS PEQUEÑAS
+   ========================================================================== */
+@media (max-width: 820px) {
+  :root { --pad-vista: 16px; }
+  .barra-institucional { padding: 10px 16px; }
+  .barra-logos img { height: 30px; }
+  .barra-logos img[alt="CIENFI"] { height: 16px; }
+  .barra-logos img[alt="Universidad Icesi"] { height: 23px; }
+  .barra-textos h1 { font-size: .98rem; }
+  .panel { padding: 18px; }
+}
+
+@media (max-width: 620px) {
+  .barra-institucional {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .barra-marca { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .barra-logos { border-right: none; padding-right: 0; }
+  .barra-acciones { justify-content: stretch; }
+  .barra-acciones .btn { flex: 1 1 auto; }
+  .pie { flex-direction: column; align-items: flex-start; gap: 12px; }
+  h1 { font-size: 1.3rem; }
+}
+
+@media print {
+  .barra-institucional, .barra-acciones, .btn { display: none !important; }
+  body { background: #fff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
