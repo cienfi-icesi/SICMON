@@ -70,7 +70,7 @@ resultado <- tryCatch({
            p.id_persona, p.id_encuesta, p.id_hogar,
            p.duplicate                         AS persona_duplicada,
            f.match_status, f.match_confidence, f.secretaria,
-           v.direccion_completa, v.cumple_requisitos, v.requiere_evacuacion,
+           v.municipio, v.direccion_completa, v.cumple_requisitos, v.requiere_evacuacion,
            v.sistema_constructivo,
            v.id_encuesta                       AS id_encuesta_vivienda,
            p.archivo_origen, p.last_update
@@ -91,7 +91,7 @@ resultado <- tryCatch({
     SELECT id_encuesta, id_hogar, prop_nombre, prop_cc, prop_cc_norm,
            inf_nombre, inf_cc, inf_cc_norm,
            cumple_requisitos, requiere_evacuacion, sistema_constructivo,
-           tipo_inmueble, direccion_completa, latitud, longitud,
+           tipo_inmueble, municipio, direccion_completa, latitud, longitud,
            ubicacion_confirmada, duplicate, id_canonico,
            fecha_actualizacion, archivo_origen, last_update
     FROM viviendas")

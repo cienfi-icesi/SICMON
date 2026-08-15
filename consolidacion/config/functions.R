@@ -99,7 +99,8 @@ conectar_db <- function() {
   ## CREATE TABLE IF NOT EXISTS no toca una tabla ya creada y SQLite no tiene
   ## ADD COLUMN IF NOT EXISTS, asi que se revisan una a una. Sin esto habria
   ## que borrar y reconstruir la base en cada cambio de esquema.
-  nuevas <- list(c("viviendas", "unidad_norm", "TEXT"))
+  nuevas <- list(c("viviendas", "unidad_norm", "TEXT"),
+                 c("viviendas", "municipio",   "TEXT"))
   for (n in nuevas) {
     columnas <- dbGetQuery(con, sprintf("PRAGMA table_info(%s)", n[1]))$name
     if (!n[2] %in% columnas) {

@@ -53,7 +53,7 @@ personas <- dbGetQuery(con, "
          p.id_persona, p.id_encuesta, p.id_hogar,
          p.duplicate                         AS persona_duplicada,
          f.match_status, f.match_confidence, f.secretaria,
-         v.direccion_completa, v.cumple_requisitos, v.requiere_evacuacion,
+         v.municipio, v.direccion_completa, v.cumple_requisitos, v.requiere_evacuacion,
          v.sistema_constructivo,
          v.id_encuesta                       AS id_encuesta_vivienda,
          p.archivo_origen, p.last_update
@@ -80,7 +80,7 @@ viviendas <- dbGetQuery(con, "
   SELECT v.id_encuesta, v.id_hogar, v.prop_nombre, v.prop_cc, v.prop_cc_norm,
          v.inf_nombre, v.inf_cc, v.inf_cc_norm,
          v.cumple_requisitos, v.requiere_evacuacion, v.sistema_constructivo,
-         v.tipo_inmueble, v.direccion_completa, v.latitud, v.longitud,
+         v.tipo_inmueble, v.municipio, v.direccion_completa, v.latitud, v.longitud,
          v.ubicacion_confirmada, v.duplicate, v.id_canonico,
          v.fecha_actualizacion, v.archivo_origen, v.last_update,
          (SELECT GROUP_CONCAT(c.id_encuesta_afectacion, ' | ')

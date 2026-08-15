@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS viviendas (
   numero_generador     TEXT,
   placa_inmueble       TEXT,
   tipo_inmueble        TEXT,
+  municipio            TEXT,     -- viv_municipio: los 42 del Valle (catalogo DANE)
   direccion_completa   TEXT,
   direccion_norm       TEXT,     -- llave del EDIFICIO (via, numero, placa)
   unidad_norm          TEXT,     -- llave de la UNIDAD (apartamento, casa, torre)

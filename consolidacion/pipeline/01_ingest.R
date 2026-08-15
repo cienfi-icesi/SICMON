@@ -210,6 +210,10 @@ for (i in seq_len(nrow(pendientes))) {
                       numero_generador     = columna(datos, "numero_generador"),
                       placa_inmueble       = columna(datos, "placa_inmueble"),
                       tipo_inmueble        = columna(datos, "tipo_inmueble"),
+                      ## el formulario lo pide desde la version 2.3.0 (los 42
+                      ## municipios del Valle); las encuestas anteriores no lo
+                      ## traen y columna() devuelve NA, que es lo correcto
+                      municipio            = columna(datos, "viv_municipio"),
                       direccion_completa   = columna(datos, "direccion_completa"),
                       direccion_norm       = llave_direccion(columna(datos, "tipo_via"),
                                                              columna(datos, "numero_via"),

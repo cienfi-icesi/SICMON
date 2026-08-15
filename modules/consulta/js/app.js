@@ -718,6 +718,11 @@
       tituloFicha: function (r) { return 'Formulario de la edificación — ' + valor(r.direccion_completa); },
       columnas: [
         { titulo: 'Registro', campo: 'id_encuesta', mono: true },
+        /* El municipio va ANTES de la dirección: es el filtro más grueso, y
+           quien busca suele acotar primero el municipio y después afinar. Lo
+           pide el formulario desde la 2.3.0 (los 42 del Valle); las encuestas
+           anteriores lo traen vacío y se ven como «—». */
+        { titulo: 'Municipio', campo: 'municipio' },
         { titulo: 'Dirección', campo: 'direccion_completa' },
         { titulo: 'Propietario', campo: 'prop_nombre' },
         { titulo: 'C.C. propietario', campo: 'prop_cc_norm', mono: true },
@@ -795,6 +800,7 @@
         { titulo: 'Estado del inmueble', campo: 'estado_inmueble' },
         { titulo: 'Estado de salud', campo: 'estado_salud' },
         { titulo: 'Vivienda', campo: 'match_status', render: function (r) { return chipMatch(r.match_status); } },
+        { titulo: 'Municipio', campo: 'municipio' },
         { titulo: 'Dirección', campo: 'direccion_completa' },
         { titulo: 'Hogar', campo: 'id_hogar', mono: true },
         { titulo: 'Duplicado', campo: 'persona_duplicada', render: function (r) { return chipSiNo(r.persona_duplicada === 1); } }
