@@ -643,6 +643,17 @@
           (obs.length ? obs.length + ' obs.' : '+ observación') + '</button></td></tr>';
     }).join('');
 
+    /* Una tabla con encabezados y nada debajo se lee como un error. Se
+       distingue el caso «la base todavía no tiene registros» del caso «los
+       filtros no dejaron pasar ninguno», que se arreglan de formas distintas. */
+    if (!cuerpo) {
+      var mensaje = base.filas().length
+        ? 'Ningún registro coincide con los filtros aplicados.'
+        : 'Todavía no hay registros en esta base. Aparecerán en cuanto lleguen ' +
+          'las primeras encuestas diligenciadas en campo.';
+      cuerpo = '<tr><td class="tabla__vacio" colspan="' + (columnas.length + 1) + '">' +
+               mensaje + '</td></tr>';
+    }
     $('#tabla-base').innerHTML = encabezado + '<tbody>' + cuerpo + '</tbody>';
     var duplicadosBase = base.filas().filter(esDuplicado).length;
     $('#conteo-base').textContent = base.titulo + ': ' + filas.length + ' de ' + base.filas().length + ' registros' +

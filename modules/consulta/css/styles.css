@@ -298,3 +298,9 @@ button.rol:hover { border-color: var(--azul); background: var(--azul-suave); }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .dato--ancho { min-width: 100%; }
+
+/* estado vacío de la tabla principal */
+.tabla__vacio {
+  text-align: center; color: var(--gris); font-size: 13.5px;
+  padding: 26px 16px !important; line-height: 1.5;
+}

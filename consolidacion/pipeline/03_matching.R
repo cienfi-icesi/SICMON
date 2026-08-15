@@ -81,10 +81,12 @@ nivel_hogar <- familias %>%
                          vivienda = first(id_encuesta_vivienda),
                          .groups = "drop") %>%
                transmute(id_encuesta,
-                         status    = ifelse(n_cand == 1, "matched_hogar", "ambiguous"),
+                         ## los tipos van forzados: con cero filas, ifelse() devuelve
+                         ## un NA logico y bind_rows() no puede combinarlo con texto
+                         status    = as.character(ifelse(n_cand == 1, "matched_hogar", "ambiguous")),
                          method    = "id_hogar",
-                         conf      = ifelse(n_cand == 1, CONF_HOGAR, NA),
-                         vivienda  = ifelse(n_cand == 1, vivienda, NA))
+                         conf      = as.numeric(ifelse(n_cand == 1, CONF_HOGAR, NA)),
+                         vivienda  = as.character(ifelse(n_cand == 1, vivienda, NA)))
 
 ## nivel 1: cedula de alguna persona de la familia == cedula del propietario
 nivel_cedula <- familias %>%
@@ -98,10 +100,10 @@ nivel_cedula <- familias %>%
                           vivienda = first(id_encuesta_vivienda),
                           .groups = "drop") %>%
                 transmute(id_encuesta,
-                          status   = ifelse(n_cand == 1, "matched_cedula", "ambiguous"),
+                          status   = as.character(ifelse(n_cand == 1, "matched_cedula", "ambiguous")),
                           method   = "cedula",
-                          conf     = ifelse(n_cand == 1, CONF_CEDULA, NA),
-                          vivienda = ifelse(n_cand == 1, vivienda, NA))
+                          conf     = as.numeric(ifelse(n_cand == 1, CONF_CEDULA, NA)),
+                          vivienda = as.character(ifelse(n_cand == 1, vivienda, NA)))
 
 ## resto: sin match
 objetivo <- bind_rows(nivel_hogar, nivel_cedula)
