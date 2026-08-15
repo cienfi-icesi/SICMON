@@ -1,0 +1,13 @@
+/* ============================================================================
+   modulo.css — Estilos propios de este módulo.
+
+   La paleta, el encabezado, los botones, las píldoras y el pie vienen de
+   assets/shared.css. Aquí solo va lo específico del módulo.
+
+   Variables disponibles (definidas en assets/shared.css):
+     --azul  --azul-oscuro  --morado  --naranja
+     --fondo  --superficie  --superficie-suave
+     --tinta  --tinta-suave  --linea
+     --peligro  --exito  --alerta
+     --radio  --sombra  --pad-vista
+   ========================================================================== */

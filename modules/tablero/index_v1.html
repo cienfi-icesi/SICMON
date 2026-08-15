@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Afectaciones sísmicas · Santiago de Cali</title>
+<meta name="description" content="Seguimiento consolidado de personas, hogares y viviendas afectadas por los eventos sísmicos en Santiago de Cali." />
+<!-- Tipografía: recurso externo (Google Fonts). Sin conexión se usa la del sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+<link rel="stylesheet" href="css/tablero.css" />
+</head>
+<!-- ============================================================
+     VERSIÓN ANTERIOR DEL TABLERO — no está enlazada desde el portal.
+     ------------------------------------------------------------
+     Su Resumen repite a tamaño completo los paneles de las otras
+     cuatro pestañas. Se reemplazó por el Resumen tipo portada, que
+     hoy es index.html. Se conserva para poder comparar; usa
+     css/tablero.css y js/tablero.js, que index.html ya no carga.
+     ============================================================ -->
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="encabezado">
+  <div class="contenedor encabezado__fila">
+    <div class="marcas">
+      <img class="logo-cienfi" src="assets/logos/logo-cienfi.png" alt="CIENFI — Centro de Investigación en Economía y Finanzas" />
+      <span class="marcas__sep" aria-hidden="true"></span>
+      <img class="logo-icesi" src="assets/logos/logo-icesi.png" alt="Universidad Icesi" />
+      <span class="marcas__sep marcas__sep--aliado" aria-hidden="true"></span>
+      <img class="logo-alcaldia" src="assets/logos/logo-alcaldia-cali.png" alt="Alcaldía de Santiago de Cali" />
+    </div>
+    <nav class="nav" aria-label="Secciones del tablero">
+      <a class="nav__enlace nav__enlace--activo" href="#" data-vista="resumen">Resumen</a>
+      <a class="nav__enlace" href="#" data-vista="territorio">Territorio</a>
+      <a class="nav__enlace" href="#" data-vista="personas">Personas</a>
+      <a class="nav__enlace" href="#" data-vista="viviendas">Viviendas</a>
+      <a class="nav__enlace" href="#" data-vista="necesidades">Necesidades</a>
+      <a class="nav__enlace" href="../../index.html">← Volver al portal principal</a>
+    </nav>
+  </div>
+</header>
+
+<main class="contenedor">
+
+  <div class="cabecera-pagina">
+    <p class="etiqueta-superior"><span aria-hidden="true"></span><span>Uso interno · Información sensible</span></p>
+    <h1>Afectaciones sísmicas · Santiago de Cali</h1>
+    <p class="subtitulo">Seguimiento consolidado de personas, hogares y viviendas afectadas.
+       <span id="actualizado" class="mono"></span></p>
+  </div>
+
+  <!-- ===================== FILTROS ===================== -->
+  <div class="filtros-barra" role="group" aria-label="Filtros del tablero">
+
+    <!-- Generales: aplican a todo el tablero, porque personas y viviendas
+         comparten ubicación y fecha. -->
+    <div class="filtros-grupo">
+      <p class="filtros-grupo__titulo">Generales</p>
+      <div class="filtros-grupo__campos">
+        <div class="campo">
+          <label class="campo__label" for="f-comuna">Comuna</label>
+          <select id="f-comuna" class="selector"><option value="">Todas</option></select>
+        </div>
+        <div class="campo">
+          <label class="campo__label" for="f-desde">Desde</label>
+          <input id="f-desde" class="selector mono" type="date" />
+        </div>
+        <div class="campo">
+          <label class="campo__label" for="f-hasta">Hasta</label>
+          <input id="f-hasta" class="selector mono" type="date" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Específicos de personas. Se declara el alcance porque la base no
+         enlaza cada persona con una ficha de vivienda concreta: filtrar
+         personas no puede filtrar viviendas sin inventar la relación. -->
+    <div class="filtros-grupo">
+      <p class="filtros-grupo__titulo">Personas y hogares</p>
+      <div class="filtros-grupo__campos">
+        <div class="campo">
+          <label class="campo__label" for="f-etario">Edad</label>
+          <select id="f-etario" class="selector"><option value="">Todos</option></select>
+        </div>
+        <div class="campo">
+          <label class="campo__label" for="f-inmueble">Inmueble</label>
+          <select id="f-inmueble" class="selector"><option value="">Todos</option></select>
+        </div>
+        <div class="campo">
+          <label class="campo__label" for="f-ayuda">Ayuda</label>
+          <select id="f-ayuda" class="selector"><option value="">Cualquiera</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Específicos de viviendas. -->
+    <div class="filtros-grupo">
+      <p class="filtros-grupo__titulo">Viviendas</p>
+      <div class="filtros-grupo__campos">
+        <div class="campo">
+          <label class="campo__label" for="f-evacuacion">Evacuación</label>
+          <select id="f-evacuacion" class="selector"><option value="">Todas</option></select>
+        </div>
+        <div class="campo">
+          <label class="campo__label" for="f-danio">Daño</label>
+          <select id="f-danio" class="selector"><option value="">Cualquiera</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="filtros-barra__acciones">
+      <button id="btn-limpiar" class="boton" type="button">Limpiar filtros</button>
+    </div>
+  </div>
+
+  <p class="universo" id="universo"></p>
+
+  <!-- ============================================================
+       VISTA · RESUMEN
+       ============================================================ -->
+  <section id="vista-resumen">
+
+    <!-- KPI principales -->
+    <section class="kpis" aria-label="Indicadores principales">
+      <div class="kpi">
+        <p class="kpi__etiqueta">Personas afectadas</p>
+        <p class="kpi__cifra" id="kpi-personas">—</p>
+        <p class="kpi__meta" id="kpi-personas-meta"></p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__etiqueta">Hogares afectados</p>
+        <p class="kpi__cifra" id="kpi-familias">—</p>
+        <p class="kpi__meta" id="kpi-familias-meta"></p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__etiqueta">Viviendas inspeccionadas</p>
+        <p class="kpi__cifra" id="kpi-viviendas">—</p>
+        <p class="kpi__meta" id="kpi-viviendas-meta"></p>
+      </div>
+      <div class="kpi kpi--alerta">
+        <p class="kpi__etiqueta">Requieren evacuación</p>
+        <p class="kpi__cifra" id="kpi-evacuacion">—</p>
+        <p class="kpi__meta" id="kpi-evacuacion-meta"></p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__etiqueta">Requieren atención médica</p>
+        <p class="kpi__cifra" id="kpi-salud">—</p>
+        <p class="kpi__meta" id="kpi-salud-meta"></p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__etiqueta">Comunas con registros</p>
+        <p class="kpi__cifra" id="kpi-comunas">—</p>
+        <p class="kpi__meta" id="kpi-comunas-meta"></p>
+      </div>
+    </section>
+
+    <!-- Territorio -->
+    <section class="bloque" aria-label="Distribución territorial">
+      <div class="bloque__cabecera">
+        <h2 class="bloque__titulo">¿Dónde está ocurriendo?</h2>
+        <p class="bloque__bajada">Cada marca es una vivienda inspeccionada. Haga clic en una comuna para
+           filtrar todo el tablero por ella; vuelva a hacer clic para quitar la selección.</p>
+      </div>
+      <div class="territorio">
+        <div class="territorio__mapa">
+          <div class="mapa-envoltorio">
+            <div id="r-mapa"></div>
+            <div class="mapa-leyenda" id="r-l-mapa"></div>
+          </div>
+          <p class="nota" id="r-cobertura"></p>
+        </div>
+        <aside class="territorio__lateral">
+          <p class="lateral__titulo">Comunas con registros</p>
+          <div class="tabla-marco"><table id="r-tabla-comunas" class="tabla tabla--compacta"></table></div>
+        </aside>
+      </div>
+      <p class="panel__fuente" id="r-f-mapa"></p>
+    </section>
+
+    <!-- Personas y hogares -->
+    <section class="bloque" aria-label="Personas y hogares">
+      <div class="bloque__cabecera">
+        <h2 class="bloque__titulo">¿Quiénes son las personas afectadas?</h2>
+      </div>
+      <div class="paneles">
+        <article class="panel">
+          <h3 class="panel__titulo">Personas por rango de edad y género</h3>
+          <p class="panel__bajada">Hombres a la izquierda del eje, mujeres a la derecha.</p>
+          <div class="panel__lienzo" id="r-piramide"></div>
+          <div class="leyenda" id="r-l-piramide"></div>
+          <div class="etarios" id="r-etarios"></div>
+          <p class="panel__fuente" id="r-f-piramide"></p>
+        </article>
+        <article class="panel">
+          <h3 class="panel__titulo">Hogares por número de personas</h3>
+          <p class="panel__bajada">Varias ayudas se entregan por hogar, no por persona:
+             esta distribución dice de qué tamaño se necesitan.</p>
+          <div class="panel__lienzo" id="g-hogares"></div>
+          <div class="etarios" id="g-hogares-lectura"></div>
+          <p class="panel__fuente" id="f-hogares"></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Viviendas -->
+    <section class="bloque" aria-label="Estado de las viviendas">
+      <div class="bloque__cabecera">
+        <h2 class="bloque__titulo">Estado de las viviendas</h2>
+      </div>
+      <div class="paneles">
+        <article class="panel">
+          <h3 class="panel__titulo">Estado del inmueble que reportan las personas</h3>
+          <p class="panel__bajada">Cada persona reporta el estado del inmueble donde vive; la unidad son personas.</p>
+          <div class="panel__lienzo" id="r-habitabilidad"></div>
+          <p class="panel__fuente" id="r-f-habitabilidad"></p>
+        </article>
+        <article class="panel">
+          <h3 class="panel__titulo">Nivel de daño por elemento estructural</h3>
+          <p class="panel__bajada">Viviendas por elemento evaluado y nivel de daño encontrado en la inspección.</p>
+          <div class="panel__lienzo" id="r-danio"></div>
+          <p class="panel__fuente" id="r-f-danio"></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Necesidades + situaciones -->
+    <section class="bloque" aria-label="Necesidades y situaciones que requieren atención">
+      <div class="bloque__cabecera">
+        <h2 class="bloque__titulo">¿Qué necesitan los hogares y personas afectadas?</h2>
+      </div>
+      <div class="paneles">
+        <article class="panel">
+          <h3 class="panel__titulo">Ayudas humanitarias solicitadas</h3>
+          <p class="panel__bajada">Número de personas que solicita cada ayuda. Una misma persona puede solicitar varias.</p>
+          <div class="panel__lienzo" id="r-ayudas"></div>
+          <p class="panel__fuente" id="r-f-ayudas"></p>
+        </article>
+        <article class="panel">
+          <h3 class="panel__titulo">Situaciones que requieren atención</h3>
+          <p class="panel__bajada">Conteos objetivos sobre la base filtrada. No constituyen una priorización:
+             la regla institucional de prioridad se incorporará cuando exista.</p>
+          <div class="situaciones" id="r-situaciones"></div>
+          <p class="panel__fuente" id="r-f-situaciones"></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Evolución -->
+    <section class="bloque" aria-label="Evolución de los registros">
+      <div class="bloque__cabecera">
+        <h2 class="bloque__titulo">Evolución de los registros</h2>
+      </div>
+      <article class="panel panel--ancho">
+        <h3 class="panel__titulo">Personas y viviendas registradas, acumulado por fecha</h3>
+        <p class="panel__bajada">Total acumulado de registros en la base al cierre de cada día.</p>
+        <div class="panel__lienzo" id="g-serie"></div>
+        <div class="leyenda" id="l-serie"></div>
+        <p class="panel__fuente" id="f-serie"></p>
+      </article>
+    </section>
+
+  </section>
+
+  <!-- ============================================================
+       VISTA · TERRITORIO
+       ============================================================ -->
+  <section id="vista-territorio" class="oculto">
+
+    <!-- Mapa de comunas: filtro territorial -->
+    <article class="panel panel--ancho">
+      <h2 class="panel__titulo">Distribución por comuna</h2>
+      <p class="panel__bajada">Las que quedaron registradas dos veces llevan el borde punteado hasta que se
+         verifiquen. Haga clic en una comuna para filtrar todo el tablero por ella; vuelva a hacer clic para
+         quitar la selección.</p>
+      <div class="territorio">
+        <div class="territorio__mapa">
+          <div class="mapa-envoltorio">
+            <div id="t-mapa"></div>
+            <div class="mapa-leyenda" id="t-l-mapa"></div>
+          </div>
+          <p class="nota" id="t-cobertura"></p>
+        </div>
+        <aside class="territorio__lateral">
+          <p class="lateral__titulo">Comunas con registros</p>
+          <div class="tabla-marco"><table id="t-tabla-comunas" class="tabla"></table></div>
+        </aside>
+      </div>
+      <p class="panel__fuente" id="t-f-mapa"></p>
+    </article>
+  </section>
+
+  <!-- ============================================================
+       VISTA · PERSONAS
+       ============================================================ -->
+  <section id="vista-personas" class="oculto">
+    <div class="paneles">
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Personas por rango de edad y género</h2>
+        <p class="panel__bajada">Rangos de cinco años. Hombres a la izquierda del eje, mujeres a la derecha.</p>
+        <div class="panel__lienzo" id="p-piramide"></div>
+        <div class="leyenda" id="p-l-piramide"></div>
+        <div class="etarios" id="p-etarios"></div>
+        <p class="panel__fuente" id="p-f-piramide"></p>
+      </article>
+      <article class="panel">
+        <h2 class="panel__titulo">Personas que requieren asistencia médica</h2>
+        <p class="panel__bajada">Estado de salud reportado en el registro de cada persona.</p>
+        <div class="panel__lienzo" id="g-salud"></div>
+        <p class="panel__fuente" id="f-salud"></p>
+      </article>
+      <article class="panel">
+        <h2 class="panel__titulo">Régimen de afiliación en salud</h2>
+        <p class="panel__bajada">Información de apoyo para orientar la atención; no es un indicador de gravedad.</p>
+        <div class="panel__lienzo" id="g-afiliacion"></div>
+        <p class="panel__fuente" id="f-afiliacion"></p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VISTA · VIVIENDAS
+       ============================================================ -->
+  <section id="vista-viviendas" class="oculto">
+    <div class="paneles">
+      <article class="panel">
+        <h2 class="panel__titulo">Estado del inmueble que reportan las personas</h2>
+        <p class="panel__bajada">Cada persona reporta el estado del inmueble donde vive; la unidad son personas,
+           no viviendas.</p>
+        <div class="panel__lienzo" id="v-habitabilidad"></div>
+        <p class="panel__fuente" id="v-f-habitabilidad"></p>
+      </article>
+      <article class="panel">
+        <h2 class="panel__titulo">Sistema constructivo de las viviendas</h2>
+        <p class="panel__bajada">Material principal de la edificación. Define qué combo aplica en el banco de materiales.</p>
+        <div class="panel__lienzo" id="g-sistema"></div>
+        <p class="panel__fuente" id="f-sistema"></p>
+      </article>
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Nivel de daño por elemento estructural</h2>
+        <p class="panel__bajada">Viviendas por elemento evaluado en la inspección y nivel de daño encontrado.
+           Solo aparecen los elementos con nivel de daño diligenciado.</p>
+        <div class="panel__lienzo" id="v-danio"></div>
+        <p class="panel__fuente" id="v-f-danio"></p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       VISTA · NECESIDADES
+       ============================================================ -->
+  <section id="vista-necesidades" class="oculto">
+    <div class="paneles">
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Ayudas humanitarias solicitadas</h2>
+        <p class="panel__bajada">Número de personas que solicita cada ayuda. Una misma persona puede solicitar varias.
+           La base aún no registra el estado de atención de las ayudas; cuando exista, este panel podrá
+           distinguir solicitadas de entregadas.</p>
+        <div class="panel__lienzo" id="n-ayudas"></div>
+        <p class="panel__fuente" id="n-f-ayudas"></p>
+      </article>
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Situaciones que requieren atención</h2>
+        <p class="panel__bajada">Conteos objetivos sobre la base filtrada. No constituyen una priorización:
+           la regla institucional de prioridad se incorporará cuando exista una metodología aprobada.</p>
+        <div class="situaciones" id="n-situaciones"></div>
+        <p class="panel__fuente" id="n-f-situaciones"></p>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<footer class="pie">
+  <div class="contenedor pie__fila">
+    <span>CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali</span>
+    <span class="mono" id="pie-actualizado"></span>
+  </div>
+</footer>
+
+<script src="js/cali-geo.js"></script>
+<script src="js/datos_tablero.js"></script>
+<script src="js/tablero.js"></script>
+</body>
+</html>

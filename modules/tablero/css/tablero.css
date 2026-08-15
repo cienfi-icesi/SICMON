@@ -1,0 +1,253 @@
+/* ============================================================
+   Tablero de control — estilos propios
+   CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali
+   ------------------------------------------------------------
+   La base tipográfica, la paleta y los componentes comunes
+   (header, botones, tablas, chips) viven en styles.css.
+   Aquí va únicamente lo específico del tablero: filtros, KPI,
+   bloques del resumen, territorio 70/30, paneles, gráficos SVG,
+   mapa y casos por revisar.
+   ============================================================ */
+
+.marcas__sep--aliado { height: 36px; margin-left: 12px; margin-right: 12px; }
+
+/* ---------- Filtros ---------- */
+/* Agrupados por el universo al que aplican: la base no enlaza cada persona
+   con una ficha de vivienda, asi que un filtro de personas no puede filtrar
+   viviendas sin inventar la relacion. El grupo lo deja explicito. */
+/* La barra NO queda fija: con ocho controles ocupaba un cuarto de la pantalla
+   y tapaba el mapa al hacer scroll. Lo que sí se queda fijo es la línea de
+   universo de abajo, que en un solo renglón dice qué filtros están puestos. */
+.filtros-barra {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+  padding: 10px 14px; border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--gris-fondo); margin-bottom: 0;
+}
+.filtros-grupo { display: flex; flex-direction: column; gap: 4px; }
+.filtros-grupo + .filtros-grupo { border-left: 1px solid var(--gris-borde); padding-left: 14px; }
+.filtros-grupo__titulo {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--gris);
+}
+.filtros-grupo__campos { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.campo { display: flex; flex-direction: column; gap: 3px; }
+.campo__label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--gris-medio); white-space: nowrap;
+}
+/* el ancho de un <select> lo fija su opción más larga ("Material de
+   rehabilitación"); sin tope, un solo filtro empuja toda la barra */
+.campo .selector, .campo input {
+  min-height: 34px; min-width: 104px; max-width: 118px;
+  font-size: 13.5px; padding: 5px 7px;
+}
+.campo input[type="date"] { min-width: 118px; }
+.filtros-barra__acciones {
+  margin-left: auto; display: flex; align-items: flex-end; gap: 16px;
+}
+.filtros-barra__acciones .boton { padding: 8px 16px; font-size: 13.5px; }
+
+/* Universo filtrado: una sola frase que declara sobre qué se está contando.
+   Queda fija al hacer scroll —ocupa un renglón— para no perder de vista qué
+   filtros están puestos mientras se mira un gráfico más abajo. */
+.universo {
+  position: sticky; top: 68px; z-index: 40;
+  font-size: 12.5px; color: var(--gris-medio); line-height: 1.45;
+  margin-bottom: 22px; padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--gris-linea); border-top: none;
+  border-radius: 0 0 var(--radio) var(--radio);
+}
+.universo b { color: var(--tinta); font-weight: 600; }
+.universo .alcance { color: var(--ambar); }
+
+/* ---------- KPI ---------- */
+.kpis {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 34px;
+}
+.kpi {
+  border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 16px 18px 14px;
+}
+.kpi__etiqueta {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--gris-medio); line-height: 1.35;
+}
+.kpi__cifra {
+  font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.kpi__meta { font-size: 12px; color: var(--gris); margin-top: 8px; line-height: 1.45; }
+
+/* jerarquía semántica de la evacuación: acento sobrio, no una tarjeta roja */
+.kpi--alerta { border-left: 4px solid var(--rojo); }
+.kpi--alerta .kpi__cifra { color: var(--rojo); }
+
+/* ---------- Bloques del resumen ---------- */
+.bloque { margin-bottom: 40px; }
+.bloque__cabecera { margin-bottom: 16px; }
+.bloque__titulo { font-size: 21px; font-weight: 800; letter-spacing: -0.015em; }
+.bloque__bajada { font-size: 13.5px; color: var(--gris-medio); margin-top: 6px; max-width: 760px; line-height: 1.55; }
+
+/* ---------- Territorio: 70 % mapa / 30 % panel lateral ---------- */
+.territorio {
+  display: grid; grid-template-columns: minmax(0, 7fr) minmax(260px, 3fr);
+  gap: 28px; align-items: start;
+  border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 22px 24px;
+}
+.territorio__mapa svg { display: block; max-width: 100%; height: auto; }
+.lateral__titulo {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--gris-medio); margin-bottom: 8px;
+}
+.tabla--compacta th, .tabla--compacta td { padding: 7px 10px; font-size: 13px; }
+.fila--activa td { background: var(--azul-suave); }
+#r-tabla-comunas tr, #t-tabla-comunas tr { cursor: pointer; }
+
+/* ---------- Paneles ---------- */
+.paneles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+.panel {
+  border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 20px 22px 16px;
+  display: flex; flex-direction: column;
+}
+.panel--ancho { grid-column: 1 / -1; }
+.panel__titulo { font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em; }
+.panel__bajada { font-size: 13px; color: var(--gris-medio); margin-top: 6px; line-height: 1.5; }
+.panel__lienzo { margin-top: 16px; flex: 1; }
+.panel__lienzo svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.panel__fuente {
+  font-size: 11.5px; color: var(--gris); margin-top: 14px; line-height: 1.5;
+  border-top: 1px solid var(--gris-linea); padding-top: 10px;
+}
+
+.leyenda { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; }
+.leyenda__item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--gris-medio); }
+.leyenda__marca { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+/* ---------- Indicadores compactos (grupos etarios, lectura de hogares) ---------- */
+.etarios {
+  display: flex; flex-wrap: wrap; gap: 0; margin-top: 14px;
+  border-top: 1px solid var(--gris-linea); padding-top: 12px;
+}
+.etario { flex: 1 1 0; min-width: 90px; padding: 2px 10px 2px 0; }
+.etario + .etario { border-left: 1px solid var(--gris-linea); padding-left: 12px; }
+.etario__cifra { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.etario__rango { font-size: 12px; font-weight: 600; color: var(--tinta); }
+.etario__nombre { font-size: 11px; color: var(--gris); line-height: 1.35; }
+
+/* ---------- Situaciones que requieren atención ---------- */
+.situaciones { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.situacion {
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid var(--gris-linea); border-radius: var(--radio-boton);
+  padding: 12px 16px;
+}
+.situacion__cifra {
+  font-size: 24px; font-weight: 800; min-width: 52px; text-align: right;
+  font-variant-numeric: tabular-nums; flex: none;
+}
+.situacion--critica .situacion__cifra { color: var(--rojo); }
+.situacion--media   .situacion__cifra { color: var(--ambar); }
+.situacion__texto { font-size: 13.5px; line-height: 1.45; }
+.situacion__detalle { color: var(--gris); font-size: 12px; }
+
+/* ---------- Gráficos SVG ---------- */
+.g-eje       { stroke: var(--gris-linea); stroke-width: 1; }
+.g-rejilla   { stroke: var(--gris-linea); stroke-width: 1; stroke-dasharray: 2 4; }
+.g-etiqueta  { font-family: var(--fuente); font-size: 12.5px; fill: var(--gris-medio); }
+.g-valor     { font-family: var(--mono); font-size: 11.5px; fill: var(--tinta); }
+.g-barra     { transition: opacity .12s; }
+.g-barra:hover { opacity: .78; }
+.g-celda     { stroke: var(--blanco); stroke-width: 2; }
+.g-celda-num { font-family: var(--mono); font-size: 12px; }
+/* pirámide poblacional */
+.g-serie-nombre { font-family: var(--fuente); font-size: 12px; font-weight: 700;
+                  fill: var(--gris-medio); letter-spacing: 0.02em; }
+.g-edad      { font-family: var(--mono); font-size: 11px; fill: var(--gris-medio); }
+.g-franja    { fill: var(--gris-fondo); }
+
+.vacio {
+  color: var(--gris); font-size: 13.5px; padding: 26px 0; text-align: center;
+  border: 1px dashed var(--gris-borde); border-radius: var(--radio-boton); margin-top: 6px;
+}
+
+/* ---------- Casos por revisar ---------- */
+.casos__barra {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-top: 24px; margin-bottom: 10px;
+}
+.casos__titulo { font-size: 15px; font-weight: 700; margin: 0; }
+.casos__titulo .chip { margin-left: 8px; vertical-align: middle; }
+.casos__conteo { font-weight: 600; color: var(--gris-medio); }
+.tabla td .chip { margin: 0; }
+.casos__que { color: var(--tinta); }
+.casos__ref { display: block; font-size: 12px; color: var(--gris); margin-top: 3px; }
+
+/* ---------- Mapa de comunas (SVG) ---------- */
+/* límite municipal: incluye el área rural, se deja como referencia tenue */
+.m-municipio { fill: none; stroke: var(--gris-borde); stroke-width: 1.2;
+               stroke-dasharray: 5 4; stroke-linejoin: round; }
+/* contorno del área urbana (ver el comentario de la silueta en tablero.js) */
+.m-silueta   { fill: none; stroke: var(--tinta); stroke-width: 4;
+               stroke-linejoin: round; stroke-linecap: round; }
+/* el relleno lo pone el sombreado por comuna, desde el atributo fill */
+.m-comuna    { stroke: var(--gris); stroke-width: 0.9; cursor: pointer; }
+.m-comuna:hover   { stroke: var(--tinta); stroke-width: 2; }
+.m-comuna--activa { stroke: var(--azul); stroke-width: 2.6; }
+
+/* ---------- Leyenda superpuesta sobre el mapa ---------- */
+.mapa-envoltorio { position: relative; }
+/* Compacta y a la izquierda a propósito: va encima del mapa y ahí cae el
+   área rural, que está vacía. A la derecha taparía las comunas del oriente. */
+.mapa-leyenda {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid var(--gris-linea); border-radius: var(--radio-boton);
+  padding: 8px 10px; font-size: 10.5px; color: var(--gris-medio);
+  line-height: 1.35; max-width: 150px;
+  box-shadow: 0 1px 3px rgba(11, 11, 12, 0.06);
+}
+.mapa-leyenda__titulo {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--gris); margin-bottom: 3px;
+}
+.mapa-leyenda p.mapa-leyenda__titulo:not(:first-child) { margin-top: 8px; }
+.mapa-leyenda__fila { display: flex; align-items: center; gap: 6px; padding: 0.5px 0; }
+.mapa-leyenda__caja {
+  width: 14px; height: 9px; border: 1px solid var(--gris-borde);
+  border-radius: 2px; flex: none;
+}
+.mapa-leyenda__punto {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: #395CE0; border: 1px solid var(--blanco);
+  box-shadow: 0 0 0 1px var(--gris-borde);
+}
+.mapa-leyenda__punto--repetida { box-shadow: 0 0 0 1.5px var(--tinta); }
+.mapa-leyenda__triangulo {
+  width: 0; height: 0; flex: none; margin-left: 1px;
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-bottom: 9px solid #C0562F;
+}
+/* borde blanco para que la marca se lea sobre cualquier tono del sombreado */
+.m-punto     { stroke: var(--blanco); stroke-width: 1.4; }
+.m-punto--repetida { stroke: var(--tinta); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.m-etiqueta  { font-family: var(--fuente); font-size: 9.5px; font-weight: 600;
+               fill: var(--gris-medio); pointer-events: none; }
+.m-etiqueta--sobre { fill: var(--blanco); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1240px) {
+  .kpis { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1080px) {
+  .territorio { grid-template-columns: 1fr; }
+  .paneles { grid-template-columns: 1fr; }
+  .filtros-barra { position: static; }
+}
+@media (max-width: 700px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .kpi__cifra { font-size: 28px; }
+  .filtros-barra__acciones { margin-left: 0; }
+}

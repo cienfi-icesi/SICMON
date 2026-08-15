@@ -1,0 +1,246 @@
+/* ============================================================
+   Aplicativo de consulta — afectaciones sísmicas Cali
+   CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali
+   ------------------------------------------------------------
+   Sistema de diseño heredado del portal (mockup_sismo):
+   misma paleta, tipografías y geometría en :root.
+   ============================================================ */
+
+:root {
+  --azul: #395CE0;
+  --azul-oscuro: #2743B8;
+  --azul-suave: rgba(57, 92, 224, 0.07);
+  --negro: #0B0B0C;
+  --tinta: #26272B;
+  --gris: #88898C;
+  --gris-medio: #5A5C61;
+  --gris-linea: #E4E5E8;
+  --gris-borde: #D9DBE0;
+  --gris-fondo: #F7F8FA;
+  --blanco: #FFFFFF;
+  --verde: #147A3D;
+  --rojo: #B3261E;
+  --ambar: #8A6D1F;
+
+  --fuente: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+
+  --radio: 10px;
+  --radio-boton: 6px;
+  --ancho: 1280px;
+  --pad-x: 32px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--fuente);
+  color: var(--negro);
+  background: var(--blanco);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+h1, h2, p { margin: 0; }
+a { color: var(--azul); text-decoration: none; }
+button, select, input { font-family: inherit; font-size: 15px; }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 3px; }
+.mono { font-family: var(--mono); }
+.oculto { display: none !important; }
+
+.contenedor { width: 100%; max-width: var(--ancho); margin: 0 auto; padding: 0 var(--pad-x); }
+
+/* ---------- Header ---------- */
+.encabezado {
+  position: sticky; top: 0; z-index: 60;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: saturate(1.1) blur(6px);
+  border-bottom: 1px solid var(--gris-linea);
+}
+.encabezado__fila { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.marcas { display: flex; align-items: center; gap: 18px; }
+.marcas__sep { width: 1px; height: 28px; background: var(--gris-linea); }
+.logo-cienfi { height: 22px; width: auto; display: block; }
+.logo-icesi { height: 28px; width: auto; display: block; }
+.logo-alcaldia { height: 40px; width: auto; display: block; }
+
+.nav { display: flex; gap: 4px; }
+.nav__enlace {
+  padding: 8px 14px; border-radius: var(--radio-boton);
+  color: var(--gris-medio); font-weight: 600; font-size: 14.5px;
+}
+.nav__enlace:hover { color: var(--azul-oscuro); background: var(--azul-suave); }
+.nav__enlace--activo { color: var(--azul); background: var(--azul-suave); }
+
+/* ---------- Cabecera de página ---------- */
+main { flex: 1; padding-bottom: 56px; }
+.cabecera-pagina { padding: 36px 0 24px; border-bottom: 1px solid var(--gris-linea); margin-bottom: 28px; }
+.etiqueta-superior {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--gris-medio); margin-bottom: 12px;
+}
+.etiqueta-superior span:first-child { width: 8px; height: 8px; border-radius: 50%; background: var(--azul); }
+h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.subtitulo { color: var(--gris-medio); margin-top: 8px; font-size: 15px; }
+.titulo-seccion { font-size: 19px; font-weight: 700; margin: 28px 0 12px; }
+
+/* ---------- Buscador y filtros ---------- */
+.buscador { max-width: 560px; }
+.buscador__label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.buscador__fila { display: flex; gap: 10px; }
+.buscador__input {
+  flex: 1; padding: 11px 14px; border: 1px solid var(--gris-borde);
+  border-radius: var(--radio-boton); font-size: 16px; min-width: 0;
+}
+.buscador__input:focus { border-color: var(--azul); outline: none; box-shadow: 0 0 0 3px var(--azul-suave); }
+.nota { color: var(--gris); font-size: 13.5px; margin-top: 10px; }
+
+.boton {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 20px; border-radius: var(--radio-boton);
+  border: 1px solid var(--gris-borde); background: var(--blanco);
+  color: var(--tinta); font-weight: 600; font-size: 14.5px; cursor: pointer;
+}
+.boton:hover { border-color: var(--gris); }
+.boton--primario { background: var(--azul); border-color: var(--azul); color: var(--blanco); }
+.boton--primario:hover { background: var(--azul-oscuro); border-color: var(--azul-oscuro); }
+
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.filtros .buscador__input { flex: 1 1 260px; }
+.selector {
+  padding: 11px 12px; border: 1px solid var(--gris-borde);
+  border-radius: var(--radio-boton); background: var(--blanco); color: var(--tinta);
+}
+
+/* ---------- Ficha de resultado ---------- */
+.ficha {
+  margin-top: 26px; border: 1px solid var(--gris-linea);
+  border-left: 4px solid var(--azul); border-radius: var(--radio);
+  padding: 22px 26px; background: var(--gris-fondo);
+}
+.ficha--no { border-left-color: var(--rojo); }
+.ficha h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.ficha .estado-si { color: var(--verde); }
+.ficha .estado-no { color: var(--rojo); }
+.ficha__grupo { display: flex; flex-wrap: wrap; gap: 4px 36px; padding: 12px 0; }
+.ficha__grupo + .ficha__grupo { border-top: 1px solid var(--gris-linea); }
+.dato { min-width: 240px; font-size: 14.5px; padding: 3px 0; }
+.dato b { color: var(--gris-medio); font-weight: 600; }
+.ficha__meta { border-top: 1px solid var(--gris-linea); padding-top: 12px; font-size: 12.5px; color: var(--gris); }
+.alerta { color: var(--ambar); font-weight: 600; }
+
+/* ---------- Tablas ---------- */
+.tabla-marco { overflow-x: auto; border: 1px solid var(--gris-linea); border-radius: var(--radio); }
+.tabla { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--blanco); }
+.tabla th {
+  text-align: left; padding: 11px 14px; background: var(--gris-fondo);
+  border-bottom: 1px solid var(--gris-linea); font-size: 12.5px;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris-medio);
+  white-space: nowrap; position: sticky; top: 0;
+}
+.tabla td { padding: 10px 14px; border-bottom: 1px solid var(--gris-linea); vertical-align: top; }
+.tabla tr:last-child td { border-bottom: none; }
+.tabla tr:hover td { background: var(--azul-suave); }
+
+.chip {
+  display: inline-block; padding: 3px 10px; border-radius: 99px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.chip--verde { background: rgba(20, 122, 61, 0.1); color: var(--verde); }
+.chip--rojo { background: rgba(179, 38, 30, 0.1); color: var(--rojo); }
+.chip--ambar { background: rgba(138, 109, 31, 0.12); color: var(--ambar); }
+.chip--gris { background: var(--gris-fondo); color: var(--gris-medio); }
+
+/* ---------- Pie ---------- */
+.pie { border-top: 1px solid var(--gris-linea); background: var(--gris-fondo); }
+.pie__fila {
+  min-height: 56px; display: flex; align-items: center;
+  justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: 13px; color: var(--gris-medio); padding-top: 10px; padding-bottom: 10px;
+}
+
+@media (max-width: 700px) {
+  :root { --pad-x: 18px; }
+  h1 { font-size: 24px; }
+  .buscador__fila { flex-direction: column; }
+  .dato { min-width: 100%; }
+}
+
+/* ---------- Selección de rol ---------- */
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; max-width: 900px; }
+.rol {
+  text-align: left; border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 24px; cursor: pointer; font-family: inherit;
+  display: flex; flex-direction: column; gap: 8px;
+}
+button.rol:hover { border-color: var(--azul); background: var(--azul-suave); }
+.rol--login { cursor: default; }
+.rol__titulo { font-size: 17px; font-weight: 700; color: var(--negro); }
+.rol__texto { font-size: 14px; color: var(--gris-medio); line-height: 1.5; }
+.rol--login form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.nota--error { color: var(--rojo); }
+.nav__usuario { color: var(--gris-medio); font-size: 13px; padding: 8px 6px; }
+
+/* ---------- Pestañas de las bases ---------- */
+.pestanas { display: flex; gap: 6px; border-bottom: 1px solid var(--gris-linea); margin-bottom: 18px; flex-wrap: wrap; }
+.pestana {
+  padding: 10px 18px; border: none; background: none; cursor: pointer;
+  font-weight: 600; font-size: 14.5px; color: var(--gris-medio);
+  border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.pestana:hover { color: var(--azul-oscuro); }
+.pestana--activa { color: var(--azul); border-bottom-color: var(--azul); }
+
+/* ---------- Tabla tipo Excel ---------- */
+.tabla th.ordenable { cursor: pointer; user-select: none; }
+.tabla th.ordenable:hover { color: var(--azul); }
+.fila-filtros th { padding: 6px 8px; background: var(--blanco); position: static; }
+.filtro-col {
+  width: 100%; min-width: 90px; padding: 6px 8px; font-size: 13px;
+  border: 1px solid var(--gris-borde); border-radius: var(--radio-boton);
+}
+.filtro-col:focus { border-color: var(--azul); outline: none; }
+.fila-registro { cursor: pointer; }
+.boton--mini { padding: 5px 10px; font-size: 12.5px; white-space: nowrap; }
+
+/* ---------- Modales ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 100; background: rgba(11, 11, 12, 0.45);
+  display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px;
+  overflow-y: auto;
+}
+.modal__caja {
+  background: var(--blanco); border-radius: var(--radio); max-width: 980px; width: 100%;
+  box-shadow: 0 18px 60px rgba(11, 11, 12, 0.25);
+}
+.modal__caja--angosta { max-width: 560px; }
+.modal__cabecera {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid var(--gris-linea);
+}
+.modal__cabecera h2 { font-size: 18px; font-weight: 700; }
+.modal__cerrar {
+  border: none; background: none; font-size: 26px; line-height: 1;
+  color: var(--gris-medio); cursor: pointer; padding: 2px 8px;
+}
+.modal__cerrar:hover { color: var(--negro); }
+.modal__cuerpo { padding: 20px 24px 26px; }
+.ficha-seccion {
+  font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--azul); margin: 18px 0 6px;
+}
+.ficha-seccion:first-child { margin-top: 0; }
+.codigo { font-size: 11px; color: var(--gris); }
+.ficha__acciones { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 0 4px; }
+
+/* ---------- Observaciones ---------- */
+.obs { border-left: 3px solid var(--azul); background: var(--gris-fondo); border-radius: 6px; padding: 10px 14px; margin-bottom: 10px; }
+.obs__meta { font-size: 11.5px; color: var(--gris-medio); margin-bottom: 4px; }
+#obs-form { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+#obs-texto {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--gris-borde);
+  border-radius: var(--radio-boton); font-family: inherit; font-size: 14.5px; resize: vertical;
+}
+#obs-texto:focus { border-color: var(--azul); outline: none; box-shadow: 0 0 0 3px var(--azul-suave); }

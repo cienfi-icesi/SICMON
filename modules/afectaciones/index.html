@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#395CE0" />
+  <title>Registro de afectaciones · Santiago de Cali</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/shared.css?v=1.8.2" />
+</head>
+<body>
+
+  <!-- ==================== ENCABEZADO ==================== -->
+  <header class="barra-institucional">
+    <div class="barra-marca">
+      <div class="barra-logos">
+        <img src="../../assets/logos/logo-cienfi.png" alt="CIENFI" />
+        <span class="sep-marcas" aria-hidden="true"></span>
+        <img src="../../assets/logos/logo-icesi.png" alt="Universidad Icesi" />
+        <span class="sep-marcas sep-marcas--aliado" aria-hidden="true"></span>
+        <img src="../../assets/logos/logo-alcaldia.png" alt="Alcaldía de Santiago de Cali" />
+      </div>
+      <div class="barra-textos">
+        <p class="eyebrow">Registro de información</p>
+        <h1>Registro de afectaciones</h1>
+      </div>
+    </div>
+    <div class="barra-acciones">
+      <span class="pill pill-suave">En preparación</span>
+      <a class="btn btn-secundario" href="../../index.html#registro">← Volver</a>
+    </div>
+  </header>
+
+  <!-- ==================== CONTENIDO ====================
+
+       ESTRUCTURA PREPARADA, SIN FORMULARIO TODAVÍA.
+
+       Este módulo corresponde a la visita oficial que confirma la edificación
+       y las afectaciones reportadas. Es un registro POSTERIOR al de
+       edificaciones, no el mismo.
+
+       Sus preguntas no están definidas, así que aquí NO hay formulario:
+       ponerlo antes de que exista produciría datos que después no sirven.
+
+       CUANDO SE DEFINAN LAS PREGUNTAS
+       -------------------------------
+       No hay que construir un aplicativo nuevo. El módulo de captura ya
+       resuelve almacenamiento local, validación, envío a la hoja de CIENFI,
+       exportación y panel de coordinación, y lee los formularios de un
+       esquema declarativo. Bastaría con:
+
+         1. Escribir el esquema en  modules/edan/js/form-afectaciones.js
+            (puede copiarse la estructura de form-vivienda.js).
+         2. Cargarlo en modules/edan/index.html y registrarlo en FORMULARIOS
+            dentro de modules/edan/js/app.js.
+         3. En ese mismo archivo, en TIPOS_REGISTRO, cambiar en el registro de
+            afectaciones  formulario: null  por  formulario: 'afectaciones'.
+         4. Cambiar la url de este módulo en portal/modulos.js por
+            modules/edan/index.html y su estado por 'disponible'.
+
+       Con eso hereda todo lo construido, sin duplicar una línea.
+  -->
+  <main class="contenido">
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Estado</p>
+          <h2>Módulo en preparación</h2>
+        </div>
+      </div>
+      <p class="hint">
+        Este módulo registrará la visita oficial que confirma la edificación y
+        las afectaciones reportadas. El formulario está en definición y todavía
+        no se puede diligenciar.
+      </p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Mientras tanto</p>
+          <h2>Otros registros disponibles</h2>
+        </div>
+      </div>
+      <p class="hint">
+        Los otros dos formularios sí están operativos. Los dos se diligencian
+        desde el mismo aplicativo, escogiendo allí cuál se va a llenar:
+      </p>
+      <div class="botones-descarga" style="margin-top:14px;">
+        <a class="btn btn-primario" href="../edan/index.html">Registro de edificaciones</a>
+        <a class="btn btn-primario" href="../edan/index.html">Registro de personas y familias</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== PIE ==================== -->
+  <footer class="pie">
+    <div class="pie-logos">
+      <img src="../../assets/logos/logo-alcaldia.png" alt="Alcaldía de Santiago de Cali" />
+      <img src="../../assets/logos/logo-icesi.png" alt="Universidad Icesi" />
+      <img src="../../assets/logos/logo-cienfi.png" alt="CIENFI" />
+    </div>
+    <p class="hint">
+      <a href="../../index.html">Volver al inicio</a> ·
+      Universidad Icesi · CIENFI · Alcaldía de Santiago de Cali
+    </p>
+  </footer>
+
+</body>
+</html>

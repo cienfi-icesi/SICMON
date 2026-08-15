@@ -1,0 +1,92 @@
+/* ============================================================================
+   integracion-portal.css — Enlace de regreso al portal.
+
+   Lo único que este módulo agrega respecto del aplicativo original: un enlace
+   que devuelve al portal desde la barra superior, la pantalla de inicio de
+   sesión y el pie.
+
+   Va en un archivo aparte a propósito: así styles.css sigue siendo idéntico al
+   del aplicativo original y se puede comparar o actualizar sin conflictos.
+   ========================================================================== */
+
+/* El enlace usa las clases .btn del propio aplicativo; solo hace falta
+   ajustar lo que cambia entre un <button> y un <a>. */
+.btn-portal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.enlace-portal-login { margin-top: 14px; }
+.enlace-portal-login a { color: var(--azul); font-weight: 700; text-decoration: none; }
+@media (hover: hover) { .enlace-portal-login a:hover { text-decoration: underline; } }
+
+.pie a { color: var(--azul); font-weight: 700; text-decoration: none; }
+@media (hover: hover) { .pie a:hover { text-decoration: underline; } }
+
+/* En pantallas angostas la barra superior lleva además el botón de menú:
+   el enlace se acorta a «← Portal» para que las tres piezas quepan en una
+   sola línea sin desplazamiento horizontal. */
+@media (max-width: 820px) {
+  .btn-portal { padding: 11px 12px; }
+  .btn-portal-largo { display: none; }
+}
+
+@media (max-width: 420px) {
+  .btn-portal-texto { display: none; }
+  .btn-portal { padding: 11px 14px; }
+}
+
+/* ============================================================================
+   ESTADO DEL RESPALDO Y RECUPERACIÓN DEL PROGRESO
+   ========================================================================== */
+
+/* Píldora de estado del respaldo en la barra superior. Es un botón: al
+   pulsarla se ve el detalle y, si hay pendientes, se dispara el envío. */
+.pill-sync {
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+@media (hover: hover) { .pill-sync:hover { filter: brightness(.96); } }
+.pill-sync:focus-visible { outline: 3px solid rgba(84, 84, 233, .45); outline-offset: 2px; }
+
+/* Estado de error de envío, que la paleta original no contemplaba. */
+.pill-error { background: #fdeeec; color: #8d281c; }
+
+/* Aviso del último fallo de envío, dentro del panel de la base central. */
+.sync-error { display: block; margin-top: 6px; color: var(--peligro); font-weight: 700; }
+#panel-respaldo { border-left: 4px solid var(--azul); }
+
+/* Separadores de la lista «Mis encuestas recientes»: lo primero que necesita
+   ver quien vuelve es qué dejó a medias. */
+.subtitulo-lista {
+  margin: 18px 0 10px;
+  font-weight: 800;
+  font-size: .82rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--tinta-suave);
+}
+.subtitulo-lista:first-child { margin-top: 0; }
+
+.estados-encuesta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.meta-tiempo { color: var(--tinta-suave); font-size: .82rem; }
+
+/* La píldora de guardado muestra la hora, así que es más ancha que antes. */
+#form-guardado { white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .estados-encuesta { gap: 6px; }
+  .estados-encuesta .pill { font-size: .74rem; padding: 5px 9px; }
+}

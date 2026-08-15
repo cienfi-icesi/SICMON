@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Consulta de información · Afectaciones sísmicas en Santiago de Cali</title>
+<meta name="description" content="Consulta de la base oficial consolidada de personas, familias y edificaciones afectadas por los eventos sísmicos en Santiago de Cali." />
+<!-- Tipografía: recurso externo (Google Fonts). Sin conexión se usa la del sistema. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="encabezado">
+  <div class="contenedor encabezado__fila">
+    <div class="marcas">
+      <img class="logo-cienfi" src="assets/logos/logo-cienfi.png" alt="CIENFI — Centro de Investigación en Economía y Finanzas" />
+      <span class="marcas__sep" aria-hidden="true"></span>
+      <img class="logo-icesi" src="assets/logos/logo-icesi.png" alt="Universidad Icesi" />
+      <img class="logo-alcaldia" src="assets/logos/logo-alcaldia-cali.png" alt="Alcaldía de Santiago de Cali" />
+    </div>
+    <div class="encabezado__derecha">
+      <a class="nav__enlace" href="../../index.html">← Volver al portal principal</a>
+      <nav class="nav" id="nav-principal" aria-label="Vistas del aplicativo"></nav>
+    </div>
+  </div>
+</header>
+
+<main class="contenedor">
+
+  <div class="cabecera-pagina">
+    <p class="etiqueta-superior"><span aria-hidden="true"></span><span id="etiqueta-modo">Consulta de información</span></p>
+    <h1>Consulta de información</h1>
+    <p class="subtitulo">Base oficial consolidada de los formularios de edificaciones, afectaciones y personas.
+       <span id="actualizado" class="mono"></span></p>
+  </div>
+
+  <!-- ===================== VISTA · SELECCIÓN DE ROL ===================== -->
+  <section id="vista-rol" class="vista">
+    <p class="nota" style="margin-bottom:14px;">Seleccione cómo desea ingresar:</p>
+    <div class="roles">
+      <button class="rol" id="rol-ciudadano" type="button">
+        <span class="rol__titulo">Consulta ciudadana</span>
+        <span class="rol__texto">Sin credenciales. Busque con el número de cédula la información suya
+          o de un familiar.</span>
+      </button>
+      <div class="rol rol--login">
+        <span class="rol__titulo">Acceso administrativo</span>
+        <form id="form-login" autocomplete="off">
+          <input class="buscador__input" id="login-usuario" type="text" placeholder="Usuario" autocomplete="username" />
+          <input class="buscador__input" id="login-password" type="password" placeholder="Contraseña" autocomplete="current-password" />
+          <button class="boton boton--primario" type="submit">Ingresar</button>
+          <p class="nota nota--error oculto" id="login-error">Usuario o contraseña incorrectos.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== VISTA · CONSULTA CIUDADANA ===================== -->
+  <section id="vista-ciudadano" class="vista oculto">
+    <div class="buscador">
+      <label class="buscador__label" for="cedula">Número de cédula</label>
+      <div class="buscador__fila">
+        <input id="cedula" class="buscador__input" type="text" inputmode="numeric"
+               placeholder="Ej.: 1000001" autocomplete="off" />
+        <button id="btn-buscar" class="boton boton--primario" type="button">Buscar</button>
+      </div>
+      <p class="nota">La búsqueda ignora puntos y espacios. Solo se muestra la información
+         asociada a la cédula consultada.</p>
+    </div>
+    <div id="resultado"></div>
+  </section>
+
+  <!-- ===================== VISTA · EQUIPO ===================== -->
+  <section id="vista-equipo" class="vista oculto">
+    <div class="pestanas" id="pestanas">
+      <button class="pestana pestana--activa" data-base="viviendas" type="button">Edificaciones</button>
+      <button class="pestana" data-base="familias" type="button">Afectaciones</button>
+      <button class="pestana" data-base="personas" type="button">Personas</button>
+      <button class="pestana" data-base="revisar" type="button">Casos por revisar</button>
+    </div>
+
+    <div id="panel-base">
+      <div class="filtros">
+        <input id="filtro-global" class="buscador__input" type="text" placeholder="Buscar en toda la tabla…" />
+        <button id="btn-columnas" class="boton" type="button">Columnas ▾</button>
+        <label class="check"><input id="chk-duplicados" type="checkbox" /> Mostrar duplicados</label>
+        <button id="btn-limpiar" class="boton" type="button">Limpiar filtros</button>
+        <button id="btn-csv" class="boton" type="button">Descargar CSV</button>
+        <a class="boton" href="descargas/base_consulta.xlsx" download>Descargar Excel (3 bases)</a>
+        <button id="btn-obs-export" class="boton" type="button" title="Exporta las observaciones registradas en este equipo">Exportar observaciones</button>
+      </div>
+      <div class="panel-columnas oculto" id="panel-columnas">
+        <p class="nota" style="margin:0 0 8px;">Agregue a la tabla los módulos de preguntas del formulario que quiera ver:</p>
+        <div id="lista-secciones"></div>
+      </div>
+      <p class="nota" id="conteo-base"></p>
+      <p class="nota">Ordene con un clic en el encabezado; filtre columna por columna en la fila bajo los títulos.
+         Clic en una fila para ver <b>todas las respuestas del formulario</b>.</p>
+      <div class="tabla-marco"><table id="tabla-base" class="tabla"></table></div>
+    </div>
+
+    <div id="panel-revisar" class="oculto">
+      <h2 class="titulo-seccion">Familias sin vivienda asociada o con asociación ambigua</h2>
+      <div class="tabla-marco"><table id="tabla-revisar" class="tabla"></table></div>
+      <h2 class="titulo-seccion">Registros marcados como duplicados</h2>
+      <p class="nota">Ningún registro se elimina: el duplicado queda apuntando al registro que se conservó.</p>
+      <div class="tabla-marco"><table id="tabla-duplicados" class="tabla"></table></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== MODAL · FICHA COMPLETA ===================== -->
+<div class="modal oculto" id="modal-ficha" role="dialog" aria-modal="true">
+  <div class="modal__caja">
+    <div class="modal__cabecera">
+      <h2 id="ficha-titulo">Ficha</h2>
+      <button class="modal__cerrar" id="ficha-cerrar" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <div class="modal__cuerpo" id="ficha-cuerpo"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL · OBSERVACIONES ===================== -->
+<div class="modal oculto" id="modal-obs" role="dialog" aria-modal="true">
+  <div class="modal__caja modal__caja--angosta">
+    <div class="modal__cabecera">
+      <h2 id="obs-titulo">Observaciones</h2>
+      <button class="modal__cerrar" id="obs-cerrar" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <div class="modal__cuerpo">
+      <div id="obs-lista"></div>
+      <form id="obs-form">
+        <textarea id="obs-texto" rows="3" placeholder="Escriba una observación sobre este registro…"></textarea>
+        <button class="boton boton--primario" type="submit">Guardar observación</button>
+      </form>
+      <p class="nota">Las observaciones se guardan en este equipo y se comparten al exportarlas.
+         La sincronización automática entre usuarios llegará con la integración al portal.</p>
+    </div>
+  </div>
+</div>
+
+<footer class="pie">
+  <div class="contenedor pie__fila">
+    <span>CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali</span>
+    <span class="mono" id="pie-actualizado"></span>
+  </div>
+</footer>
+
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

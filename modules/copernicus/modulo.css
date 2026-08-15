@@ -1,0 +1,50 @@
+/* ============================================================================
+   modulo.css — Estilos propios del módulo de información satelital.
+
+   Lo institucional (paleta, encabezado, botones, pie) viene de
+   assets/shared.css. Aquí solo va lo específico de este módulo.
+   ========================================================================== */
+
+.encabezado-modulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.modulo-icono {
+  flex: 0 0 auto;
+  font-size: 2.4rem;
+  line-height: 1;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--superficie-suave);
+}
+
+/* Espacio reservado para el visor. Se deja deliberadamente vacío: mostrar un
+   mapa de ejemplo se confundiría con información real de la emergencia. */
+.marcador-visor {
+  border: 2px dashed var(--linea);
+  border-radius: var(--radio);
+  background: repeating-linear-gradient(
+    45deg,
+    #fbfcff, #fbfcff 12px,
+    #f6f8ff 12px, #f6f8ff 24px
+  );
+  padding: 48px 24px;
+  text-align: center;
+  display: grid;
+  gap: 8px;
+  place-items: center;
+  min-height: 260px;
+  align-content: center;
+}
+.marcador-visor p { margin: 0; max-width: 52ch; }
+.marcador-icono { font-size: 2.6rem; line-height: 1; opacity: .55; }
+
+@media (max-width: 620px) {
+  .encabezado-modulo { flex-direction: column; gap: 14px; }
+  .modulo-icono { width: 56px; height: 56px; font-size: 2rem; }
+  .marcador-visor { padding: 34px 16px; min-height: 200px; }
+}

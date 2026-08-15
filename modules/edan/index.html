@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <!-- interactive-widget=resizes-content hace que, al abrir el teclado del
+       celular, el navegador reduzca el área de la página en lugar de taparla.
+       No se limita el zoom: el usuario siempre puede ampliar si lo necesita. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#395CE0" />
+  <title>Registro de información — Santiago de Cali</title>
+  <!-- Tipografías del Sistema de Diseño CIENFI (Google Fonts). Sin conexión
+       se usa la tipografía del sistema definida en styles.css. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Leaflet alojado en el proyecto, no en un CDN: así la aplicación carga
+       sin internet. Solo los mosaicos del mapa requieren conexión. -->
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="styles.css?v=1.8.2" />
+  <!-- Integración con el portal: solo agrega el enlace de regreso. Se mantiene
+       en un archivo aparte para que styles.css siga siendo idéntico al del
+       aplicativo original. -->
+  <link rel="stylesheet" href="integracion-portal.css?v=1.8.2" />
+</head>
+<body>
+
+  <!-- ==================== INICIO DE SESIÓN ==================== -->
+  <section id="vista-login" class="login-view">
+    <div class="login-card">
+      <div class="login-logos">
+        <img src="assets/logo-cienfi.png" alt="CIENFI" />
+        <span class="sep-marcas" aria-hidden="true"></span>
+        <img src="assets/logo-icesi.png" alt="Universidad Icesi" />
+        <span class="sep-marcas sep-marcas--aliado" aria-hidden="true"></span>
+        <img src="assets/logo-alcaldia.png" alt="Alcaldía de Santiago de Cali" />
+      </div>
+      <p class="eyebrow">Recolección de información en campo</p>
+      <h1 id="login-titulo">Registro de información</h1>
+      <p class="subtitle">Emergencia por sismo — Santiago de Cali</p>
+
+      <form id="form-login" class="login-form" autocomplete="off">
+        <div class="field">
+          <label for="login-usuario">Usuario</label>
+          <input id="login-usuario" type="text" placeholder="Escriba su usuario" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="login-clave">Contraseña</label>
+          <input id="login-clave" type="password" placeholder="Contraseña" autocomplete="current-password" required />
+        </div>
+        <p id="login-error" class="mensaje-error oculto"></p>
+        <button class="btn btn-primario btn-bloque" type="submit">Ingresar</button>
+      </form>
+      <p class="hint">Versión preliminar de prueba. Si no recuerda sus datos de acceso, comuníquese con el coordinador.</p>
+      <p class="hint enlace-portal-login">
+        <a href="../../index.html">← Volver al portal principal</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== APLICACIÓN ==================== -->
+  <div id="app-shell" class="app-shell oculto">
+
+    <header class="topbar">
+      <div class="topbar-marca">
+        <img class="logo-topbar" src="assets/logo-cienfi.png" alt="CIENFI" />
+        <div class="topbar-textos">
+          <p class="eyebrow" id="topbar-modulo">Registro de información</p>
+          <h1 id="topbar-titulo">Panel principal</h1>
+        </div>
+      </div>
+      <!-- Regreso al portal: queda fuera del menú desplegable para que esté
+           siempre visible, también en celular. -->
+      <a class="btn btn-secundario btn-portal" href="../../index.html"
+         title="Volver al portal de atención y gestión"
+         aria-label="Volver al portal principal">
+        <span aria-hidden="true">←</span>
+        <span class="btn-portal-texto">Portal<span class="btn-portal-largo"> principal</span></span>
+      </a>
+      <button id="btn-menu" class="btn btn-secundario btn-menu" type="button"
+              aria-expanded="false" aria-controls="topbar-acciones">☰ Menú</button>
+      <div id="topbar-acciones" class="topbar-acciones">
+        <span id="pill-usuario" class="pill">Usuario</span>
+        <!-- Estado del envío a la base central. Empieza oculto: solo aparece
+             cuando hay un destino configurado. -->
+        <button id="pill-sync" class="pill pill-sync oculto" type="button"
+                title="Estado del envío a la base central. Pulse para enviar ahora.">Envío</button>
+        <button id="btn-inicio" class="btn btn-secundario" type="button">Inicio</button>
+        <button id="btn-respaldo" class="btn btn-secundario" type="button" title="Descarga un archivo con todas las encuestas de este equipo">Descargar respaldo</button>
+        <label class="btn btn-secundario btn-archivo">
+          Restaurar respaldo
+          <input id="input-respaldo" type="file" accept="application/json,.json" />
+        </label>
+        <button id="btn-salir" class="btn btn-peligro-linea" type="button">Salir</button>
+      </div>
+    </header>
+
+    <!-- ---------- Registro de información: tipo de registro ----------
+         Primera pantalla después del inicio de sesión. Las tres opciones se
+         dibujan desde TIPOS_REGISTRO en js/app.js. -->
+    <main id="vista-menu" class="vista oculto">
+      <section class="panel panel-hero">
+        <div>
+          <h2>Registro de información</h2>
+          <p class="subtitle">Seleccione el tipo de registro que va a diligenciar.</p>
+        </div>
+      </section>
+
+      <div id="lista-formularios" class="tarjetas-opcion"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Continuidad del trabajo</p>
+            <h2>Mis encuestas recientes</h2>
+          </div>
+          <span id="menu-resumen" class="hint"></span>
+        </div>
+        <div id="lista-encuestas-propias" class="lista-encuestas"></div>
+      </section>
+    </main>
+
+    <!-- ---------- Formulario ---------- -->
+    <main id="vista-formulario" class="vista oculto">
+      <section class="panel barra-progreso-panel">
+        <div class="progreso-cabecera">
+          <div>
+            <p class="eyebrow" id="form-eyebrow">Formulario</p>
+            <h2 id="form-titulo">Sección</h2>
+            <p class="subtitle" id="form-descripcion"></p>
+          </div>
+          <div class="progreso-datos">
+            <span id="form-id" class="pill pill-suave">ID</span>
+            <span id="form-guardado" class="pill pill-ok">Guardado</span>
+          </div>
+        </div>
+        <div class="pasos" id="form-pasos"></div>
+        <div class="progreso-pista"><div id="form-progreso" class="progreso-barra"></div></div>
+        <p class="hint" id="form-progreso-texto"></p>
+      </section>
+
+      <section class="panel">
+        <div id="form-vinculo" class="aviso aviso-vinculo oculto"></div>
+        <!-- Contenedor simple: el render inserta adentro las rejillas .campos -->
+        <div id="form-campos"></div>
+        <div id="form-errores" class="mensaje-error oculto"></div>
+      </section>
+
+      <!-- Salir y eliminar van aquí, separadas a propósito de los botones de
+           avance: en celular la barra fija de abajo solo lleva Anterior y
+           Siguiente, para no tocar por error algo que cierra la encuesta. -->
+      <div class="acciones-secundarias">
+        <button id="btn-guardar-salir" class="btn btn-secundario" type="button">Guardar y salir</button>
+        <button id="btn-eliminar-encuesta" class="btn btn-peligro-linea" type="button">Eliminar esta encuesta</button>
+      </div>
+
+      <!-- Barra de avance: queda fija al pie en celular y tableta -->
+      <div id="acciones-formulario" class="acciones-inferiores">
+        <div class="progreso-movil">
+          <span id="progreso-movil-texto">Sección 1</span>
+          <div class="progreso-pista delgada"><div id="progreso-movil-barra" class="progreso-barra"></div></div>
+        </div>
+        <div class="acciones-botones">
+          <button id="btn-anterior" class="btn btn-secundario" type="button">← Anterior</button>
+          <button id="btn-siguiente" class="btn btn-primario" type="button">Siguiente →</button>
+          <button id="btn-finalizar" class="btn btn-primario oculto" type="button">Finalizar encuesta</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ---------- Pantalla de finalización ---------- -->
+    <main id="vista-final" class="vista oculto">
+      <section class="panel panel-exito">
+        <div class="exito-icono">✓</div>
+        <h2>Encuesta guardada correctamente</h2>
+        <p class="subtitle" id="final-detalle"></p>
+        <div class="exito-datos">
+          <div><span class="etiqueta-dato">Identificador de la encuesta</span><strong id="final-id">—</strong></div>
+          <div><span class="etiqueta-dato">Código del hogar</span><strong id="final-hogar">—</strong></div>
+        </div>
+        <p class="hint" id="final-nota"></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><h2>¿Qué desea hacer ahora?</h2></div>
+        <div id="final-opciones" class="acciones-finales"></div>
+      </section>
+    </main>
+
+    <!-- ---------- Panel de coordinación ---------- -->
+    <main id="vista-panel" class="vista oculto">
+      <section class="panel panel-hero">
+        <div>
+          <p class="eyebrow" id="panel-eyebrow">Panel de seguimiento</p>
+          <h2 id="panel-titulo">Avance de la recolección</h2>
+          <p class="subtitle" id="panel-subtitulo"></p>
+          <p><span class="pill pill-suave" id="panel-ambito"></span></p>
+        </div>
+        <button id="btn-actualizar-panel" class="btn btn-secundario" type="button">Actualizar</button>
+      </section>
+
+      <div id="panel-tarjetas" class="tarjetas-indicador"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Avance por tipo de formulario</h2>
+        </div>
+        <div id="panel-avance-tipo" class="barras"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Avance por diligenciador</h2>
+          <span class="hint">Solo encuestas finalizadas.</span>
+        </div>
+        <div class="tabla-contenedor"><table id="tabla-diligenciadores" class="tabla tabla-apilable"></table></div>
+      </section>
+
+      <!-- Avance central: lo recibido por la base de CIENFI desde TODOS los
+           equipos. Las demás tablas del panel solo ven este computador. -->
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Todos los equipos</p>
+            <h2>Detalle de encuestas recibidas</h2>
+          </div>
+          <span class="pill pill-suave" id="pill-central"></span>
+        </div>
+        <p class="hint" id="panel-central-nota"></p>
+        <div class="tabla-contenedor"><table id="tabla-central" class="tabla tabla-apilable"></table></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div><h2>Descarga de información</h2></div>
+        </div>
+        <div class="filtros">
+          <div class="field">
+            <label for="filtro-tipo">Tipo de formulario</label>
+            <select id="filtro-tipo">
+              <option value="">Todos</option>
+              <option value="vivienda">Vivienda</option>
+              <option value="personas">Personas / Familia</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filtro-usuario">Diligenciador</label>
+            <select id="filtro-usuario"><option value="">Todos</option></select>
+          </div>
+          <div class="field">
+            <label for="filtro-estado">Estado</label>
+            <select id="filtro-estado">
+              <option value="finalizada">Solo finalizadas</option>
+              <option value="">Todas (incluye borradores)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filtro-separador">Separador del CSV</label>
+            <select id="filtro-separador">
+              <option value=",">Coma — R, Python, Stata</option>
+              <option value=";">Punto y coma — Excel en español</option>
+            </select>
+          </div>
+        </div>
+
+        <p id="descarga-resumen" class="hint"></p>
+
+        <div class="botones-descarga">
+          <button class="btn btn-primario" type="button" data-descargar="viviendas">Viviendas (.csv)</button>
+          <button class="btn btn-primario" type="button" data-descargar="personas_hogares">Personas · hogares (.csv)</button>
+          <button class="btn btn-primario" type="button" data-descargar="personas">Personas · una fila por persona (.csv)</button>
+          <button class="btn btn-primario-linea" type="button" data-descargar="indice">Índice de encuestas (.csv)</button>
+          <button class="btn btn-primario-linea" type="button" data-descargar="diccionario"
+                  title="Libro de códigos: qué significa cada columna y cada número de respuesta">Diccionario de variables (.csv)</button>
+          <button id="btn-descargar-todo" class="btn btn-secundario" type="button">Descargar todos</button>
+        </div>
+        <p class="hint">Los archivos se guardan en la carpeta de descargas del navegador. Se recomienda moverlos luego a la carpeta <code>app_output</code> del proyecto.</p>
+      </section>
+
+      <section class="panel" id="panel-respaldo">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Base centralizada</p>
+            <h2>Envío a Google Drive de CIENFI</h2>
+          </div>
+          <span id="sync-estado-pill" class="pill">—</span>
+        </div>
+        <p id="sync-mensaje" class="hint"></p>
+        <div class="botones-descarga" style="margin-top:14px;">
+          <button id="btn-sincronizar" class="btn btn-primario" type="button">Enviar encuestas pendientes</button>
+          <button id="btn-probar-sync" class="btn btn-secundario" type="button">Probar conexión</button>
+        </div>
+        <p class="hint" style="margin-top:12px;">
+          Solo se envían las encuestas <strong>finalizadas</strong>. Una encuesta enviada
+          no se borra de este equipo: queda marcada, y el CSV local sigue sirviendo
+          como respaldo.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Registros recolectados</h2>
+          <span id="registros-conteo" class="hint"></span>
+        </div>
+        <div class="tabla-contenedor"><table id="tabla-registros" class="tabla tabla-apilable"></table></div>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <div class="pie-logos">
+        <img src="assets/logo-cienfi.png" alt="CIENFI" />
+        <span class="sep-marcas" aria-hidden="true"></span>
+        <img src="assets/logo-icesi.png" alt="Universidad Icesi" />
+        <span class="sep-marcas sep-marcas--aliado" aria-hidden="true"></span>
+        <img src="assets/logo-alcaldia.png" alt="Alcaldía de Santiago de Cali" />
+      </div>
+      <p id="pie-version" class="hint"></p>
+      <p class="hint"><a href="../../index.html">← Volver al portal principal</a></p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/leaflet/leaflet.js"></script>
+  <script src="js/config.js?v=1.8.2"></script>
+  <script src="js/codigos.js?v=1.8.2"></script>
+  <script src="js/campo-direccion.js?v=1.8.2"></script>
+  <script src="js/ayuda-nivel-dano.js?v=1.8.2"></script>
+  <script src="js/form-vivienda.js?v=1.8.2"></script>
+  <script src="js/form-personas.js?v=1.8.2"></script>
+  <script src="js/storage.js?v=1.8.2"></script>
+  <script src="js/export.js?v=1.8.2"></script>
+  <!-- Envío a la base central de CIENFI (Google Drive). config-sync.js debe
+       cargarse antes: sincronizacion.js lee de él la dirección y el token. -->
+  <script src="js/config-sync.js?v=1.8.2"></script>
+  <script src="js/sincronizacion.js?v=1.8.2"></script>
+  <script src="js/app.js?v=1.8.2"></script>
+</body>
+</html>

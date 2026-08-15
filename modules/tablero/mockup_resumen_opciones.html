@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Opciones de página de Resumen · Tablero de afectaciones sísmicas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   Wireframes de la pestaña RESUMEN — bloques en blanco.
+   No es el tablero: es un boceto para escoger estructura.
+   Paleta y tipografía tomadas de app_tablero/css/styles.css
+   ============================================================ */
+:root{
+  --azul:#395CE0; --azul-oscuro:#2743B8; --azul-suave:rgba(57,92,224,.07);
+  --negro:#0B0B0C; --tinta:#26272B; --gris:#88898C; --gris-medio:#5A5C61;
+  --gris-linea:#E4E5E8; --gris-borde:#D9DBE0; --gris-fondo:#F7F8FA; --blanco:#fff;
+  --verde:#147A3D; --rojo:#B3261E; --ambar:#8A6D1F;
+  --fuente:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --radio:10px; --ancho:1240px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--fuente);color:var(--negro);background:var(--blanco);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ul{margin:0}
+.mono{font-family:var(--mono)}
+.contenedor{width:100%;max-width:var(--ancho);margin:0 auto;padding:0 32px}
+.oculto{display:none !important}
+
+/* ---------- Encabezado ---------- */
+.top{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);border-bottom:1px solid var(--gris-linea)}
+.top__fila{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.top__marca{font-weight:800;font-size:15px;letter-spacing:-.2px}
+.top__marca span{display:block;font-weight:500;font-size:12.5px;color:var(--gris-medio);letter-spacing:0}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{padding:8px 14px;border:0;background:none;border-radius:6px;font-family:inherit;font-weight:600;font-size:14px;color:var(--gris-medio);cursor:pointer}
+.tab:hover{color:var(--azul-oscuro);background:var(--azul-suave)}
+.tab--activo{color:var(--azul);background:var(--azul-suave)}
+.tab--diag{color:var(--rojo)}
+.tab--diag.tab--activo{color:var(--rojo);background:rgba(179,38,30,.07)}
+
+/* ---------- Cabecera de cada opción ---------- */
+.intro{padding:34px 0 22px;border-bottom:1px solid var(--gris-linea);margin-bottom:26px}
+.intro__eti{display:inline-block;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--azul);background:var(--azul-suave);padding:5px 10px;border-radius:5px;margin-bottom:12px}
+.intro h1{font-size:29px;letter-spacing:-.5px;line-height:1.2}
+.intro__sub{margin-top:9px;color:var(--gris-medio);font-size:15.5px;max-width:74ch;line-height:1.55}
+.fichas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.ficha{border:1px solid var(--gris-linea);border-radius:var(--radio);padding:13px 15px;background:var(--gris-fondo)}
+.ficha__t{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gris);margin-bottom:5px}
+.ficha__c{font-size:14px;line-height:1.5;color:var(--tinta)}
+
+/* ---------- Lienzo del wireframe ---------- */
+.lienzo{border:1px solid var(--gris-borde);border-radius:14px;background:var(--gris-fondo);padding:22px;margin-bottom:34px}
+.lienzo__nota{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--gris);margin-bottom:14px}
+
+/* Bloque genérico del boceto */
+.b{border:1.5px dashed var(--gris-borde);border-radius:var(--radio);background:var(--blanco);padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-height:74px}
+.b__eti{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--azul)}
+.b__t{font-weight:700;font-size:15px;line-height:1.3;letter-spacing:-.2px}
+.b__d{font-size:13.2px;color:var(--gris-medio);line-height:1.5}
+.b--solido{border-style:solid;border-color:var(--gris-linea)}
+.b--cifra{align-items:flex-start;justify-content:center;min-height:104px;background:var(--blanco)}
+.b--cifra .b__num{font-family:var(--mono);font-size:31px;font-weight:500;color:var(--gris-borde);line-height:1;margin:2px 0 4px}
+.b--alerta{border-color:rgba(179,38,30,.4);background:rgba(179,38,30,.03)}
+.b--alerta .b__eti{color:var(--rojo)}
+.b--accion{border-color:rgba(20,122,61,.4);background:rgba(20,122,61,.03)}
+.b--accion .b__eti{color:var(--verde)}
+.b--vinculo{border-color:var(--azul);background:var(--azul-suave)}
+.b--fantasma{border-color:var(--gris-borde);background:repeating-linear-gradient(135deg,transparent,transparent 7px,rgba(0,0,0,.022) 7px,rgba(0,0,0,.022) 14px)}
+.b--mapa{min-height:290px}
+.b--graf{min-height:170px}
+.b--graf-alto{min-height:230px}
+.b--franja{min-height:96px}
+.b--texto{min-height:130px}
+
+/* Rejillas */
+.g{display:grid;gap:14px}
+.g-2{grid-template-columns:repeat(2,1fr)}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.g-4{grid-template-columns:repeat(4,1fr)}
+.g-6{grid-template-columns:repeat(6,1fr)}
+.g-mapa{grid-template-columns:1.5fr 1fr}
+.g-sit{grid-template-columns:1fr 1.15fr}
+.mt{margin-top:14px}
+
+/* Marca de sección dentro del boceto */
+.sec{margin-top:22px}
+.sec__t{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.sec__n{font-family:var(--mono);font-size:11px;color:var(--blanco);background:var(--tinta);border-radius:4px;padding:2px 7px}
+.sec__l{font-weight:700;font-size:14.5px;letter-spacing:-.2px}
+.sec__x{font-size:13px;color:var(--gris-medio)}
+
+/* Barra de pestañas simulada dentro del boceto */
+.simnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.simnav span{font-size:12.5px;font-weight:600;color:var(--gris);border:1px solid var(--gris-borde);background:var(--blanco);border-radius:5px;padding:5px 11px}
+.simnav span.act{color:var(--azul);border-color:var(--azul);background:var(--azul-suave)}
+
+/* Comparativa final */
+.tabla{width:100%;border-collapse:collapse;font-size:13.6px;margin-top:8px}
+.tabla th,.tabla td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--gris-linea);vertical-align:top}
+.tabla th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);font-weight:500}
+.tabla td:first-child{font-weight:700;white-space:nowrap}
+.pie{border-top:1px solid var(--gris-linea);margin-top:20px;padding:22px 0 40px;color:var(--gris-medio);font-size:13px}
+
+@media (max-width:960px){
+  .g-6,.g-4{grid-template-columns:repeat(2,1fr)}
+  .g-3,.g-2,.g-mapa,.g-sit,.fichas{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="contenedor top__fila">
+    <div class="top__marca">Opciones de página de Resumen
+      <span>Tablero de afectaciones sísmicas · Cali — boceto, no es el tablero real</span></div>
+    <nav class="tabs" id="tabs">
+      <button class="tab tab--diag" data-v="hoy">Hoy (diagnóstico)</button>
+      <button class="tab tab--activo" data-v="o1">Opción 1</button>
+      <button class="tab" data-v="o2">Opción 2</button>
+      <button class="tab" data-v="o3">Opción 3</button>
+      <button class="tab" data-v="o4">Opción 4</button>
+      <button class="tab" data-v="comp">Comparar</button>
+    </nav>
+  </div>
+</header>
+
+<main class="contenedor">
+
+<!-- ============================================================
+     HOY · diagnóstico de lo que existe
+     ============================================================ -->
+<section id="v-hoy" class="oculto">
+  <div class="intro">
+    <p class="intro__eti" style="color:var(--rojo);background:rgba(179,38,30,.07)">Lo que hay hoy</p>
+    <h1>El Resumen actual es el tablero completo en una sola página</h1>
+    <p class="intro__sub">Nueve visualizaciones, seis KPI, un mapa y una tabla. Ocho de esos bloques se repiten
+      idénticos en Territorio, Personas, Viviendas y Necesidades. El efecto práctico: quien entra por Resumen
+      ya lo vio todo y no tiene motivo para abrir las otras pestañas; y quien busca una cifra tiene que
+      recorrer cinco pantallas de scroll para encontrarla.</p>
+  </div>
+
+  <div class="lienzo">
+    <p class="lienzo__nota">Estructura actual · en rayado, lo que se duplica en otra pestaña</p>
+
+    <div class="g g-6">
+      <div class="b b--cifra"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Personas</span></div>
+      <div class="b b--cifra"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Hogares</span></div>
+      <div class="b b--cifra"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Viviendas</span></div>
+      <div class="b b--cifra b--alerta"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Evacuación</span></div>
+      <div class="b b--cifra"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Atención médica</span></div>
+      <div class="b b--cifra"><span class="b__eti">KPI</span><span class="b__num">—</span><span class="b__d">Comunas</span></div>
+    </div>
+
+    <div class="g g-mapa mt">
+      <div class="b b--mapa b--fantasma"><span class="b__eti">Duplicado · Territorio</span>
+        <span class="b__t">Mapa de comunas</span>
+        <span class="b__d">Mismo mapa, mismo tamaño, misma interacción que la pestaña Territorio.</span></div>
+      <div class="b b--mapa b--fantasma"><span class="b__eti">Duplicado · Territorio</span>
+        <span class="b__t">Tabla de comunas</span>
+        <span class="b__d">Solo cambia la clase «compacta».</span></div>
+    </div>
+
+    <div class="g g-2 mt">
+      <div class="b b--graf-alto b--fantasma"><span class="b__eti">Duplicado · Personas</span>
+        <span class="b__t">Pirámide por edad y género</span></div>
+      <div class="b b--graf-alto"><span class="b__eti">Solo aquí</span>
+        <span class="b__t">Hogares por número de personas</span>
+        <span class="b__d">Este no está en ninguna otra pestaña.</span></div>
+    </div>
+
+    <div class="g g-2 mt">
+      <div class="b b--graf b--fantasma"><span class="b__eti">Duplicado · Viviendas</span>
+        <span class="b__t">Estado del inmueble reportado</span></div>
+      <div class="b b--graf b--fantasma"><span class="b__eti">Duplicado · Viviendas</span>
+        <span class="b__t">Nivel de daño por elemento</span></div>
+    </div>
+
+    <div class="g g-2 mt">
+      <div class="b b--graf b--fantasma"><span class="b__eti">Duplicado · Necesidades</span>
+        <span class="b__t">Ayudas humanitarias solicitadas</span></div>
+      <div class="b b--graf b--fantasma"><span class="b__eti">Duplicado · Necesidades</span>
+        <span class="b__t">Situaciones que requieren atención</span></div>
+    </div>
+
+    <div class="g mt">
+      <div class="b b--graf"><span class="b__eti">Solo aquí</span>
+        <span class="b__t">Evolución acumulada de registros</span>
+        <span class="b__d">Tampoco está en otra pestaña.</span></div>
+    </div>
+  </div>
+
+  <div class="fichas" style="margin-bottom:34px">
+    <div class="ficha"><p class="ficha__t">Diagnóstico</p><p class="ficha__c">8 de 10 bloques son repetición literal.
+      El Resumen no resume: acumula.</p></div>
+    <div class="ficha"><p class="ficha__t">Lo que sí es único</p><p class="ficha__c">Tamaño de hogar y evolución de registros
+      viven solo acá. Cualquier opción tiene que decidir dónde quedan.</p></div>
+    <div class="ficha"><p class="ficha__t">La pregunta de fondo</p><p class="ficha__c">¿El Resumen es una portada que
+      orienta, o una respuesta corta que se lee sin bajar? Las cuatro opciones difieren justo en eso.</p></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OPCIÓN 1 · Una pantalla, sin scroll
+     ============================================================ -->
+<section id="v-o1">
+  <div class="intro">
+    <p class="intro__eti">Opción 1</p>
+    <h1>Una sola pantalla: las cifras y un mapa</h1>
+    <p class="intro__sub">El patrón clásico de dashboard ejecutivo: una fila de cifras titulares arriba, una sola
+      visualización que da contexto territorial, y nada más. Todo cabe sin bajar la página. Si el alcalde o un
+      secretario abre el tablero en una reunión, esto es lo que ve completo en cinco segundos.
+      Lo demás vive en las otras cuatro pestañas y se llega por la navegación de siempre.</p>
+    <div class="fichas">
+      <div class="ficha"><p class="ficha__t">Responde</p><p class="ficha__c">«¿De qué tamaño es esto y dónde está?»</p></div>
+      <div class="ficha"><p class="ficha__t">Sirve para</p><p class="ficha__c">Reuniones, prensa, consulta rápida diaria.</p></div>
+      <div class="ficha"><p class="ficha__t">Costo</p><p class="ficha__c">Es la más austera: quien quiera cualquier
+        desagregación tiene que cambiar de pestaña sí o sí.</p></div>
+    </div>
+  </div>
+
+  <div class="lienzo">
+    <p class="lienzo__nota">Boceto · todo el contenido cabe en una pantalla de escritorio</p>
+
+    <div class="sec__t"><span class="sec__n">1</span><span class="sec__l">Cifras titulares</span>
+      <span class="sec__x">Cuatro, no seis. Las que un no técnico repite de memoria.</span></div>
+    <div class="g g-4">
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Personas afectadas · y hogares entre paréntesis</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Viviendas inspeccionadas</span></div>
+      <div class="b b--cifra b--alerta"><span class="b__eti">Cifra crítica</span><span class="b__num">—</span><span class="b__d">Requieren evacuación</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Comunas con registros</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">2</span><span class="sec__l">La única visual</span>
+      <span class="sec__x">Mapa + las cinco comunas con más registros. Nada de pirámide, ni daño, ni ayudas.</span></div>
+    <div class="g g-mapa">
+      <div class="b b--mapa"><span class="b__eti">Visual única</span>
+        <span class="b__t">Mapa de comunas</span>
+        <span class="b__d">Versión reducida: solo intensidad por comuna, sin la capa de puntos por vivienda
+          ni la leyenda extendida. Clic sigue filtrando el tablero.</span></div>
+      <div class="b b--mapa"><span class="b__eti">Apoyo</span>
+        <span class="b__t">Top 5 comunas</span>
+        <span class="b__d">Ranking corto, no la tabla completa de 22 filas. Al pie, un enlace:
+          «Ver las 22 comunas →» que lleva a Territorio.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">3</span><span class="sec__l">Pie de corte</span></div>
+    <div class="b b--solido" style="min-height:56px"><span class="b__eti">Metadato</span>
+      <span class="b__d">Fecha y hora del último corte · universo de la base filtrada · advertencia de uso interno.</span></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OPCIÓN 2 · Portada que reparte
+     ============================================================ -->
+<section id="v-o2" class="oculto">
+  <div class="intro">
+    <p class="intro__eti">Opción 2</p>
+    <h1>Portada: una tarjeta por pestaña</h1>
+    <p class="intro__sub">El Resumen deja de competir con las otras pestañas y pasa a ser su índice. Arriba las
+      cifras titulares; debajo, cuatro tarjetas —Territorio, Personas, Viviendas, Necesidades— y cada una trae
+      su dato más importante, un gráfico diminuto y un enlace de entrada. El usuario entiende el mapa completo
+      del tablero y elige por dónde profundizar, en vez de descubrir por scroll que había más.</p>
+    <div class="fichas">
+      <div class="ficha"><p class="ficha__t">Responde</p><p class="ficha__c">«¿Qué hay acá y por dónde entro?»</p></div>
+      <div class="ficha"><p class="ficha__t">Sirve para</p><p class="ficha__c">Usuarios nuevos o esporádicos; equipos
+        que usan solo una sección.</p></div>
+      <div class="ficha"><p class="ficha__t">Costo</p><p class="ficha__c">Sigue habiendo mini-gráficos en Resumen,
+        aunque en tamaño de miniatura. Hay que ser disciplinado para que no vuelvan a crecer.</p></div>
+    </div>
+  </div>
+
+  <div class="lienzo">
+    <p class="lienzo__nota">Boceto · la navegación superior queda espejada en el cuerpo de la página</p>
+
+    <div class="simnav"><span class="act">Resumen</span><span>Territorio</span><span>Personas</span><span>Viviendas</span><span>Necesidades</span></div>
+
+    <div class="sec__t"><span class="sec__n">1</span><span class="sec__l">Cifras titulares</span>
+      <span class="sec__x">Cuatro, en una franja delgada.</span></div>
+    <div class="g g-4">
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Personas</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Hogares</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra</span><span class="b__num">—</span><span class="b__d">Viviendas inspeccionadas</span></div>
+      <div class="b b--cifra b--alerta"><span class="b__eti">Cifra crítica</span><span class="b__num">—</span><span class="b__d">Requieren evacuación</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">2</span><span class="sec__l">Cuatro puertas</span>
+      <span class="sec__x">Una por pestaña. Dato clave + miniatura + enlace.</span></div>
+    <div class="g g-2">
+      <div class="b b--vinculo b--graf"><span class="b__eti">Puerta → Territorio</span>
+        <span class="b__t">Dónde está concentrado</span>
+        <span class="b__d">Dato: la comuna con más registros y su peso sobre el total.
+          Miniatura: mapa pequeño, sin interacción. Enlace: «Ver el territorio completo →».</span></div>
+      <div class="b b--vinculo b--graf"><span class="b__eti">Puerta → Personas</span>
+        <span class="b__t">Quiénes están afectados</span>
+        <span class="b__d">Dato: menores de edad y adultos mayores dentro del total.
+          Miniatura: pirámide reducida a tres rangos. Enlace: «Ver perfil de las personas →».</span></div>
+      <div class="b b--vinculo b--graf"><span class="b__eti">Puerta → Viviendas</span>
+        <span class="b__t">En qué estado quedaron</span>
+        <span class="b__d">Dato: viviendas con daño alto o no habitables.
+          Miniatura: barra apilada de habitabilidad. Enlace: «Ver estado de las viviendas →».</span></div>
+      <div class="b b--vinculo b--graf"><span class="b__eti">Puerta → Necesidades</span>
+        <span class="b__t">Qué están pidiendo</span>
+        <span class="b__d">Dato: la ayuda más solicitada y cuántas personas la piden.
+          Miniatura: tres barras. Enlace: «Ver todas las necesidades →».</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">3</span><span class="sec__l">Pie de corte</span></div>
+    <div class="b b--solido" style="min-height:56px"><span class="b__eti">Metadato</span>
+      <span class="b__d">Fecha de corte, universo filtrado, nota de uso interno.</span></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OPCIÓN 3 · Snapshot humanitario (sitrep)
+     ============================================================ -->
+<section id="v-o3" class="oculto">
+  <div class="intro">
+    <p class="intro__eti">Opción 3</p>
+    <h1>Snapshot de situación, en formato reporte</h1>
+    <p class="intro__sub">La convención de los organismos de respuesta a emergencias (OCHA, IFRC, FEMA):
+      una página que se lee como un informe de situación y que se puede imprimir o mandar por correo tal cual.
+      Cifras clave arriba, un párrafo corto que dice en palabras lo que pasó desde el último corte, y tres
+      bloques cerrados: dónde, quiénes, qué necesitan. La diferencia con las otras opciones es el texto:
+      acá hay frases, no solo gráficos.</p>
+    <div class="fichas">
+      <div class="ficha"><p class="ficha__t">Responde</p><p class="ficha__c">«¿Cuál es la situación hoy, en palabras?»</p></div>
+      <div class="ficha"><p class="ficha__t">Sirve para</p><p class="ficha__c">Reportar hacia arriba y hacia afuera:
+        Alcaldía, Gestión del Riesgo, comité de emergencia.</p></div>
+      <div class="ficha"><p class="ficha__t">Costo</p><p class="ficha__c">El párrafo hay que generarlo con reglas
+        desde los datos. Es trabajo nuevo en el pipeline, no solo reacomodar bloques.</p></div>
+    </div>
+  </div>
+
+  <div class="lienzo">
+    <p class="lienzo__nota">Boceto · pensado para leerse de corrido y para imprimirse en una hoja</p>
+
+    <div class="sec__t"><span class="sec__n">1</span><span class="sec__l">Cifras clave</span>
+      <span class="sec__x">Estilo «key figures»: cifra grande, etiqueta corta, sin decoración.</span></div>
+    <div class="g g-4">
+      <div class="b b--cifra"><span class="b__eti">Cifra clave</span><span class="b__num">—</span><span class="b__d">Personas afectadas</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra clave</span><span class="b__num">—</span><span class="b__d">Hogares</span></div>
+      <div class="b b--cifra"><span class="b__eti">Cifra clave</span><span class="b__num">—</span><span class="b__d">Viviendas inspeccionadas</span></div>
+      <div class="b b--cifra b--alerta"><span class="b__eti">Cifra clave</span><span class="b__num">—</span><span class="b__d">Requieren evacuación</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">2</span><span class="sec__l">Lectura de la situación</span>
+      <span class="sec__x">Texto armado con reglas sobre los datos filtrados. Sin adjetivos.</span></div>
+    <div class="b b--texto"><span class="b__eti">Párrafo generado</span>
+      <span class="b__t">Tres o cuatro frases con la foto del día</span>
+      <span class="b__d">Por ejemplo: «Al corte del 14 de agosto hay N personas y M hogares registrados en K comunas.
+        La comuna X concentra el P % de los registros. De las viviendas inspeccionadas, Q requieren evacuación.
+        La ayuda más solicitada es Y, pedida por Z personas.» Cada número sale del dato filtrado; la redacción
+        es una plantilla fija, no interpretación.</span></div>
+
+    <div class="sec sec__t"><span class="sec__n">3</span><span class="sec__l">Dónde</span></div>
+    <div class="g g-mapa">
+      <div class="b b--mapa"><span class="b__eti">Visual</span><span class="b__t">Mapa de comunas</span>
+        <span class="b__d">Versión reducida, misma que en Territorio pero sin tabla al lado.</span></div>
+      <div class="b b--mapa"><span class="b__eti">Apoyo</span><span class="b__t">Top 5 comunas</span>
+        <span class="b__d">Barras horizontales cortas con el conteo.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">4</span><span class="sec__l">Quiénes y qué necesitan</span>
+      <span class="sec__x">Dos bloques cerrados, sin la profundidad de las pestañas.</span></div>
+    <div class="g g-sit">
+      <div class="b b--graf"><span class="b__eti">Visual</span><span class="b__t">Población afectada en tres grupos</span>
+        <span class="b__d">Menores, adultos, adultos mayores. La pirámide completa de 5 en 5 se queda en Personas.</span></div>
+      <div class="b b--graf b--alerta"><span class="b__eti">Visual</span><span class="b__t">Top 5 necesidades y situaciones de atención</span>
+        <span class="b__d">Solo las cinco primeras; el listado completo se queda en Necesidades.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">5</span><span class="sec__l">Franja de corte</span></div>
+    <div class="b b--franja b--solido"><span class="b__eti">Metadato + tendencia</span>
+      <span class="b__t">Fecha de corte y evolución en miniatura</span>
+      <span class="b__d">Línea delgada de registros acumulados, del alto de un renglón, más el sello de fecha
+        y la nota de uso interno. Reemplaza el panel grande de «Evolución» que hoy ocupa una sección entera.</span></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     OPCIÓN 4 · Estado operativo
+     ============================================================ -->
+<section id="v-o4" class="oculto">
+  <div class="intro">
+    <p class="intro__eti">Opción 4</p>
+    <h1>Estado operativo: qué exige atención primero</h1>
+    <p class="intro__sub">En vez de describir, ordena. Arriba tres tarjetas de estado —magnitud, criticidad,
+      cobertura del levantamiento—; en el centro, la lista corta de comunas que concentran los casos críticos;
+      abajo, qué cambió respecto al corte anterior. Es la opción más útil para quien tiene que decidir a dónde
+      mandar equipos mañana, y la más exigente: obliga a definir qué cuenta como «crítico».</p>
+    <div class="fichas">
+      <div class="ficha"><p class="ficha__t">Responde</p><p class="ficha__c">«¿Qué atiendo primero y qué cambió?»</p></div>
+      <div class="ficha"><p class="ficha__t">Sirve para</p><p class="ficha__c">Operación diaria: Gestión del Riesgo,
+        equipos de campo, coordinación de ayudas.</p></div>
+      <div class="ficha"><p class="ficha__t">Costo</p><p class="ficha__c">Exige un umbral acordado de criticidad, y hoy
+        el propio tablero advierte que la regla institucional de prioridad todavía no existe. Sin ese acuerdo,
+        esta opción no se puede construir de forma honesta.</p></div>
+    </div>
+  </div>
+
+  <div class="lienzo">
+    <p class="lienzo__nota">Boceto · orientado a acción, no a descripción</p>
+
+    <div class="sec__t"><span class="sec__n">1</span><span class="sec__l">Tres estados</span>
+      <span class="sec__x">Cada tarjeta lleva la cifra y una frase de lectura.</span></div>
+    <div class="g g-3">
+      <div class="b b--cifra"><span class="b__eti">Magnitud</span><span class="b__num">—</span>
+        <span class="b__d">Personas y hogares afectados. Frase: cuánto creció desde el corte anterior.</span></div>
+      <div class="b b--cifra b--alerta"><span class="b__eti">Criticidad</span><span class="b__num">—</span>
+        <span class="b__d">Viviendas que requieren evacuación y personas que requieren atención médica.
+          Frase: en qué comunas se concentran.</span></div>
+      <div class="b b--cifra b--accion"><span class="b__eti">Cobertura</span><span class="b__num">—</span>
+        <span class="b__d">Qué porcentaje de los registros ya tiene inspección de vivienda.
+          Frase: cuánto falta por levantar.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">2</span><span class="sec__l">Dónde concentrar</span>
+      <span class="sec__x">Lista corta ordenada, con el mapa al lado como referencia.</span></div>
+    <div class="g g-sit">
+      <div class="b b--graf-alto b--alerta"><span class="b__eti">Tabla priorizada</span>
+        <span class="b__t">Comunas ordenadas por casos críticos</span>
+        <span class="b__d">Cinco a ocho filas: comuna, personas, viviendas con evacuación, cobertura de inspección.
+          Clic en una fila filtra todo el tablero. Requiere fijar antes el criterio de orden.</span></div>
+      <div class="b b--graf-alto"><span class="b__eti">Referencia</span><span class="b__t">Mapa de apoyo</span>
+        <span class="b__d">Pequeño, resaltando las comunas de la lista. Es acompañamiento, no el protagonista.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">3</span><span class="sec__l">Qué cambió</span>
+      <span class="sec__x">Lo que el corte anterior no tenía.</span></div>
+    <div class="g g-3">
+      <div class="b b--franja"><span class="b__eti">Delta</span><span class="b__t">Nuevos registros</span>
+        <span class="b__d">Personas y viviendas sumadas desde el último corte.</span></div>
+      <div class="b b--franja"><span class="b__eti">Delta</span><span class="b__t">Nuevas comunas</span>
+        <span class="b__d">Territorios que aparecen por primera vez.</span></div>
+      <div class="b b--franja"><span class="b__eti">Delta</span><span class="b__t">Ritmo</span>
+        <span class="b__d">Línea de registros acumulados en miniatura.</span></div>
+    </div>
+
+    <div class="sec sec__t"><span class="sec__n">4</span><span class="sec__l">Pie de corte</span></div>
+    <div class="b b--solido" style="min-height:56px"><span class="b__eti">Metadato</span>
+      <span class="b__d">Fecha de corte, universo filtrado, advertencia explícita de que el orden de la lista
+        es un conteo objetivo y no una priorización institucional.</span></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     COMPARAR
+     ============================================================ -->
+<section id="v-comp" class="oculto">
+  <div class="intro">
+    <p class="intro__eti">Comparar</p>
+    <h1>Las cuatro, lado a lado</h1>
+    <p class="intro__sub">Las cuatro coinciden en dos cosas: bajan de seis a cuatro cifras titulares y sacan del
+      Resumen todo lo que ya existe en otra pestaña. Se diferencian en qué pone el Resumen en su lugar.</p>
+  </div>
+
+  <table class="tabla">
+    <thead><tr><th>Opción</th><th>Pregunta que responde</th><th>Bloques</th><th>Audiencia</th><th>Qué hay que definir antes</th></tr></thead>
+    <tbody>
+      <tr><td>1 · Una pantalla</td><td>¿De qué tamaño es y dónde está?</td><td>4 cifras + mapa + top 5</td>
+        <td>Directivos, prensa, consulta rápida</td><td>Nada. Se construye con lo que ya existe.</td></tr>
+      <tr><td>2 · Portada</td><td>¿Qué hay acá y por dónde entro?</td><td>4 cifras + 4 tarjetas de entrada</td>
+        <td>Usuarios nuevos o esporádicos</td><td>Cuál es el dato clave de cada pestaña.</td></tr>
+      <tr><td>3 · Snapshot</td><td>¿Cuál es la situación hoy, en palabras?</td><td>4 cifras + párrafo + 3 visuales reducidas</td>
+        <td>Reporte institucional hacia arriba</td><td>La plantilla del párrafo y sus reglas.</td></tr>
+      <tr><td>4 · Estado operativo</td><td>¿Qué atiendo primero y qué cambió?</td><td>3 estados + lista priorizada + deltas</td>
+        <td>Operación diaria y campo</td><td>Umbral de criticidad y guardar el corte anterior.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="fichas" style="margin-top:26px;margin-bottom:34px">
+    <div class="ficha"><p class="ficha__t">Se pueden combinar</p><p class="ficha__c">La 1 es el piso de todas.
+      La 2 se le puede agregar encima sin conflicto; la 3 y la 4 sí compiten entre sí por el mismo espacio.</p></div>
+    <div class="ficha"><p class="ficha__t">Los dos huérfanos</p><p class="ficha__c">Tamaño de hogar y evolución de
+      registros no tienen otra pestaña. Propuesta: tamaño de hogar se va a Personas; evolución se queda como
+      franja delgada al pie del Resumen.</p></div>
+    <div class="ficha"><p class="ficha__t">Filtros</p><p class="ficha__c">En cualquier opción conviene que la barra
+      de filtros de tres grupos se reduzca en Resumen a comuna y fechas; los filtros específicos pertenecen a
+      la pestaña que filtran.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    Boceto para decidir estructura · CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali.
+    Los bloques están vacíos a propósito: acá se escoge el esqueleto, no el diseño final.
+  </div>
+</footer>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('#tabs .tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(o){ o.classList.remove('tab--activo'); });
+      t.classList.add('tab--activo');
+      ['hoy','o1','o2','o3','o4','comp'].forEach(function(v){
+        document.getElementById('v-'+v).classList.toggle('oculto', v !== t.dataset.v);
+      });
+      window.scrollTo(0,0);
+    });
+  });
+})();
+</script>
+</body>
+</html>

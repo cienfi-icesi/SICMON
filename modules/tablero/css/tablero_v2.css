@@ -1,0 +1,166 @@
+/* ============================================================
+   Tablero de control — variante v2: Resumen como portada
+   CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali
+   ------------------------------------------------------------
+   Se carga DESPUÉS de tablero.css y solo agrega lo que la
+   portada necesita: la fila de cuatro cifras, las cuatro
+   puertas de entrada y la franja de evolución. Nada de lo que
+   hay aquí afecta a index.html, que no enlaza este archivo.
+   ============================================================ */
+
+/* ---------- Cifras titulares: cuatro, no seis ---------- */
+.kpis--4 { grid-template-columns: repeat(4, 1fr); margin-bottom: 38px; }
+
+/* ---------- Puertas de entrada ---------- */
+/* Una por pestaña. La tarjeta entera es el área de clic —no solo el
+   enlace del pie— porque el objetivo es que entrar a la sección sea el
+   gesto natural de la portada. */
+.puertas {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 22px; margin-bottom: 34px;
+}
+.puerta {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 20px 22px 16px;
+  cursor: pointer;
+  transition: border-color .14s, box-shadow .14s, transform .14s;
+}
+.puerta:hover {
+  border-color: var(--azul);
+  box-shadow: 0 2px 10px rgba(11, 11, 12, 0.07);
+  transform: translateY(-1px);
+}
+.puerta:focus-visible { outline: 2px solid var(--azul); outline-offset: 3px; }
+
+.puerta__eti {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--azul);
+}
+.puerta__titulo {
+  font-size: 16.5px; font-weight: 700; letter-spacing: -0.01em; margin-top: 6px;
+}
+.puerta__cifra {
+  font-size: 30px; font-weight: 800; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; margin-top: 14px; line-height: 1.05;
+}
+.puerta__lectura {
+  font-size: 13px; color: var(--gris-medio); line-height: 1.5; margin-top: 6px;
+  min-height: 39px;   /* dos renglones: mantiene las cuatro tarjetas alineadas */
+}
+/* la miniatura empuja el enlace al pie, aunque las tarjetas tengan
+   distinto número de barras */
+.puerta__mini { margin-top: 14px; flex: 1; }
+.puerta__mini svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+.puerta__mini .vacio { padding: 14px 0; font-size: 12.5px; }
+
+.puerta__enlace {
+  margin-top: 16px; padding-top: 11px; border-top: 1px solid var(--gris-linea);
+  font-size: 13px; font-weight: 600; color: var(--azul);
+}
+.puerta:hover .puerta__enlace { color: var(--azul-oscuro); }
+
+/* miniaturas: mismas barras del tablero, en escala reducida */
+.g-etiqueta--mini { font-size: 11.5px; }
+.g-valor--mini    { font-size: 10.5px; }
+
+/* ---------- Franja de evolución ---------- */
+/* La evolución no tiene pestaña propia. Se queda en el Resumen, pero como
+   franja de una sola línea y no como la sección de página entera que era. */
+.franja {
+  border: 1px solid var(--gris-linea); border-radius: var(--radio);
+  background: var(--blanco); padding: 18px 22px 14px;
+}
+.franja__cab {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px;
+}
+.franja__titulo { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.franja__bajada { font-size: 12.5px; color: var(--gris-medio); }
+.leyenda--franja { margin-top: 0; margin-left: auto; }
+.franja__lienzo { margin-top: 10px; }
+.franja__lienzo svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+
+/* ============================================================
+   Mapa: resumen al pasar el cursor y comuna destacada al hacer clic
+   ============================================================ */
+
+/* Al acercarse a una comuna, los polígonos vecinos quedan fuera del viewBox.
+   Sin esto el navegador los pintaría igual y se saldrían del panel. */
+.territorio__mapa svg { overflow: hidden; }
+
+/* ---------- Comuna seleccionada ---------- */
+/* El foco se marca por contraste, no por aislamiento: la comuna elegida
+   conserva su color y las demás se apagan, así se sigue viendo dónde queda
+   dentro de la ciudad. */
+.m-comuna--apagada { opacity: 0.38; }
+.m-comuna--apagada:hover { opacity: 0.62; }
+.m-etiqueta--apagada { opacity: 0.4; }
+/* halo exterior de la comuna activa: se dibuja debajo del relleno */
+.m-halo { fill: none; stroke: var(--azul); stroke-width: 7; stroke-opacity: 0.18;
+          stroke-linejoin: round; pointer-events: none; }
+
+/* ---------- Tarjeta de resumen (hover) ---------- */
+.mapa-tarjeta {
+  position: absolute; z-index: 30; width: 232px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-borde); border-radius: var(--radio);
+  box-shadow: 0 4px 16px rgba(11, 11, 12, 0.14);
+  padding: 0; pointer-events: none;   /* nunca se interpone al clic sobre el mapa */
+}
+.mt__titulo {
+  font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em;
+  padding: 9px 12px; border-bottom: 1px solid var(--gris-linea);
+  background: var(--gris-fondo); border-radius: var(--radio) var(--radio) 0 0;
+}
+.mt__cifras {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--gris-linea);
+}
+.mt__celda { padding: 8px 12px; }
+.mt__celda:nth-child(odd) { border-right: 1px solid var(--gris-linea); }
+.mt__celda:nth-child(n+3) { border-top: 1px solid var(--gris-linea); }
+.mt__n {
+  display: block; font-size: 19px; font-weight: 800;
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.mt__e {
+  display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--gris-medio); margin-top: 2px;
+}
+.mt__celda--alerta .mt__n { color: var(--rojo); }
+
+.mt__seccion { padding: 9px 12px 10px; }
+.mt__rotulo {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--gris); margin-bottom: 6px;
+}
+/* composición en una sola barra: ocupa menos que tres barras y responde la
+   pregunta de la tarjeta, que es de proporción, no de magnitud */
+.mt__apilada {
+  display: flex; height: 9px; border-radius: 3px; overflow: hidden;
+  background: var(--gris-linea);
+}
+.mt__tramo { height: 100%; }
+.mt__leyenda { margin-top: 7px; display: flex; flex-direction: column; gap: 3px; }
+.mt__fila { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--gris-medio); }
+.mt__punto { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.mt__fila b { color: var(--tinta); font-weight: 600; font-variant-numeric: tabular-nums; margin-left: auto; }
+
+.mt__pie {
+  font-size: 10.5px; color: var(--gris); padding: 7px 12px 9px;
+  border-top: 1px solid var(--gris-linea); line-height: 1.4;
+}
+.mt__vacio { font-size: 12px; color: var(--gris-medio); padding: 11px 12px; line-height: 1.45; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1240px) {
+  .kpis--4 { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 1080px) {
+  .puertas { grid-template-columns: 1fr; }
+  .puerta__lectura { min-height: 0; }
+  .leyenda--franja { margin-left: 0; }
+}
+@media (max-width: 700px) {
+  .kpis--4 { grid-template-columns: repeat(2, 1fr); }
+}

@@ -1,0 +1,35 @@
+/* ============================================================================
+   modulo.css — Estilos propios del módulo de registro y seguimiento.
+
+   Lo institucional viene de assets/shared.css.
+   ========================================================================== */
+
+.encabezado-modulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.modulo-icono {
+  flex: 0 0 auto;
+  font-size: 2.4rem;
+  line-height: 1;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--superficie-suave);
+}
+
+.acciones-modulo {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 620px) {
+  .encabezado-modulo { flex-direction: column; gap: 14px; }
+  .modulo-icono { width: 56px; height: 56px; font-size: 2rem; }
+  .acciones-modulo { flex-direction: column; }
+  .acciones-modulo .btn { width: 100%; }
+}
