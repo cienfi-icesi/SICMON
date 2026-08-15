@@ -102,7 +102,7 @@ CONECTAR_HOJA <- env_logico("SICMON_CONECTAR_HOJA", !MODO_SIMULADO)
 ## Si alguno queda con la direccion vieja, sigue hablando con la implementacion
 ## anterior sin dar error: responde bien, solo que a la version de antes.
 URL_HOJA      <- env_texto("SICMON_URL_HOJA",
-                           "https://script.google.com/macros/s/AKfycbwHuGE5olZBzOskJoQh0bBo0YqcVSvEiIA0Vhbw1UrW_2bFJqEruqgAUsJG8patB5etxA/exec")
+                           "https://script.google.com/macros/s/AKfycbwwJQIDHiG0n2x8nbMvpxJsiqDvFGvRzqhMRkbkz29wFoDNgbFfdiIhkGzBBUEn4xCaeg/exec")
 TOKEN_HOJA    <- env_texto("SICMON_TOKEN_HOJA", "sismo_2026_01234567891011121314")
                                                      ## el general; el mismo de ../modules/edan/js/config-sync.js
                                                      ## no es un secreto: viaja al navegador de quien abra la app

@@ -145,7 +145,7 @@
        AL PUBLICAR UNA VERSIÓN NUEVA HAY QUE SUBIR ESTE NÚMERO Y TAMBIÉN EL
        "?v=" de los <script> y <link> de index.html. Los dos deben coincidir;
        si no, la aplicación lo avisa sola en la consola al arrancar. */
-    appVersion: '2.1.5',
+    appVersion: '2.1.6',
     appNombre: 'Registro de información',
     appSubtitulo: 'Emergencia por sismo — Santiago de Cali',
     entidades: [

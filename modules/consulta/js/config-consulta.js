@@ -33,7 +33,7 @@
     // Es la MISMA que usa la aplicación de campo (../edan/js/config-sync.js).
     // Si algún día se publica una implementación nueva, hay que cambiarla en
     // los dos archivos y en URL_HOJA de consolidacion/config/parameters.R.
-    url: 'https://script.google.com/macros/s/AKfycbwHuGE5olZBzOskJoQh0bBo0YqcVSvEiIA0Vhbw1UrW_2bFJqEruqgAUsJG8patB5etxA/exec',
+    url: 'https://script.google.com/macros/s/AKfycbwwJQIDHiG0n2x8nbMvpxJsiqDvFGvRzqhMRkbkz29wFoDNgbFfdiIhkGzBBUEn4xCaeg/exec',
 
     // La misma cadena que está en la propiedad TOKEN del script de Google.
     token: 'sismo_2026_01234567891011121314',
