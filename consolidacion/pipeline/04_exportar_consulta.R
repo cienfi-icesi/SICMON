@@ -80,6 +80,20 @@ viviendas <- dbGetQuery(con, "
          fecha_actualizacion, archivo_origen, last_update
   FROM viviendas")
 
+## reportes de afectacion: grano evento/edificacion, entidad independiente
+## (no se enlaza con hogares ni personas; ver el comentario en db/schema.sql)
+afectaciones <- dbGetQuery(con, "
+  SELECT id_encuesta, consecutivo_id, nombre_edificacion, barrio, comuna,
+         direccion_completa, latitud, longitud,
+         descripcion, colapso, requieren_evacuacion,
+         fallecidos, atrapadas, necesitan_evacuar,
+         tipo_edificacion, cantidad_viviendas, observaciones,
+         fotos_cantidad, fotos_nombres, fotos_enlaces,
+         diligencia_nombre, organismo, grupo_voluntarios,
+         secretaria, fecha, fecha_actualizacion, duplicate, id_canonico,
+         archivo_origen, last_update
+  FROM afectaciones")
+
 revisar <- dbGetQuery(con, "
   SELECT id_encuesta, id_hogar, n_personas, match_status, secretaria, archivo_origen
   FROM familias
@@ -125,22 +139,29 @@ diccionario <- fread("synthetic/insumos/diccionario_variables.csv", encoding = "
 ##=== 4. Export                                                            ===##
 ##============================================================================##
 
-datos <- list(actualizado = actualizado,
-              personas    = personas,
-              familias    = familias,
-              viviendas   = viviendas,
-              fichas      = fichas,
-              diccionario = diccionario,
-              revisar     = revisar,
-              duplicados  = duplicados)
+datos <- list(actualizado  = actualizado,
+              personas     = personas,
+              familias     = familias,
+              viviendas    = viviendas,
+              afectaciones = afectaciones,
+              fichas       = fichas,
+              diccionario  = diccionario,
+              revisar      = revisar,
+              duplicados   = duplicados)
 
 ## export data (window.DATOS para que funcione con file://)
 writeLines(paste0("window.DATOS = ", toJSON(datos, auto_unbox = T, na = "null"), ";"),
            file.path(CARPETA_CONSULTA, "js/datos.js"), useBytes = T)
-export(list(personas = personas, afectaciones = familias, edificaciones = viviendas),
+## OJO: "hogares" es el formulario EDAN de personas/familia; "afectaciones" es
+## el reporte por evento. Antes la hoja de hogares se rotulaba "afectaciones",
+## que ahora seria confuso porque ya existe una tabla con ese nombre.
+export(list(personas     = personas,
+            hogares      = familias,
+            edificaciones = viviendas,
+            afectaciones = afectaciones),
        file.path(CARPETA_CONSULTA, "descargas/base_consulta.xlsx"))
 
-log_msg(sprintf("consulta: %d personas, %d afectaciones, %d edificaciones, %d fichas -> %s",
-                nrow(personas), nrow(familias), nrow(viviendas), length(fichas),
-                CARPETA_CONSULTA))
+log_msg(sprintf("consulta: %d personas, %d hogares, %d edificaciones, %d afectaciones, %d fichas -> %s",
+                nrow(personas), nrow(familias), nrow(viviendas), nrow(afectaciones),
+                length(fichas), CARPETA_CONSULTA))
 dbDisconnect(con)

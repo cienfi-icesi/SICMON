@@ -53,9 +53,17 @@ raw_per <- dbGetQuery(con, "
   JOIN personas p ON p.id_persona = r.id_registro AND p.hash_fila = r.hash_fila
   WHERE r.tabla_origen = 'personas' AND p.duplicate = 0")
 
-## un solo fromJSON sobre el arreglo completo devuelve ya un data.frame
-payload_viv <- fromJSON(paste0("[", paste(raw_viv$payload, collapse = ","), "]"))
-payload_per <- fromJSON(paste0("[", paste(raw_per$payload, collapse = ","), "]"))
+## un solo fromJSON sobre el arreglo completo devuelve ya un data.frame.
+## con la base en cero el arreglo es "[]" y fromJSON devuelve una lista vacia,
+## sobre la que select() no sabe operar: en ese caso se arma a mano el data
+## frame vacio con las dos columnas que usan los pasos de abajo
+payload_json <- function(payload) {
+  if (length(payload) == 0) return(data.frame(id_encuesta = character(0), fecha = character(0)))
+  fromJSON(paste0("[", paste(payload, collapse = ","), "]"))
+}
+
+payload_viv <- payload_json(raw_viv$payload)
+payload_per <- payload_json(raw_per$payload)
 
 fecha_encuesta <- bind_rows(payload_viv %>% select(id_encuesta, fecha),
                             payload_per %>% select(id_encuesta, fecha)) %>%
@@ -126,7 +134,13 @@ viviendas <- dbGetQuery(con, "
 ##=== 4. Nivel de dano  (grano: vivienda x elemento estructural)           ===##
 ##============================================================================##
 
-## los niveles de dano no estan en la tabla consolidada: se leen del payload
+## los niveles de dano no estan en la tabla consolidada: se leen del payload.
+## con la base en cero el payload no trae ninguna columna _nivel_etiqueta y
+## pivot_longer no tiene nada que alargar, asi que se agrega vacia a mano
+if (!any(grepl("_nivel_etiqueta$", names(payload_viv)))) {
+  payload_viv$viv_mam_cubierta_nivel_etiqueta <- character(nrow(payload_viv))
+}
+
 danio <- payload_viv %>%
          select(id_encuesta, ends_with("_nivel_etiqueta")) %>%
          pivot_longer(-id_encuesta, names_to = "elemento", values_to = "nivel") %>%
@@ -183,6 +197,19 @@ corrida <- dbGetQuery(con, "
 ##============================================================================##
 ##=== 6. Export                                                            ===##
 ##============================================================================##
+
+## los grupos etarios, los sistemas constructivos y los nombres de elemento se
+## arman con literales escritos aqui arriba ("18-59 años", "Mampostería"). El
+## sistema corre en locale C, asi que esos literales llegan con la codificacion
+## sin declarar y toJSON() los serializa como "a<c3><b1>os". Los bytes ya son
+## UTF-8; solo falta decirlo, y hay que hacerlo antes de serializar
+for (tabla in c("personas", "viviendas", "danio", "revisar", "duplicados")) {
+  d <- get(tabla)
+  for (col in names(d)) {
+    if (is.character(d[[col]])) Encoding(d[[col]]) <- "UTF-8"
+  }
+  assign(tabla, d)
+}
 
 datos <- list(actualizado = ifelse(nrow(corrida) == 0, "", corrida$fin[1]),
               personas    = personas,

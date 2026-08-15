@@ -60,8 +60,16 @@ pasos  <- c("pipeline/00_conectar_drive.R", "pipeline/00_conectar_hoja.R", "pipe
             "pipeline/05_exportar_tablero.R")
 estado <- "ok"
 
+## ruta completa al Rscript de ESTA instalacion de R, no "Rscript" a secas:
+## launchd corre con un PATH minimo que no incluye /usr/local/bin, y cada paso
+## moria con codigo 127 ("command not found"). A mano funcionaba —la terminal
+## si tiene ese PATH—, asi que el pipeline parecia sano y la corrida automatica
+## llevaba dias sin hacer nada. Ademas garantiza que los pasos usen la misma R
+## que el orquestador.
+rscript <- file.path(R.home("bin"), "Rscript")
+
 for (paso in pasos) {
-  codigo <- system2("Rscript", paso)
+  codigo <- system2(rscript, paso)
   if (codigo != 0) {
     log_msg(sprintf("ERROR: %s termino con codigo %d; la corrida se detiene", paso, codigo))
     estado <- "error"

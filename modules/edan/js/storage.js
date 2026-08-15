@@ -45,7 +45,8 @@
 
   /** Genera el identificador visible de una encuesta. */
   function nuevoIdEncuesta(tipoFormulario) {
-    var prefijo = tipoFormulario === 'vivienda' ? 'VIV' : 'PER';
+    var prefijo = tipoFormulario === 'vivienda' ? 'VIV'
+      : tipoFormulario === 'afectaciones' ? 'AFE' : 'PER';
     return prefijo + '-' + hoyCompacto() + '-' + aleatorio(6);
   }
 
@@ -201,6 +202,28 @@
      envío y la encuesta aparecería como pendiente aunque ya hubiera llegado. */
   var CAMPOS_SYNC = ['sincronizada', 'fecha_sincronizacion', 'intentos_sync', 'ultimo_error_sync'];
 
+  function conservarEnlacesFotos(previo, registro) {
+    if (!previo.respuestas || !registro.respuestas) return;
+    Object.keys(previo.respuestas).forEach(function (k) {
+      var antes = previo.respuestas[k];
+      var ahora = registro.respuestas[k];
+      if (!Array.isArray(antes) || !Array.isArray(ahora)) return;
+      if (!antes.length || !antes[0] || antes[0].nombre === undefined) return; // no es una lista de fotos
+      antes.forEach(function (fa) {
+        if (!fa || !fa.url) return;
+        ahora.forEach(function (fh) {
+          if (fh && !fh.url && fh.nombre === fa.nombre && fh.tam === fa.tam) {
+            fh.url = fa.url;
+            fh.drive_id = fa.drive_id || '';
+            if (fa.compartida !== undefined) fh.compartida = fa.compartida;
+            // Si en disco ya se soltaron los bytes, no se resucitan desde la copia vieja.
+            if (fa.datos === undefined && fh.compartida !== false) delete fh.datos;
+          }
+        });
+      });
+    });
+  }
+
   function guardar(registro) {
     if (!registro || !registro.id_encuesta) return { ok: false, mensaje: 'Registro inválido.' };
     var datos = leerTodo();
@@ -219,6 +242,12 @@
       // Por lo mismo con la bitácora: los eventos de envío se escriben en la
       // copia del almacén y se perderían al guardar desde el formulario.
       registro.bitacora = fusionarBitacora(previo.bitacora, registro.bitacora);
+
+      /* Los enlaces de Drive de las fotos los escribe el servidor (vía
+         anotarEnlacesFotos). Si la copia en memoria del formulario es
+         anterior a esa confirmación, no debe pisarlos: se conservan de la
+         copia en disco, foto por foto, emparejando por nombre y tamaño. */
+      conservarEnlacesFotos(previo, registro);
 
       /* Una encuesta FINALIZADA que ya estaba en la base central y vuelve a
          guardarse (la reabrieron para corregirla) regresa a la cola de
@@ -254,6 +283,40 @@
     return escribirTodo(datos);
   }
 
+
+  /**
+   * Anota, junto a cada foto de la encuesta, el enlace y el id que le asignó
+   * Drive al recibirla. Relee del almacén y toca solo esos dos campos: como
+   * marcarSincronizacion, es una vía estrecha para que una copia vieja del
+   * formulario en memoria no pise lo que confirmó el servidor.
+   * `enlaces` = [{ campo, indice, url, drive_id }].
+   */
+  function anotarEnlacesFotos(idEncuesta, enlaces) {
+    var datos = leerTodo();
+    var registro = datos[idEncuesta];
+    if (!registro || !Array.isArray(enlaces)) return { ok: false };
+    registro.respuestas = registro.respuestas || {};
+
+    var anotados = 0;
+    enlaces.forEach(function (e) {
+      if (!Array.isArray(registro.respuestas[e.campo])) registro.respuestas[e.campo] = [];
+      var lista = registro.respuestas[e.campo];
+      // Foto que estaba en Drive y el equipo no conocia: se agrega a la lista.
+      if (!lista[e.indice] && e.recuperada) lista[e.indice] = { nombre: e.nombre || 'foto', mime: 'image/jpeg', tam: 0 };
+      if (!lista[e.indice]) return;
+      lista[e.indice].url = e.url || '';
+      lista[e.indice].drive_id = e.drive_id || '';
+      if (e.compartida !== undefined) lista[e.indice].compartida = !!e.compartida;
+      /* Ya está a salvo en Drive: los bytes locales se sueltan para liberar
+         el almacén del equipo (la vista previa pasa a cargarse del enlace).
+         Solo si el enlace quedó público; si no, la miniatura local es la
+         única forma de verla en este equipo. */
+      if (e.drive_id && e.compartida !== false) delete lista[e.indice].datos;
+      anotados++;
+    });
+    if (anotados) registrarEvento(registro, 'fotos_en_drive', anotados + ' foto(s) guardada(s) en Drive');
+    return escribirTodo(datos);
+  }
 
   /**
    * Une la bitácora almacenada con la que trae el registro en memoria.
@@ -417,11 +480,12 @@
           nombre: r.usuario_nombre || k,
           vivienda: 0,
           personas: 0,
+          afectaciones: 0,
           total: 0,
           ultima: null
         };
       }
-      porUsuario[k][r.tipo_formulario] += 1;
+      if (porUsuario[k][r.tipo_formulario] !== undefined) porUsuario[k][r.tipo_formulario] += 1;
       porUsuario[k].total += 1;
       var f = r.fecha_finalizacion || r.fecha_actualizacion;
       if (!porUsuario[k].ultima || String(f) > String(porUsuario[k].ultima)) porUsuario[k].ultima = f;
@@ -453,6 +517,7 @@
       total: finalizadas.length,
       vivienda: finalizadas.filter(function (r) { return r.tipo_formulario === 'vivienda'; }).length,
       personas: finalizadas.filter(function (r) { return r.tipo_formulario === 'personas'; }).length,
+      afectaciones: finalizadas.filter(function (r) { return r.tipo_formulario === 'afectaciones'; }).length,
       borradores: borradores.length,
       personasRegistradas: totalPersonas,
       hogaresCompletos: hogaresCompletos,
@@ -576,6 +641,7 @@
     estadisticas: estadisticas,
     registrarEvento: registrarEvento,
     marcarSincronizacion: marcarSincronizacion,
+    anotarEnlacesFotos: anotarEnlacesFotos,
     conteoSync: conteoSync,
     guardarSesion: guardarSesion,
     leerSesion: leerSesion,

@@ -21,9 +21,13 @@
   var DATOS = window.DATOS || { actualizado: '', personas: [], familias: [], viviendas: [],
                                 fichas: {}, diccionario: [], revisar: [], duplicados: [] };
 
-  /* Usuarios del equipo a cargo de la base (preliminar). */
+  /* Usuarios del equipo a cargo de la base (preliminar).
+     La contraseña viaja en este archivo, que cualquiera puede leer con «ver
+     código fuente». Sirve para que la base no quede a la vista de quien entre
+     por casualidad, no para detener a alguien decidido: antes de publicar el
+     portal hay que mover esta autenticación al servidor. */
   var USUARIOS = [
-    { usuario: 'eduard', password: '123', nombre: 'Eduard' }
+    { usuario: 'administrador', password: '123456789', nombre: 'Administrador' }
   ];
 
   var CLAVE_OBS = 'alcaldia_sismos_observaciones_v1';
@@ -68,6 +72,56 @@
     return marcado
       ? '<span class="chip chip--ambar">Sí</span>'
       : '<span class="chip chip--gris">No</span>';
+  }
+
+  /* estado de colapso: el color sigue la gravedad real de la categoría */
+  function chipColapso(v) {
+    if (!v) return '—';
+    var t = String(v).toLowerCase();
+    var clase = t.indexOf('colapsado') !== -1 ? 'chip--rojo'
+              : t.indexOf('riesgo') !== -1    ? 'chip--ambar'
+              : 'chip--gris';
+    return '<span class="chip ' + clase + '">' + escapar(v) + '</span>';
+  }
+
+  function chipFotos(n) {
+    var c = parseInt(n, 10);
+    if (!c) return '—';
+    return '<span class="chip chip--gris">' + c + (c === 1 ? ' foto' : ' fotos') + '</span>';
+  }
+
+  /* ---------- soportes fotográficos ----------
+     El pipeline entrega los enlaces de Drive separados por |. De un enlace de
+     Drive se puede sacar el id del archivo y con él una miniatura; si el
+     permiso del archivo no la deja ver, la imagen falla y en su lugar queda
+     el enlace, que siempre funciona para quien tenga acceso a la carpeta. */
+
+  function idDeDrive(url) {
+    var m = String(url).match(/\/d\/([-\w]{20,})/) || String(url).match(/[?&]id=([-\w]{20,})/);
+    return m ? m[1] : null;
+  }
+
+  function separarLista(texto) {
+    return String(texto || '').split('|').map(function (s) { return s.trim(); })
+                              .filter(function (s) { return s; });
+  }
+
+  function galeriaFotos(enlaces, nombres) {
+    var urls = separarLista(enlaces);
+    if (!urls.length) return '<p class="nota">Este reporte no tiene soportes fotográficos.</p>';
+    var noms = separarLista(nombres);
+    return '<div class="galeria">' + urls.map(function (url, i) {
+      var id = idDeDrive(url);
+      var rotulo = noms[i] || ('Foto ' + (i + 1));
+      var miniatura = id
+        ? '<img class="galeria__img" loading="lazy" alt="' + escapar(rotulo) + '"' +
+          ' src="https://drive.google.com/thumbnail?id=' + escapar(id) + '&sz=w400"' +
+          ' onerror="this.classList.add(\'galeria__img--rota\')" />'
+        : '<span class="galeria__sinvista">Vista previa no disponible</span>';
+      return '<a class="galeria__item" href="' + escapar(url) + '" target="_blank" rel="noopener"' +
+             ' title="' + escapar(rotulo) + '">' + miniatura +
+             '<span class="galeria__pie">' + escapar(rotulo) + '</span></a>';
+    }).join('') + '</div>';
   }
 
   /* ---------- diccionario: etiquetas de variables ---------- */
@@ -133,9 +187,70 @@
      FICHA COMPLETA: todas las respuestas del formulario
      ============================================================ */
 
+  /* Ficha del reporte de afectación: se arma con los campos de la tabla, no
+     con el diccionario, porque este formulario tiene su propia estructura
+     (conteos por evento y soportes fotográficos) y no está en el libro de
+     códigos del EDAN. */
+  function fichaAfectacion(r) {
+    var dato = function (etiqueta, v) {
+      return '<div class="dato"><b>' + escapar(etiqueta) + ':</b> ' + escapar(valor(v)) + '</div>';
+    };
+    var bloque = function (titulo, contenido) {
+      return '<h3 class="ficha-seccion">' + escapar(titulo) + '</h3>' +
+             '<div class="ficha__grupo">' + contenido + '</div>';
+    };
+
+    return bloque('1 · Identificación del reporte',
+        dato('Registro', r.id_encuesta) +
+        dato('Consecutivo CMGRD', r.consecutivo_id) +
+        dato('Organismo', r.organismo) +
+        dato('Diligenciado por', r.diligencia_nombre) +
+        dato('Grupo de voluntarios', r.grupo_voluntarios) +
+        dato('Fecha', r.fecha)) +
+
+      bloque('2 · Ubicación',
+        dato('Edificación', r.nombre_edificacion) +
+        dato('Dirección', r.direccion_completa) +
+        dato('Barrio', r.barrio) +
+        dato('Comuna', r.comuna) +
+        dato('Coordenadas', (r.latitud != null && r.longitud != null)
+             ? (r.latitud + ', ' + r.longitud) : null)) +
+
+      bloque('3 · Afectación encontrada',
+        '<div class="dato dato--ancho"><b>Descripción:</b> ' + escapar(valor(r.descripcion)) + '</div>' +
+        dato('Colapso', r.colapso) +
+        dato('Requieren evacuación', r.requieren_evacuacion)) +
+
+      bloque('4 · Personas afectadas (conteos declarados en el reporte)',
+        dato('Fallecidas', r.fallecidos) +
+        dato('Atrapadas', r.atrapadas) +
+        dato('Necesitan evacuar', r.necesitan_evacuar)) +
+
+      bloque('5 · Edificación atendida',
+        dato('Tipo de edificación', r.tipo_edificacion) +
+        dato('Viviendas caracterizadas y atendidas', r.cantidad_viviendas)) +
+
+      bloque('6 · Observaciones y soportes',
+        '<div class="dato dato--ancho"><b>Observaciones:</b> ' + escapar(valor(r.observaciones)) + '</div>') +
+      galeriaFotos(r.fotos_enlaces, r.fotos_nombres) +
+
+      '<div class="ficha__meta">Origen: ' + escapar(valor(r.archivo_origen)) +
+      ' · Actualizado: ' + escapar(valor(r.last_update).replace('T', ' ')) + '</div>';
+  }
+
   function abrirFicha(id, titulo) {
-    var ficha = (DATOS.fichas || {})[id];
     var cuerpo = $('#ficha-cuerpo');
+
+    /* los reportes de afectación tienen ficha propia */
+    var afe = (DATOS.afectaciones || []).filter(function (a) { return a.id_encuesta === id; })[0];
+    if (afe) {
+      $('#ficha-titulo').textContent = titulo || ('Reporte ' + id);
+      cuerpo.innerHTML = fichaAfectacion(afe);
+      $('#modal-ficha').classList.remove('oculto');
+      return;
+    }
+
+    var ficha = (DATOS.fichas || {})[id];
     $('#ficha-titulo').textContent = titulo || ('Registro ' + id);
     if (!ficha) {
       cuerpo.innerHTML = '<p class="nota">No hay respuestas guardadas para este registro.</p>';
@@ -322,11 +437,41 @@
         { titulo: 'Actualizado', campo: 'fecha_actualizacion', mono: true }
       ]
     },
-    familias: {
+    /* Reportes de afectación: grano EVENTO / edificación atendida por un
+       organismo de socorro. Entidad independiente — no trae cédula ni código
+       de hogar, así que no se enlaza con las otras bases. */
+    afectaciones: {
       titulo: 'Afectaciones',
+      filas: function () { return DATOS.afectaciones || []; },
+      id: 'id_encuesta',
+      tituloFicha: function (r) {
+        return 'Reporte de afectación — ' + valor(r.nombre_edificacion || r.direccion_completa);
+      },
+      fichaPropia: true,          /* la arma fichaAfectacion(), no el diccionario */
+      columnas: [
+        { titulo: 'Registro', campo: 'id_encuesta', mono: true },
+        { titulo: 'Consecutivo', campo: 'consecutivo_id', mono: true },
+        { titulo: 'Edificación', campo: 'nombre_edificacion' },
+        { titulo: 'Dirección', campo: 'direccion_completa' },
+        { titulo: 'Barrio', campo: 'barrio' },
+        { titulo: 'Comuna', campo: 'comuna' },
+        { titulo: 'Colapso', campo: 'colapso', render: function (r) { return chipColapso(r.colapso); } },
+        { titulo: 'Evacuación', campo: 'requieren_evacuacion' },
+        { titulo: 'Fallecidos', campo: 'fallecidos' },
+        { titulo: 'Atrapadas', campo: 'atrapadas' },
+        { titulo: 'Por evacuar', campo: 'necesitan_evacuar' },
+        { titulo: 'Viviendas', campo: 'cantidad_viviendas' },
+        { titulo: 'Fotos', campo: 'fotos_cantidad',
+          render: function (r) { return chipFotos(r.fotos_cantidad); } },
+        { titulo: 'Organismo', campo: 'organismo' },
+        { titulo: 'Actualizado', campo: 'fecha_actualizacion', mono: true }
+      ]
+    },
+    familias: {
+      titulo: 'Hogares',
       filas: function () { return DATOS.familias; },
       id: 'id_encuesta',
-      tituloFicha: function (r) { return 'Formulario de afectaciones — hogar ' + valor(r.id_hogar); },
+      tituloFicha: function (r) { return 'Formulario de hogar — ' + valor(r.id_hogar); },
       sinFichaDirecta: true,
       columnas: [
         { titulo: 'Registro', campo: 'id_encuesta', mono: true },
@@ -364,10 +509,13 @@
   var ordenCampo = null;
   var ordenAsc = true;
   var mostrarDuplicados = false;
-  var seccionesActivas = { viviendas: {}, familias: {}, personas: {} };
+  var seccionesActivas = { viviendas: {}, familias: {}, personas: {}, afectaciones: {} };
 
-  /* formulario cuyas preguntas pueden agregarse como columnas en cada base;
-     en afectaciones solo la seccion 5, las demas son de nivel persona */
+  /* Formulario cuyas preguntas pueden agregarse como columnas en cada base;
+     en hogares solo la sección 5, las demás son de nivel persona.
+     `afectaciones` no tiene entrada porque su cuestionario no está en el libro
+     de códigos del EDAN: su ficha se arma en fichaAfectacion() y todas sus
+     preguntas ya son columnas de la tabla, así que no hay nada que agregar. */
   var FORMULARIO_DE_BASE = {
     viviendas: { formulario: 'Formulario de Vivienda' },
     familias:  { formulario: 'Formulario de Personas / Familia', secciones: ['5'] },
@@ -376,6 +524,7 @@
 
   function seccionesDe(nombreBase) {
     var cfg = FORMULARIO_DE_BASE[nombreBase];
+    if (!cfg) return [];              /* base sin preguntas en el diccionario */
     var vistas = {};
     var lista = [];
     (DATOS.diccionario || []).forEach(function (d) {
@@ -389,6 +538,7 @@
 
   function columnasExtra(nombreBase) {
     var cfg = FORMULARIO_DE_BASE[nombreBase];
+    if (!cfg) return [];              /* base sin preguntas en el diccionario */
     var activas = seccionesActivas[nombreBase] || {};
     var columnas = [];
     (DATOS.diccionario || []).forEach(function (d) {

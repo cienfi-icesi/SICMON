@@ -18,7 +18,8 @@
   var CFG = window.APP_CONFIG;
   var FORMULARIOS = {
     vivienda: window.FORM_VIVIENDA,
-    personas: window.FORM_PERSONAS
+    personas: window.FORM_PERSONAS,
+    afectaciones: window.FORM_AFECTACIONES
   };
   var TIPOS_SIN_DATO = ['subtitulo', 'nota', 'aviso'];
 
@@ -53,15 +54,12 @@
        · Registro de edificaciones → formato VOL-10. Es la inspección de la
          vivienda o edificación y es el formulario que ya está construido.
        · Registro de afectaciones  → visita oficial posterior, que confirma la
-         edificación. Todavía no tiene preguntas definidas, por eso va con
-         formulario: null.
+         edificación y caracteriza la afectación (con soportes fotográficos).
        · Registro de personas y familias → formato VOL-3 (EDAN).
 
-     PARA CONECTAR EL REGISTRO DE AFECTACIONES cuando se definan sus preguntas:
-       1. Escribir el esquema en js/form-afectaciones.js (puede copiarse la
-          estructura de form-vivienda.js).
-       2. Cargarlo en index.html y agregarlo a FORMULARIOS arriba.
-       3. Poner aquí  formulario: 'afectaciones'.
+     Los tres están construidos. Para agregar un cuarto: escribir su esquema
+     en js/form-<nombre>.js, cargarlo en index.html, sumarlo a FORMULARIOS y
+     poner una entrada aquí. Hereda validación, guardado, envío y exportación.
      No hay que tocar nada más: hereda validación, guardado, envío y exportación.
      ========================================================================== */
   var TIPOS_REGISTRO = [
@@ -75,9 +73,9 @@
     {
       id: 'afectaciones',
       nombre: 'Registro de afectaciones',
-      descripcion: 'Visita oficial que confirma la edificación y las afectaciones reportadas.',
+      descripcion: 'Visita oficial que confirma la edificación y caracteriza la afectación. Con soportes fotográficos.',
       icono: '📋',
-      formulario: null
+      formulario: 'afectaciones'
     },
     {
       id: 'personas',
@@ -104,6 +102,17 @@
       .filter(function (c) { return c && FORMULARIOS[c]; });
   }
 
+  /**
+   * Formulario "pareja" de un tipo, con el que comparte hogar: edificaciones
+   * (vivienda) y personas van juntos. El registro de afectaciones es por
+   * EVENTO, no por hogar, y no tiene pareja (null).
+   */
+  function parejaDe(tipo) {
+    if (tipo === 'vivienda') return 'personas';
+    if (tipo === 'personas') return 'vivienda';
+    return null;
+  }
+
   /** Pone el nombre de la sección en el título, el ingreso y la barra superior. */
   function aplicarIdentidadDelModulo() {
     document.title = TITULO_SECCION + ' — Santiago de Cali';
@@ -114,7 +123,7 @@
   }
 
   // --- Estado ---------------------------------------------------------------
-  var sesion = null;        // { usuario, nombre, rol }
+  var sesion = null;        // { usuario, nombre, rol, datos }
   var registro = null;      // encuesta en edición
   var formActivo = null;    // esquema del formulario en edición
   var indiceSeccion = 0;    // sección visible actual
@@ -139,40 +148,21 @@
     // encuestas de una jornada anterior, se van solas apenas haya conexión.
     if (window.Sincronizacion) window.Sincronizacion.iniciar(refrescarEstadoSync);
 
-    var guardada = window.Almacen.leerSesion();
-    if (guardada && CFG.autenticar) {
-      // Se restaura la sesión sin volver a pedir contraseña dentro del mismo equipo.
-      sesion = guardada;
-      entrarAlSistema(true);
-    } else {
-      mostrarLogin();
-    }
+    /* Cada vez que se abre el aplicativo se piden las credenciales. Antes se
+       restauraba la sesión guardada en el equipo (sin volver a pedir la
+       contraseña); eso hacía que, en un computador o celular compartido,
+       cualquiera entrara como la última persona que lo usó. Decisión del
+       equipo (2026-08-15): la identidad de quien diligencia es un dato de la
+       encuesta, así que se confirma siempre. Si quedó una sesión guardada de
+       versiones anteriores, se borra. */
+    window.Almacen.borrarSesion();
+    mostrarLogin();
   }
 
-  /**
-   * Retoma la encuesta que quedó abierta la última vez.
-   *
-   * El identificador del borrador activo se guarda en cada apertura, así que
-   * cerrar el navegador, recargar o apagar el equipo no obliga a buscar la
-   * encuesta a mano: se vuelve al mismo registro y a la misma sección.
-   *
-   * Solo se retoma si sigue siendo un borrador del usuario en sesión. Una
-   * encuesta ya finalizada, eliminada o de otra persona no se reabre sola.
-   */
-  function retomarBorradorActivo() {
-    var id = window.Almacen.leerBorradorActivo();
-    if (!id) return false;
-
-    var reg = window.Almacen.obtener(id);
-    if (!reg || reg.estado === 'finalizada' || reg.usuario !== sesion.usuario) {
-      window.Almacen.guardarBorradorActivo(null);
-      return false;
-    }
-
-    abrirEncuesta(reg);
-    mostrarAviso('Se retomó la encuesta ' + reg.id_encuesta + ' donde la dejó.');
-    return true;
-  }
+  /* La encuesta que quedó a medias NO se reabre sola al ingresar: la persona
+     la retoma desde «Mis encuestas recientes» (botón Continuar). Decisión
+     del equipo, 2026-08-15. El identificador de borrador activo se sigue
+     guardando para el aviso de «cerró sin guardar» y para limpiarlo. */
 
   /**
    * Compara la versión declarada en config.js con la que trae el "?v=" de los
@@ -437,8 +427,12 @@
       cargarAvanceCentral();
       mostrarVista('vistaPanel');
     } else {
-      // Antes de mostrar el menú se comprueba si quedó una encuesta a medias.
-      if (!retomarBorradorActivo()) mostrarMenu();
+      /* Siempre se entra a la pantalla de elección de formulario, aunque
+         haya quedado una encuesta a medias: esa aparece en «Mis encuestas
+         recientes» con el botón Continuar, y es la persona quien decide
+         retomarla o empezar otra. Antes se abría sola y confundía. */
+      window.Almacen.guardarBorradorActivo(null);
+      mostrarMenu();
       /* Recuperación entre equipos: en segundo plano se piden a la base
          central las encuestas de este usuario que no estén en este equipo
          (por ejemplo, si diligenció en otro computador). Solo en un INGRESO
@@ -596,8 +590,9 @@
 
   function tarjetaEncuesta(r) {
     var f = FORMULARIOS[r.tipo_formulario];
-    var otro = r.tipo_formulario === 'vivienda' ? 'personas' : 'vivienda';
-    var yaTieneOtro = window.Almacen.hermanas(r.id_hogar, r.id_encuesta)
+    var otro = parejaDe(r.tipo_formulario);
+    // Sin pareja (afectaciones) se trata como si ya la tuviera: no se ofrece.
+    var yaTieneOtro = !otro || window.Almacen.hermanas(r.id_hogar, r.id_encuesta)
       .some(function (h) { return h.tipo_formulario === otro; });
     var esBorrador = r.estado !== 'finalizada';
 
@@ -633,6 +628,14 @@
 
   /** Texto corto que identifica la encuesta en las listas. */
   function resumenEncuesta(r) {
+    if (r.tipo_formulario === 'afectaciones') {
+      var edif = (r.respuestas || {}).afe_nombre_edificacion;
+      var dirA = (r.respuestas || {}).direccion_completa;
+      var col = (r.respuestas || {}).afe_colapso;
+      var etiq = col === 'colapsado' ? 'Colapsado' : col === 'riesgo_colapso' ? 'Riesgo de colapso' : '';
+      var partes = [dirA, (edif && edif.toUpperCase() !== 'NA') ? edif : '', etiq].filter(Boolean);
+      return partes.join(' · ') || 'Sin ubicación registrada';
+    }
     if (r.tipo_formulario === 'vivienda') {
       var nombre = (r.respuestas || {}).viv_prop_nombres_apellidos;
       var dir = (r.respuestas || {}).direccion_completa;
@@ -667,8 +670,8 @@
     if (accion === 'retomar') {
       abrirEncuesta(reg);
     } else if (accion === 'agregar-otro') {
-      var otro = reg.tipo_formulario === 'vivienda' ? 'personas' : 'vivienda';
-      crearEncuesta(otro, reg);
+      var otro = parejaDe(reg.tipo_formulario);
+      if (otro) crearEncuesta(otro, reg);
     }
   }
 
@@ -697,6 +700,7 @@
     });
 
     aplicarValoresPorDefecto(nueva, FORMULARIOS[tipo]);
+    aplicarDatosDelUsuario(nueva, FORMULARIOS[tipo]);
     if (origen) prellenarDesdeOrigen(nueva, origen);
 
     var res = window.Almacen.guardar(nueva);
@@ -709,6 +713,31 @@
    * de captura (por ejemplo Departamento y Municipio, que en esta operación
    * son siempre los mismos) y el diligenciador puede cambiarlos.
    */
+  /**
+   * Rellena los datos del profesional con los de quien tiene la sesión
+   * abierta (ver USUARIOS en js/config.js). Se aplica solo a campos marcados
+   * con `autoUsuario` en el esquema del formulario, y NUNCA sobre un valor
+   * ya escrito: si la encuesta viene de otra o el diligenciador lo cambió,
+   * lo suyo manda. Los campos siguen siendo editables, por si alguien
+   * diligencia en nombre de otra persona.
+   */
+  function aplicarDatosDelUsuario(reg, form) {
+    var datos = sesion && sesion.datos;
+    if (!datos) return;   // los perfiles de coordinación no diligencian
+
+    (form.secciones || []).forEach(function (sec) {
+      (sec.camposEncabezado || []).concat(sec.campos || []).forEach(function (campo) {
+        if (!campo.autoUsuario || !campo.id) return;
+        var valor = datos[campo.autoUsuario];
+        if (valor === undefined || valor === null || valor === '') return;
+        var actual = reg.respuestas[campo.id];
+        if (actual === undefined || actual === null || String(actual).trim() === '') {
+          reg.respuestas[campo.id] = String(valor);
+        }
+      });
+    });
+  }
+
   function aplicarValoresPorDefecto(reg, form) {
     (form.secciones || []).forEach(function (sec) {
       // Los campos de encabezado de una sección repetible son de nivel
@@ -806,7 +835,7 @@
   function guardarAhora() {
     clearTimeout(temporizadorGuardado);
     temporizadorGuardado = null;
-    if (!registro) return;
+    if (!registro) return false;
 
     // Hito de edición en la bitácora del registro. registrarEvento agrupa las
     // ediciones seguidas, así que esto no crece con cada pulsación.
@@ -830,10 +859,15 @@
       dom.formGuardado.style.color = '#8d281c';
       mostrarAviso(res.mensaje, true);
     }
+    return !!res.ok;
   }
 
   function guardarYSalir() {
-    guardarAhora();
+    if (!guardarAhora()) {
+      // El aviso rojo de guardarAhora ya esta en pantalla; no se sale para no
+      // perder la unica copia en memoria.
+      return;
+    }
     mostrarAviso('Encuesta guardada como borrador. Puede retomarla desde «Mis encuestas recientes».');
     irAlInicio();
   }
@@ -984,6 +1018,10 @@
    */
   function valorDeCampo(campo, contenedor) {
     if (campo.tipo === 'direccion') return contenedor.direccion_completa;
+    if (campo.tipo === 'fotos') {
+      var fotos = contenedor[campo.id];
+      return (Array.isArray(fotos) && fotos.length) ? fotos : '';
+    }
     return contenedor[campo.id];
   }
 
@@ -1126,6 +1164,11 @@
         control = window.CampoDireccion.render(campo, valores);
         break;
 
+      case 'fotos':
+        // Soportes fotográficos: se dibujan y se manejan en js/campo-fotos.js.
+        control = window.CampoFotos.render(campo, valores);
+        break;
+
       default:
         control = '<p class="hint">Tipo de campo no reconocido: ' + escapar(campo.tipo) + '</p>';
     }
@@ -1171,6 +1214,10 @@
 
   function alCambiarCampo(evento) {
     var control = evento.target;
+    if (control.getAttribute('data-fotos-input') && evento.type === 'change') {
+      alElegirFotos(control);
+      return;
+    }
     var campoId = control.getAttribute('data-campo');
     if (!campoId) return;
 
@@ -1239,7 +1286,47 @@
     return encontrado;
   }
 
+  /** El diligenciador eligió archivos en un campo de fotos. */
+  function alElegirFotos(input) {
+    var campoId = input.getAttribute('data-fotos-input');
+    var campo = buscarCampo(campoId);
+    if (!campo || !registro) return;
+    var estado = document.getElementById('fotos_' + campoId + '_estado');
+    var archivos = input.files;
+    if (!archivos || !archivos.length) return;
+
+    var listaPrevia = Array.isArray(registro.respuestas[campoId]) ? registro.respuestas[campoId].slice() : [];
+    window.CampoFotos.agregar(campo, registro.respuestas, archivos, function (texto) {
+      if (estado) estado.textContent = texto;
+    }).then(function (res) {
+      /* Si el almacen del equipo no pudo guardar (cuota llena), las fotos NO
+         se dan por agregadas: se revierte la lista y se deja visible el
+         error de guardado, en vez de taparlo con el mensaje de exito. */
+      if (!guardarAhora()) {
+        registro.respuestas[campoId] = listaPrevia;
+        renderSeccion();
+        return;
+      }
+      renderSeccion();          // redibuja miniaturas y contador
+      mostrarAviso(res.mensaje, res.agregadas === 0);
+    });
+  }
+
+  function alQuitarFoto(boton) {
+    var campoId = boton.getAttribute('data-fotos-quitar');
+    var indice = Number(boton.getAttribute('data-indice'));
+    var campo = buscarCampo(campoId);
+    if (!campo || !registro) return;
+    if (!window.confirm('¿Quitar esta foto de la encuesta?')) return;
+    window.CampoFotos.quitar(campo, registro.respuestas, indice);
+    guardarAhora();
+    renderSeccion();
+  }
+
   function alClicEnFormulario(evento) {
+    var quitarFoto = evento.target.closest('[data-fotos-quitar]');
+    if (quitarFoto) { alQuitarFoto(quitarFoto); return; }
+
     var botonAyuda = evento.target.closest('[data-ayuda]');
     if (botonAyuda) {
       var id = botonAyuda.getAttribute('data-ayuda');
@@ -1413,6 +1500,13 @@
       return;
     }
 
+    /* Si quedó un guardado diferido en vuelo (el diligenciador marcó una
+       opción y pulsó Finalizar en menos de medio segundo), se descarga AHORA:
+       de lo contrario ese guardado caería DESPUÉS de la confirmación del
+       envío y devolvería la encuesta a la cola como si la hubieran corregido. */
+    clearTimeout(temporizadorGuardado);
+    temporizadorGuardado = null;
+
     var res = window.Almacen.finalizar(registro);
     if (!res.ok) { mostrarAviso(res.mensaje, true); return; }
 
@@ -1426,7 +1520,7 @@
 
   function mostrarPantallaFinal() {
     var tipo = registro.tipo_formulario;
-    var otro = tipo === 'vivienda' ? 'personas' : 'vivienda';
+    var otro = parejaDe(tipo);
     var f = FORMULARIOS[tipo];
 
     dom.finalDetalle.textContent = f.nombre + ' · ' + resumenEncuesta(registro);
@@ -1434,14 +1528,16 @@
     dom.finalHogar.textContent = registro.id_hogar;
 
     var hermanas = window.Almacen.hermanas(registro.id_hogar, registro.id_encuesta);
-    var yaTieneOtro = hermanas.some(function (h) { return h.tipo_formulario === otro; });
+    var yaTieneOtro = !otro || hermanas.some(function (h) { return h.tipo_formulario === otro; });
 
-    dom.finalNota.textContent = yaTieneOtro
-      ? 'Este hogar ya tiene los dos formularios diligenciados.'
-      : 'Diligenciar el otro formulario es opcional. Si lo hace desde aquí, quedará vinculado a este mismo hogar.';
+    dom.finalNota.textContent = !otro
+      ? 'Registro por evento: no se vincula a un hogar.'
+      : yaTieneOtro
+        ? 'Este hogar ya tiene los dos formularios diligenciados.'
+        : 'Diligenciar el otro formulario es opcional. Si lo hace desde aquí, quedará vinculado a este mismo hogar.';
 
     var opciones = [];
-    if (!yaTieneOtro) {
+    if (otro && !yaTieneOtro) {
       /* Los dos formularios construidos (VOL-10 y VOL-3) viven en este mismo
          aplicativo, así que el otro siempre está disponible aquí y se continúa
          sin salir de la pantalla, conservando el mismo código de hogar.
@@ -1629,7 +1725,7 @@
     lista.forEach(function (r) {
       var k = r.usuario || '(sin usuario)';
       if (!porUsuario[k]) {
-        porUsuario[k] = { usuario: k, nombre: r.usuario_nombre || k, vivienda: 0, personas: 0, total: 0, ultima: null };
+        porUsuario[k] = { usuario: k, nombre: r.usuario_nombre || k, vivienda: 0, personas: 0, afectaciones: 0, total: 0, ultima: null };
       }
       if (porUsuario[k][r.tipo_formulario] !== undefined) porUsuario[k][r.tipo_formulario] += 1;
       porUsuario[k].total += 1;
@@ -1649,6 +1745,7 @@
       total: lista.length,
       vivienda: lista.filter(function (r) { return r.tipo_formulario === 'vivienda'; }).length,
       personas: lista.filter(function (r) { return r.tipo_formulario === 'personas'; }).length,
+      afectaciones: lista.filter(function (r) { return r.tipo_formulario === 'afectaciones'; }).length,
       personasRegistradas: hayPersonas ? totalPersonas : null,
       hogaresCompletos: hayHogar ? Object.keys(porHogar).filter(function (h) {
         return porHogar[h].vivienda && porHogar[h].personas;
@@ -1690,16 +1787,18 @@
       indicador('Formularios finalizados · ' + ambito, stats.total, true),
       indicador('Edificaciones', stats.vivienda),
       indicador('Personas y familias', stats.personas),
+      indicador('Afectaciones', stats.afectaciones),
       indicador('Personas registradas', stats.personasRegistradas),
       indicador('Hogares con los dos formularios', stats.hogaresCompletos),
       // Los borradores viven solo en el equipo donde se están diligenciando.
       indicador('Borradores sin finalizar · este equipo', local.borradores)
     ].join('');
 
-    var maximo = Math.max(stats.vivienda, stats.personas, 1);
+    var maximo = Math.max(stats.vivienda, stats.personas, stats.afectaciones || 0, 1);
     dom.panelAvanceTipo.innerHTML =
       barra('Registro de edificaciones', stats.vivienda, maximo, '') +
       barra('Registro de personas y familias', stats.personas, maximo, 'naranja') +
+      barra('Registro de afectaciones', stats.afectaciones || 0, maximo, '') +
       '<p class="hint">Última encuesta registrada: <strong>' +
         (stats.ultimaActividad ? fechaLegible(stats.ultimaActividad) : 'todavía ninguna') +
       '</strong></p>';
@@ -1738,20 +1837,22 @@
     var filas = stats.porUsuario.map(function (u) {
       return '<tr>' +
         '<td data-etiqueta="Diligenciador">' + escapar(u.nombre) + '</td>' +
-        '<td class="numero" data-etiqueta="Vivienda">' + u.vivienda + '</td>' +
-        '<td class="numero" data-etiqueta="Personas / Familia">' + u.personas + '</td>' +
+        '<td class="numero" data-etiqueta="Edificaciones">' + u.vivienda + '</td>' +
+        '<td class="numero" data-etiqueta="Personas y familias">' + u.personas + '</td>' +
+        '<td class="numero" data-etiqueta="Afectaciones">' + (u.afectaciones || 0) + '</td>' +
         '<td class="numero total" data-etiqueta="Total">' + u.total + '</td>' +
         '<td data-etiqueta="Última encuesta">' + (u.ultima ? fechaLegible(u.ultima) : '—') + '</td>' +
       '</tr>';
     }).join('');
 
     dom.tablaDiligenciadores.innerHTML =
-      '<thead><tr><th>Diligenciador</th><th class="numero">Vivienda</th>' +
-      '<th class="numero">Personas / Familia</th><th class="numero">Total</th>' +
+      '<thead><tr><th>Diligenciador</th><th class="numero">Edificaciones</th>' +
+      '<th class="numero">Personas y familias</th><th class="numero">Afectaciones</th><th class="numero">Total</th>' +
       '<th>Última encuesta</th></tr></thead><tbody>' + filas +
       '<tr><td data-etiqueta="Diligenciador"><strong>Total</strong></td>' +
-        '<td class="numero total" data-etiqueta="Vivienda">' + stats.vivienda + '</td>' +
-        '<td class="numero total" data-etiqueta="Personas / Familia">' + stats.personas + '</td>' +
+        '<td class="numero total" data-etiqueta="Edificaciones">' + stats.vivienda + '</td>' +
+        '<td class="numero total" data-etiqueta="Personas y familias">' + stats.personas + '</td>' +
+        '<td class="numero total" data-etiqueta="Afectaciones">' + (stats.afectaciones || 0) + '</td>' +
         '<td class="numero total" data-etiqueta="Total">' + stats.total + '</td>' +
         '<td data-etiqueta="Última encuesta">—</td></tr>' +
       '</tbody>';
@@ -1768,6 +1869,33 @@
         return '<option value="' + escapar(u) + '"' + (u === seleccionado ? ' selected' : '') + '>' +
           escapar(usuarios[u]) + '</option>';
       }).join('');
+  }
+
+  /**
+   * Enlaces a las fotos de una encuesta, para abrirlas o descargarlas desde
+   * el panel. Cada una abre en Drive; si todavía no se ha enviado (sin
+   * enlace), se ofrece la vista previa local.
+   */
+  function enlacesFotosDe(r) {
+    var form = FORMULARIOS[r.tipo_formulario];
+    if (!form) return '';
+    var salida = [];
+    (form.secciones || []).forEach(function (sec) {
+      (sec.campos || []).forEach(function (campo) {
+        if (campo.tipo !== 'fotos') return;
+        var lista = (r.respuestas || {})[campo.id];
+        if (!Array.isArray(lista)) return;
+        lista.forEach(function (f, i) {
+          if (f.url) {
+            var titulo = f.nombre + (f.compartida === false ? ' (acceso restringido: requiere permiso en la carpeta de CIENFI)' : '');
+            salida.push('<a href="' + escapar(f.url) + '" target="_blank" rel="noopener" title="' + escapar(titulo) + '">📷 ' + (i + 1) + (f.compartida === false ? '🔒' : '') + '</a>');
+          } else if (f.datos) {
+            salida.push('<a href="data:' + escapar(f.mime || 'image/jpeg') + ';base64,' + f.datos + '" download="' + escapar(r.id_encuesta + '_' + (i + 1) + '.jpg') + '" title="' + escapar(f.nombre) + ' (aún no enviada; se descarga desde este equipo)">📷 ' + (i + 1) + '*</a>');
+          }
+        });
+      });
+    });
+    return salida.length ? salida.join(' ') : '—';
   }
 
   function renderTablaRegistros() {
@@ -1799,13 +1927,14 @@
         '<td data-etiqueta="Respaldo">' + pildoraSync(r) + '</td>' +
         '<td data-etiqueta="Última actualización">' + fechaLegible(r.fecha_actualizacion) + '</td>' +
         '<td data-etiqueta="Identificación">' + escapar(resumenEncuesta(r)) + '</td>' +
+        '<td data-etiqueta="Fotos">' + enlacesFotosDe(r) + '</td>' +
       '</tr>';
     }).join('');
 
     dom.tablaRegistros.innerHTML =
       '<thead><tr><th>ID encuesta</th><th>Formulario</th><th>Hogar</th>' +
       '<th>Diligenciador</th><th>Estado</th><th>Respaldo</th><th>Última actualización</th>' +
-      '<th>Identificación</th></tr></thead>' +
+      '<th>Identificación</th><th>Fotos</th></tr></thead>' +
       '<tbody>' + filas + '</tbody>' +
       (registros.length > 200
         ? '<tfoot><tr><td colspan="9" class="hint">Se muestran los 200 más recientes. La descarga incluye todos.</td></tr></tfoot>'

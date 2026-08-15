@@ -131,14 +131,24 @@ h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
 .ficha__meta { border-top: 1px solid var(--gris-linea); padding-top: 12px; font-size: 12.5px; color: var(--gris); }
 .alerta { color: var(--ambar); font-weight: 600; }
 
-/* ---------- Tablas ---------- */
-.tabla-marco { overflow-x: auto; border: 1px solid var(--gris-linea); border-radius: var(--radio); }
+/* ---------- Tablas ----------
+   El marco tiene su propia barra de desplazamiento, horizontal y vertical, en
+   vez de crecer hasta el final y arrastrar la página entera: con unos cientos
+   de registros el encabezado quedaba lejísimos y había que subir hasta arriba
+   para cambiar un filtro. Con altura propia, la tabla se recorre por dentro y
+   el resto de la página se queda quieto.                                     */
+.tabla-marco {
+  overflow: auto;
+  max-height: 70vh;
+  border: 1px solid var(--gris-linea);
+  border-radius: var(--radio);
+}
 .tabla { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--blanco); }
 .tabla th {
   text-align: left; padding: 11px 14px; background: var(--gris-fondo);
   border-bottom: 1px solid var(--gris-linea); font-size: 12.5px;
   text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris-medio);
-  white-space: nowrap; position: sticky; top: 0;
+  white-space: nowrap; position: sticky; top: 0; z-index: 2;
 }
 .tabla td { padding: 10px 14px; border-bottom: 1px solid var(--gris-linea); vertical-align: top; }
 .tabla tr:last-child td { border-bottom: none; }
@@ -196,7 +206,12 @@ button.rol:hover { border-color: var(--azul); background: var(--azul-suave); }
 /* ---------- Tabla tipo Excel ---------- */
 .tabla th.ordenable { cursor: pointer; user-select: none; }
 .tabla th.ordenable:hover { color: var(--azul); }
-.fila-filtros th { padding: 6px 8px; background: var(--blanco); position: static; }
+/* la fila de filtros se queda pegada justo debajo de los títulos, para poder
+   filtrar sin volver al principio de la tabla */
+.fila-filtros th {
+  padding: 6px 8px; background: var(--blanco);
+  position: sticky; top: 40px; z-index: 1;
+}
 .filtro-col {
   width: 100%; min-width: 90px; padding: 6px 8px; font-size: 13px;
   border: 1px solid var(--gris-borde); border-radius: var(--radio-boton);
@@ -256,3 +271,30 @@ button.rol:hover { border-color: var(--azul); background: var(--azul-suave); }
 
 /* ---------- Integracion al portal ---------- */
 .encabezado__derecha { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+/* ---------- Galería de soportes fotográficos ----------
+   Las fotos viven en Drive. Se intenta la miniatura; si el permiso del
+   archivo no la deja ver, la imagen se marca como rota y queda el enlace,
+   que siempre funciona para quien tenga acceso a la carpeta. */
+.galeria {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px; margin-top: 12px;
+}
+.galeria__item {
+  display: block; border: 1px solid var(--gris-linea); border-radius: var(--radio-boton);
+  overflow: hidden; background: var(--gris-fondo); text-decoration: none;
+}
+.galeria__item:hover { border-color: var(--azul); }
+.galeria__img { display: block; width: 100%; height: 112px; object-fit: cover; background: var(--gris-fondo); }
+/* si la miniatura no carga, se oculta y queda solo el rótulo con el enlace */
+.galeria__img--rota { display: none; }
+.galeria__sinvista,
+.galeria__img--rota + .galeria__pie {
+  display: block; padding: 10px; font-size: 12px; color: var(--gris-medio);
+}
+.galeria__pie {
+  display: block; padding: 7px 9px; font-size: 11.5px; color: var(--gris-medio);
+  border-top: 1px solid var(--gris-linea); background: var(--blanco);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dato--ancho { min-width: 100%; }

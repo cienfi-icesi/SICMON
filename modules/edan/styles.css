@@ -1006,3 +1006,43 @@ input[readonly]:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===================== Campo de soportes fotográficos ===================== */
+.fotos { display: grid; gap: 10px; }
+.fotos-acciones { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fotos-acciones .btn-archivo.deshabilitado { opacity: .5; pointer-events: none; }
+.fotos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.foto-item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--linea);
+  border-radius: 10px;
+  background: var(--superficie);
+}
+.foto-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--fondo);
+}
+.foto-vacia {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--tinta-suave);
+  font-size: .8rem;
+}
+.foto-item figcaption { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.foto-nombre { font-size: .8rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.foto-meta { font-size: .72rem; color: var(--tinta-suave); }
+.foto-quitar { padding: 6px 10px; font-size: .8rem; align-self: flex-start; }

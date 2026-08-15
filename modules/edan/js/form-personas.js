@@ -14,8 +14,10 @@
      2. Las opciones muestran el código del formato junto a su significado
         (por ejemplo "3 · Cédula de ciudadanía"); lo que se almacena y se
         exporta es el código, igual que en el formato original.
-     3. La firma (Elaborado por) se registra como nombre más una confirmación
-        de firma en el formato físico. Los Vo.Bo. CMGRD y CDGRD del formato en
+     3. La firma (Elaborado por) se registra como el nombre de quien elabora,
+        que la aplicación escribe con los datos de la sesión. La casilla de
+        confirmación de firma física (P019) se retiró el 2026-08-15: la
+        operación es completamente virtual. Los Vo.Bo. CMGRD y CDGRD del formato en
         papel se retiraron por decisión del equipo (2026-08-14). Ese mismo día
         se agregó y luego se RETIRÓ un «Ficha No.» automático (P026): la
         numeración automática no se adoptó.
@@ -229,16 +231,14 @@
             etiqueta: 'Elaborado por',
             tipo: 'texto',
             requerido: true,
+            // Se rellena con los datos de quien inició sesión (ver config.js).
+            autoUsuario: 'nombre',
             ayuda: 'Nombre de quien elabora el formato.',
             ancho: 'medio'
           },
-          {
-            id: 'edan_elaborado_por_firma',
-            etiqueta: 'Firma de quien elabora',
-            tipo: 'confirmacion',
-            textoConfirmacion: 'Firmó el formato físico',
-            ancho: 'medio'
-          },
+          /* La casilla «Firmó el formato físico» (P019) se RETIRÓ el
+             2026-08-15: operación virtual, sin papel. Código retirado en
+             js/codigos.js. */
           { id: 'edan_entidad_operativa', etiqueta: 'Entidad operativa', tipo: 'texto', ancho: 'completo' },
           {
             id: 'edan_observaciones',

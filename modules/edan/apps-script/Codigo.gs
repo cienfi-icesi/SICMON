@@ -44,6 +44,11 @@
      CARPETA_RESPALDOS_ID   Opcional. Si no se define, el script busca solo
                 una carpeta llamada "respaldos" junto a la carpeta que
                 contiene la hoja.
+     CARPETA_FOTOS_ID   Opcional. Carpeta de Drive donde se guardan los
+                soportes fotográficos del registro de afectaciones, con el
+                nombre  <id_encuesta>_<n>.jpg . Si no se define, el script
+                crea una carpeta "fotos_encuestas" junto a la hoja la
+                primera vez que llega una foto.
 
    AL CAMBIAR ESTE ARCHIVO HAY QUE VOLVER A IMPLEMENTAR
    ----------------------------------------------------
@@ -70,7 +75,7 @@ var COLUMNAS_RESPALDO = ['id_encuesta', 'usuario', 'tipo_formulario', 'fecha_act
 // Cualquier otra se rechaza. Deja por fuera _bitacora y _respaldos: la primera
 // es operativa y la segunda guarda el JSON íntegro, que pesa muchísimo y no le
 // sirve a nadie fuera de la aplicación.
-var TABLAS_PERMITIDAS = ['viviendas', 'personas_hogares', 'personas', 'indice', 'diccionario'];
+var TABLAS_PERMITIDAS = ['viviendas', 'afectaciones', 'personas_hogares', 'personas', 'indice', 'diccionario'];
 
 // Cuántas filas devuelve la extracción de una vez. La hoja de viviendas tiene
 // 221 columnas, así que pedir "todo" en una sola respuesta se vuelve pesado
@@ -160,7 +165,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.4.0',
+    version: '1.5.0',
     hora_servidor: ahora_()
   });
 }
@@ -180,7 +185,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.4.0', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.5.0', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
@@ -280,10 +285,46 @@ function guardarEncuesta_(payload) {
     detalle.push({ tabla: nombre, filas: n, reemplazadas: borradas });
   });
 
+  /* Soportes fotográficos (si la encuesta trae). Van a Drive con el id de la
+     encuesta en el nombre; los enlaces se escriben en la fila de la tabla y
+     se devuelven a la aplicación. Un fallo aquí NO tumba el envío de los
+     datos: la encuesta ya quedó escrita, y la aplicación reintentará las
+     fotos en el siguiente envío. */
+  var fotos = [];
+  var fotosOk = true;
+  if (Array.isArray(payload.fotos) && payload.fotos.length) {
+    try {
+      var resultado = guardarFotos_(ss, idEncuesta, payload);
+      fotos = resultado.guardadas;
+      fotosOk = resultado.completo;
+      if (!fotosOk) registrarBitacora_(ss, payload, 'fotos_incompletas: ' + resultado.errores.join('; '), escritas);
+    } catch (errFotos) {
+      fotosOk = false;
+      registrarBitacora_(ss, payload, 'fotos_error: ' + errFotos.message, escritas);
+    }
+  }
+
   /* Copia íntegra de la encuesta (si la aplicación la manda; las versiones
      viejas no la traen y no pasa nada). Se guarda DESPUÉS de las tablas:
      si algo falla antes, el reintento de la aplicación reescribe todo. */
   if (payload.respaldo && typeof payload.respaldo === 'string') {
+    /* La copia íntegra debe llevar los enlaces de Drive recién asignados: sin
+       esto, la encuesta recuperada en otro equipo llegaría con fotos sin
+       enlace ni bytes, y no podría mostrarlas ni descargarlas. */
+    if (fotos.length) {
+      try {
+        var copia = JSON.parse(payload.respaldo);
+        fotos.forEach(function (g) {
+          var lista = copia && copia.respuestas && copia.respuestas[g.campo];
+          if (Array.isArray(lista) && lista[g.indice]) {
+            lista[g.indice].url = g.url;
+            lista[g.indice].drive_id = g.drive_id;
+            lista[g.indice].compartida = g.compartida;
+          }
+        });
+        payload.respaldo = JSON.stringify(copia);
+      } catch (e) { /* respaldo ilegible: se guarda como llegó */ }
+    }
     guardarRespaldo_(ss, idEncuesta, payload);
   }
 
@@ -294,8 +335,156 @@ function guardarEncuesta_(payload) {
     id_encuesta: idEncuesta,
     filas_escritas: escritas,
     detalle: detalle,
+    fotos: fotos,
+    fotos_ok: fotosOk,
     hora_servidor: ahora_()
   };
+}
+
+
+// ============================================================================
+//  SOPORTES FOTOGRÁFICOS
+// ============================================================================
+
+/** Carpeta de Drive para las fotos. La crea junto a la hoja si no existe. */
+function carpetaFotos_() {
+  var id = propiedad_('CARPETA_FOTOS_ID', false);
+  if (id) {
+    try { return DriveApp.getFolderById(id); } catch (e) { /* sigue */ }
+  }
+  var archivo = DriveApp.getFileById(propiedad_('SHEET_ID', true));
+  var padres = archivo.getParents();
+  var base = padres.hasNext() ? padres.next() : DriveApp.getRootFolder();
+  var existentes = base.getFoldersByName('fotos_encuestas');
+  if (existentes.hasNext()) return existentes.next();
+  return base.createFolder('fotos_encuestas');
+}
+
+/**
+ * Guarda las fotos de una encuesta en Drive y escribe sus enlaces en la
+ * columna <campo>_enlaces de la tabla correspondiente. Idempotente: si la
+ * encuesta ya tenía fotos (reenvío), se borran las anteriores.
+ *
+ * payload.fotos = [{ campo, indice, nombre, mime, datos (base64) }]
+ * Devuelve [{ campo, indice, nombre, url, drive_id }].
+ */
+function guardarFotos_(ss, idEncuesta, payload) {
+  var carpeta = carpetaFotos_();
+
+  /* Qué conservar: las fotos que la aplicación manda con drive_id (ya
+     estaban en Drive) siguen; las que trae con bytes se crean; las que
+     existían en Drive con este id y NO vienen mencionadas es que el usuario
+     las quitó de la encuesta, y se envían a la papelera. La comparación es
+     por nombre EXACTO con el prefijo <id>_ : un id nunca es prefijo de otro
+     (todos tienen la misma longitud), así que no se toca nada ajeno. */
+  var conservar = {};
+  payload.fotos.forEach(function (f) { if (f && f.drive_id) conservar[String(f.drive_id)] = true; });
+
+  /* Solo se envia a la papelera lo no mencionado cuando la aplicacion
+     garantiza que su lista es la completa (fotos_completas). Si no lo dice
+     (version vieja, o encuesta recuperada en otro equipo sin los drive_id)
+     no se borra nada: peor es perder evidencia que dejar un archivo de mas. */
+  var puedeBorrar = payload.fotos_completas === true;
+  var previas = carpeta.searchFiles("title contains '" + idEncuesta + "_' and trashed = false");
+  var yaEnDrive = {};
+  var noMencionadas = [];
+  while (previas.hasNext()) {
+    var viejo = previas.next();
+    if (viejo.getName().indexOf(idEncuesta + '_') !== 0) continue;
+    if (conservar[viejo.getId()]) {
+      yaEnDrive[viejo.getId()] = viejo;
+    } else if (puedeBorrar) {
+      viejo.setTrashed(true);
+    } else {
+      noMencionadas.push(viejo);
+    }
+  }
+
+  var guardadas = [];
+  var errores = [];
+  var porCampo = {};
+  var consecutivo = 0;
+  var sello = Utilities.formatDate(new Date(), ZONA_HORARIA, 'HHmmss');
+  payload.fotos.forEach(function (f) {
+    if (!f) return;
+    var url, id, compartida = true, nombre;
+    try {
+      if (f.drive_id && yaEnDrive[f.drive_id]) {
+        // Ya estaba: se conserva tal cual.
+        id = f.drive_id;
+        nombre = yaEnDrive[id].getName();
+        url = 'https://drive.google.com/file/d/' + id + '/view';
+      } else if (f.datos) {
+        consecutivo++;
+        var ext = (String(f.mime || '').indexOf('png') !== -1) ? 'png' : 'jpg';
+        nombre = idEncuesta + '_' + sello + '_' + consecutivo + '.' + ext;
+        var blob = Utilities.newBlob(Utilities.base64Decode(String(f.datos)), f.mime || 'image/jpeg', nombre);
+        var archivo = carpeta.createFile(blob);
+        // Que cualquiera con el enlace pueda ver la foto (para abrirla desde el
+        // aplicativo sin iniciar sesión en la cuenta de CIENFI). Si el dominio
+        // lo prohíbe, se informa: el enlace solo servirá a quien tenga acceso
+        // a la carpeta.
+        try { archivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }
+        catch (e) { compartida = false; }
+        id = archivo.getId();
+        url = 'https://drive.google.com/file/d/' + id + '/view';
+      } else {
+        return;
+      }
+    } catch (errFoto) {
+      // Una foto que falla no impide guardar las demás; queda registrada
+      // para que la aplicación la reintente en el próximo envío.
+      errores.push((f.nombre || 'foto') + ': ' + errFoto.message);
+      return;
+    }
+    guardadas.push({ campo: f.campo, indice: f.indice, nombre: nombre, url: url, drive_id: id, compartida: compartida });
+    if (!porCampo[f.campo]) porCampo[f.campo] = [];
+    porCampo[f.campo].push(url);
+  });
+
+  /* Las que estaban en Drive y el cliente no pudo mencionar (sin drive_id
+     local) se conservan y se devuelven, asi el cliente y la fila recuperan
+     sus enlaces en vez de perderlos. Van al final de la lista. */
+  if (noMencionadas.length) {
+    var campoDestino = (payload.fotos[0] && payload.fotos[0].campo) || 'afe_fotos';
+    var siguienteIndice = guardadas.reduce(function (m, g) { return Math.max(m, g.indice + 1); }, 0);
+    noMencionadas.forEach(function (arch) {
+      var u = 'https://drive.google.com/file/d/' + arch.getId() + '/view';
+      guardadas.push({ campo: campoDestino, indice: siguienteIndice++, nombre: arch.getName(), url: u, drive_id: arch.getId(), compartida: true, recuperada: true });
+      if (!porCampo[campoDestino]) porCampo[campoDestino] = [];
+      porCampo[campoDestino].push(u);
+    });
+  }
+
+  // Enlaces en la fila de la tabla (columna <campo>_enlaces).
+  var tabla = tablaDeFormulario_(payload.tipo_formulario);
+  var hoja = ss.getSheetByName(tabla);
+  if (hoja && hoja.getLastRow() >= 2) {
+    var encabezados = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0].map(String);
+    var iLlave = encabezados.indexOf(LLAVE);
+    if (iLlave !== -1) {
+      var ids = hoja.getRange(2, iLlave + 1, hoja.getLastRow() - 1, 1).getValues();
+      for (var f = 0; f < ids.length; f++) {
+        if (String(ids[f][0]).trim() !== idEncuesta) continue;
+        Object.keys(porCampo).forEach(function (campo) {
+          var col = encabezados.indexOf(campo + '_enlaces');
+          if (col === -1) return;
+          var celda = hoja.getRange(f + 2, col + 1);
+          celda.setNumberFormat('@');
+          celda.setValue(porCampo[campo].join(' | '));
+        });
+        break;
+      }
+    }
+  }
+  return { guardadas: guardadas, completo: errores.length === 0, errores: errores };
+}
+
+/** Tabla principal donde vive una encuesta según su formulario. */
+function tablaDeFormulario_(tipo) {
+  if (tipo === 'vivienda') return 'viviendas';
+  if (tipo === 'afectaciones') return 'afectaciones';
+  return 'personas_hogares';
 }
 
 

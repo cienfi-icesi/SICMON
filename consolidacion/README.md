@@ -119,6 +119,25 @@ launchctl load ~/Library/LaunchAgents/com.cienfi.sicmon-consolidacion.plist
 (más de `LOCK_MAX_MIN` minutos) se elimina solo. Cada corrida queda registrada
 en `processing_runs` y en `logs/pipeline_AAAAMMDD.log`.
 
+**Comprobar que de verdad está corriendo** (no basta con que el pipeline
+funcione a mano):
+
+```bash
+launchctl list | grep sicmon
+```
+
+Debe aparecer una línea; la segunda columna es el código de salida de la
+última corrida, y tiene que ser `0`. Si no aparece nada, el agente no está
+cargado y **nadie está actualizando la consulta ni el tablero**. Después,
+confirmar en el log del día que hay una corrida cada 10 minutos.
+
+> **launchd no es la terminal.** Corre con un PATH mínimo, sin `/usr/local/bin`
+> y con locale `C`. Un pipeline que funciona a mano puede fallar aquí sin que
+> nadie se entere: pasó con `system2("Rscript", ...)`, que moría con código 127
+> («command not found») en cada paso. Por eso `run_pipeline.R` llama a los
+> pasos con `file.path(R.home("bin"), "Rscript")`, la ruta completa. Ante
+> cualquier duda, mirar `logs/launchd_error.log`.
+
 ## 5. Conexión a Google Drive
 
 Los Excel llegan a la carpeta de Drive **"Registro_afectados_sismo" → `data`**.
@@ -342,6 +361,16 @@ queda en `edan_comparison/output/` (Excel + resumen en Markdown).
   generador de `synthetic/` apuntando a `data/entrada/` en vez de
   `data/pruebas/`. Los generadores escriben en `CARPETA_PRUEBAS`, que el
   pipeline no vigila; si eso cambió, se mezclan otra vez.
+- **Texto tipo `Mamposter<c3><ad>a` en pantalla**: el sistema corre en locale
+  `C`, así que R no asume que un texto con tildes sea UTF-8 y, al escribirlo,
+  guarda su representación impresa en vez del carácter. No es un problema del
+  navegador ni del HTML. Se corrige declarando `Encoding(x) <- "UTF-8"` sobre
+  las columnas de texto —los bytes ya son correctos, solo falta decirlo—, y
+  hay que hacerlo en **tres** puntos, que ya lo tienen: al leer los CSV
+  (`01_ingest.R`), antes de serializar el tablero (`05_exportar_tablero.R`) y
+  al expandir los datos ficticios (`synthetic/00_expandir_plantilla.R`).
+  Cuidado: el argumento `encoding=` de `read.csv` **no** sirve —en locale `C`
+  rompe la lectura, se come filas y trunca las tildes—.
 - **launchd no corre**: revisar `logs/launchd_error.log` y que la ruta de
   `WorkingDirectory` en el plist siga siendo la del repo.
 - **"drive: no hay un token guardado..."** en el log: falta autorizar el

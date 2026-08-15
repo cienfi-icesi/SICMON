@@ -49,40 +49,52 @@
   // "alias" permite escribir el usuario de varias formas (con o sin espacio).
   // La comparación se hace sin tildes, sin espacios y sin distinguir mayúsculas.
   var USUARIOS = [
+    /* Coordinación del proyecto: una sola cuenta administradora. Reemplaza a
+       las tres cuentas "Eduard" de la etapa de pruebas, que tras retirarse
+       la Secretaría eran idénticas entre sí. */
     {
-      usuario: 'eduard',
-      alias: ['edward'],
-      nombre: 'Eduard',
+      usuario: 'administrador',
+      alias: ['admin', 'administradora'],
+      nombre: 'Administrador',
       rol: 'admin',
-      password: '123'
+      password: '123456789'
     },
+    /* Diligenciadores en campo.
+       `datos` son los del profesional que realiza la inspección: la
+       aplicación los escribe sola en cada encuesta nueva, para que no haya
+       que teclear el nombre y la cédula una y otra vez. Quedan editables por
+       si alguien diligencia en nombre de otra persona. Los campos que se
+       rellenan son los marcados con `autoUsuario` en los esquemas de los
+       formularios (js/form-vivienda.js y js/form-personas.js). */
     {
-      usuario: 'eduard 1',
-      alias: ['eduard1', 'edward 1', 'edward1'],
-      nombre: 'Eduard 1',
-      rol: 'coordinador',
-      password: '123'
-    },
-    {
-      usuario: 'eduard 2',
-      alias: ['eduard2', 'edward 2', 'edward2'],
-      nombre: 'Eduard 2',
-      rol: 'coordinador',
-      password: '123'
-    },
-    {
-      usuario: 'gabriela',
-      alias: [],
-      nombre: 'Gabriela',
+      usuario: 'claudia',
+      alias: ['claudia rincon', 'claudiarincon'],
+      nombre: 'Claudia Rincón',
       rol: 'diligenciador',
-      password: '123'
+      password: '66920212',
+      datos: {
+        nombre: 'Claudia Rincón',
+        cedula: '66920212',
+        // Los usa el registro de afectaciones. Se completan cuando el
+        // equipo confirme el correo y el organismo de cada persona.
+        correo: '',
+        organismo: ''
+      }
     },
     {
-      usuario: 'laura',
-      alias: [],
-      nombre: 'Laura',
+      usuario: 'daniel',
+      alias: ['daniel giraldo', 'danielgiraldo'],
+      nombre: 'Daniel Giraldo',
       rol: 'diligenciador',
-      password: '123'
+      password: '1144096855',
+      datos: {
+        nombre: 'Daniel Giraldo',
+        cedula: '1144096855',
+        // Los usa el registro de afectaciones. Se completan cuando el
+        // equipo confirme el correo y el organismo de cada persona.
+        correo: '',
+        organismo: ''
+      }
     }
   ];
 
@@ -117,7 +129,10 @@
     return {
       usuario: encontrado.usuario,
       nombre: encontrado.nombre,
-      rol: encontrado.rol
+      rol: encontrado.rol,
+      // Datos del profesional, para prellenar el formulario. Los perfiles de
+      // coordinación no los tienen: no diligencian en campo.
+      datos: encontrado.datos || null
     };
   }
 
@@ -130,7 +145,7 @@
        AL PUBLICAR UNA VERSIÓN NUEVA HAY QUE SUBIR ESTE NÚMERO Y TAMBIÉN EL
        "?v=" de los <script> y <link> de index.html. Los dos deben coincidir;
        si no, la aplicación lo avisa sola en la consola al arrancar. */
-    appVersion: '1.8.1',
+    appVersion: '2.1.5',
     appNombre: 'Registro de información',
     appSubtitulo: 'Emergencia por sismo — Santiago de Cali',
     entidades: [

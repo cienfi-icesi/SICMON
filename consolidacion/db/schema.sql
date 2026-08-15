@@ -124,6 +124,66 @@ CREATE INDEX IF NOT EXISTS idx_viv_cc        ON viviendas (prop_cc_norm);
 CREATE INDEX IF NOT EXISTS idx_viv_cc_inf    ON viviendas (inf_cc_norm);
 CREATE INDEX IF NOT EXISTS idx_viv_direccion ON viviendas (direccion_norm);
 
+-- Una fila por reporte de afectacion (grano: EVENTO / edificacion atendida).
+-- OJO: grano distinto al de viviendas y familias. Este formulario lo diligencia
+-- un organismo de socorro sobre una edificacion completa (colapsos, personas
+-- atrapadas, cantidad de viviendas afectadas), no sobre un hogar. No trae
+-- cedula ni id_hogar, asi que NO se enlaza con las otras tablas: entra como
+-- entidad independiente. La direccion normalizada queda disponible por si mas
+-- adelante se decide cruzarla con viviendas.
+CREATE TABLE IF NOT EXISTS afectaciones (
+  id_encuesta          TEXT PRIMARY KEY,
+  consecutivo_id       TEXT,     -- consecutivo del CMGRD, si fue asignado
+  correo               TEXT,
+  -- ubicacion
+  nombre_edificacion   TEXT,
+  barrio               TEXT,
+  comuna               TEXT,
+  tipo_via             TEXT,
+  numero_via           TEXT,
+  sufijo_via           TEXT,
+  numero_generador     TEXT,
+  placa_inmueble       TEXT,
+  direccion_completa   TEXT,
+  direccion_norm       TEXT,
+  latitud              REAL,
+  longitud             REAL,
+  -- afectacion encontrada
+  descripcion          TEXT,
+  colapso              TEXT,
+  requieren_evacuacion TEXT,
+  -- personas (conteos declarados en el reporte, NO son personas identificadas)
+  fallecidos           INTEGER,
+  atrapadas            INTEGER,
+  necesitan_evacuar    INTEGER,
+  -- edificacion
+  tipo_edificacion     TEXT,
+  cantidad_viviendas   INTEGER,
+  -- observaciones y soportes
+  observaciones        TEXT,
+  fotos_cantidad       INTEGER,
+  fotos_nombres        TEXT,     -- separados por |
+  fotos_enlaces        TEXT,     -- URLs de Drive, separadas por |
+  -- quien diligencia
+  diligencia_nombre    TEXT,
+  organismo            TEXT,
+  grupo_voluntarios    TEXT,
+  -- control
+  secretaria           TEXT,
+  fecha                TEXT,
+  fecha_actualizacion  TEXT,
+  archivo_origen       TEXT,
+  hash_fila            TEXT,
+  duplicate            INTEGER DEFAULT 0,
+  duplicate_confidence REAL,
+  id_canonico          TEXT,
+  ingestion_timestamp  TEXT,
+  last_update          TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_afe_comuna    ON afectaciones (comuna);
+CREATE INDEX IF NOT EXISTS idx_afe_direccion ON afectaciones (direccion_norm);
+
 -- una fila por formulario de personas/familia (grano: familia reportada)
 CREATE TABLE IF NOT EXISTS familias (
   id_encuesta          TEXT PRIMARY KEY,

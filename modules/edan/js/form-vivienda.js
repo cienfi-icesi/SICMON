@@ -10,9 +10,11 @@
 
    ADAPTACIONES TÉCNICAS (necesarias para llevar el formato de papel a una
    aplicación; ninguna cambia el contenido de las preguntas):
-     1. Las firmas manuscritas se registran como una confirmación de que la
-        persona firmó el formato físico. Una aplicación web sin captura de
-        firma no puede almacenar el trazo.
+     1. Las firmas: en la etapa de papel se registraban como confirmación de
+        que la persona firmó el formato físico. El 2026-08-15 esas casillas
+        se RETIRARON (la operación pasó a ser completamente virtual) y la
+        firma de registro es el nombre del responsable, que la aplicación
+        escribe con los datos de la sesión.
      2. La sección 5.4 del papel es una matriz; aquí cada elemento se presenta
         como dos preguntas ("¿fue afectado?" y "nivel de daño"), tal como las
         enumera el transcript. El nivel de daño solo se pide si el elemento
@@ -127,6 +129,8 @@
             etiqueta: 'Nombre del profesional responsable de la inspección y evaluación',
             tipo: 'texto',
             requerido: true,
+            // Se rellena con los datos de quien inició sesión (ver config.js).
+            autoUsuario: 'nombre',
             ancho: 'completo'
           },
           { id: 'viv_prof_tarjeta', etiqueta: 'Tarjeta profesional', tipo: 'texto', ancho: 'medio' },
@@ -138,7 +142,7 @@
             ayuda: 'Entidad, organismo de socorro o institución que respalda la inspección.',
             ancho: 'completo'
           },
-          { id: 'viv_prof_cc', etiqueta: 'C.C. No. (del profesional)', tipo: 'texto', modo: 'numerico', ancho: 'medio' },
+          { id: 'viv_prof_cc', etiqueta: 'C.C. No. (del profesional)', tipo: 'texto', modo: 'numerico', autoUsuario: 'cedula', ancho: 'medio' },
           { id: 'viv_prof_cc_de', etiqueta: 'De (lugar de expedición)', tipo: 'texto', ancho: 'medio' },
           { id: 'viv_prof_telefono', etiqueta: 'Teléfono', tipo: 'texto', modo: 'telefono', ancho: 'medio' },
           { id: 'viv_prof_direccion', etiqueta: 'Dirección', tipo: 'texto', ancho: 'medio' },
@@ -515,14 +519,10 @@
           { id: 'viv_inf_nombre', etiqueta: 'Nombre', tipo: 'texto', ancho: 'medio' },
           { id: 'viv_inf_cc', etiqueta: 'C.C. No.', tipo: 'texto', modo: 'numerico', ancho: 'medio' },
           { id: 'viv_inf_parentesco', etiqueta: 'Parentesco', tipo: 'texto', ancho: 'medio' },
-          { id: 'viv_inf_telefono', etiqueta: 'Teléfono cel./fijo', tipo: 'texto', modo: 'telefono', ancho: 'medio' },
-          {
-            id: 'viv_inf_firma',
-            etiqueta: 'Firma',
-            tipo: 'confirmacion',
-            textoConfirmacion: 'La persona firmó el formato físico',
-            ancho: 'completo'
-          }
+          { id: 'viv_inf_telefono', etiqueta: 'Teléfono cel./fijo', tipo: 'texto', modo: 'telefono', ancho: 'medio' }
+          /* La firma del informante (V093) se RETIRÓ el 2026-08-15: la
+             operación es completamente virtual, no hay formato físico que
+             firmar. Código retirado en js/codigos.js. */
         ]
       },
 
@@ -549,49 +549,32 @@
           },
           { id: 'viv_nc_nombre', etiqueta: 'Nombre', tipo: 'texto', ancho: 'medio' },
           { id: 'viv_nc_cc', etiqueta: 'C.C. No.', tipo: 'texto', modo: 'numerico', ancho: 'medio' },
-          { id: 'viv_nc_telefono', etiqueta: 'Teléfono cel./fijo', tipo: 'texto', modo: 'telefono', ancho: 'medio' },
-          {
-            id: 'viv_nc_firma',
-            etiqueta: 'Firma',
-            tipo: 'confirmacion',
-            textoConfirmacion: 'La persona firmó el formato físico',
-            ancho: 'completo'
-          }
+          { id: 'viv_nc_telefono', etiqueta: 'Teléfono cel./fijo', tipo: 'texto', modo: 'telefono', ancho: 'medio' }
+          /* La firma (V098) se RETIRÓ el 2026-08-15: operación virtual, sin
+             formato físico. Código retirado en js/codigos.js. */
         ]
       },
 
-      // ================= 9. FIRMA Y APROBACIÓN =================
+      // ================= 9. FIRMA =================
       {
         id: 'sec9',
         numero: '9',
-        titulo: 'Firma y aprobación de la inspección y evaluación de la vivienda',
+        titulo: 'Firma de la inspección y evaluación de la vivienda',
         campos: [
           {
             id: 'viv_firma_profesional_nombre',
             etiqueta: 'Firma del profesional responsable de la inspección y evaluación — Nombre',
             tipo: 'texto',
-            ancho: 'completo'
-          },
-          {
-            id: 'viv_firma_profesional_ok',
-            etiqueta: 'Firma del profesional responsable',
-            tipo: 'confirmacion',
-            textoConfirmacion: 'Firmó el formato físico',
-            ancho: 'completo'
-          },
-          {
-            id: 'viv_aprobo_coordinador_nombre',
-            etiqueta: 'Aprobó: firma coordinador del Consejo Territorial que realiza la inspección y evaluación — Nombre',
-            tipo: 'texto',
-            ancho: 'completo'
-          },
-          {
-            id: 'viv_aprobo_coordinador_ok',
-            etiqueta: 'Firma del coordinador del Consejo Territorial',
-            tipo: 'confirmacion',
-            textoConfirmacion: 'Firmó el formato físico',
+            // Se rellena con el nombre de quien inició sesión (ver config.js).
+            autoUsuario: 'nombre',
             ancho: 'completo'
           }
+          /* RETIRADOS el 2026-08-15 (códigos retirados en js/codigos.js):
+             · V100 y V102, las casillas «Firmó el formato físico»: la
+               operación es completamente virtual, no hay papel que firmar.
+             · V101, la aprobación del coordinador del Consejo Territorial:
+               esa aprobación corresponde a la visita oficial posterior, que
+               tendrá su propio formulario (registro de afectaciones). */
         ]
       }
     ]

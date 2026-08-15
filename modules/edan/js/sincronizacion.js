@@ -93,6 +93,61 @@
     if (alCambiarEstado) alCambiarEstado(estado());
   }
 
+  // --- Fotos ----------------------------------------------------------------
+
+  /** Campos tipo 'fotos' del formulario de una encuesta. */
+  function camposFotosDe(registro) {
+    var form = registro.tipo_formulario === 'vivienda' ? window.FORM_VIVIENDA
+      : registro.tipo_formulario === 'afectaciones' ? window.FORM_AFECTACIONES
+      : window.FORM_PERSONAS;
+    var lista = [];
+    ((form && form.secciones) || []).forEach(function (sec) {
+      (sec.camposEncabezado || []).concat(sec.campos || []).forEach(function (c) {
+        if (c.tipo === 'fotos') lista.push(c);
+      });
+    });
+    return lista;
+  }
+
+  /**
+   * Fotos a enviar. Las nuevas van con sus bytes; las que YA están en Drive
+   * van solo con su drive_id, para que el receptor las CONSERVE al reescribir
+   * la encuesta (si no las mencionáramos, un reenvío por corrección las
+   * borraría de Drive). Las que el usuario quitó de la encuesta simplemente
+   * no aparecen y el receptor las retira.
+   */
+  function fotosDe(registro) {
+    var salida = [];
+    camposFotosDe(registro).forEach(function (campo) {
+      var lista = registro.respuestas && registro.respuestas[campo.id];
+      if (!Array.isArray(lista)) return;
+      lista.forEach(function (f, i) {
+        if (!f) return;
+        // Primero el drive_id: si ya está en Drive no se vuelve a subir aunque
+        // el equipo aún conserve los bytes.
+        if (f.drive_id) {
+          salida.push({ campo: campo.id, indice: i, nombre: f.nombre, drive_id: f.drive_id, conservar: true });
+        } else if (f.datos) {
+          salida.push({ campo: campo.id, indice: i, nombre: f.nombre, mime: f.mime || 'image/jpeg', datos: f.datos });
+        }
+      });
+    });
+    return salida;
+  }
+
+  /** Copia de las respuestas con las fotos reducidas a nombre y enlace. */
+  function respuestasSinBytesDeFotos(registro) {
+    var copia = Object.assign({}, registro.respuestas || {});
+    camposFotosDe(registro).forEach(function (campo) {
+      var lista = copia[campo.id];
+      if (!Array.isArray(lista)) return;
+      copia[campo.id] = lista.map(function (f) {
+        return { nombre: f.nombre, mime: f.mime, tam: f.tam, url: f.url || '', drive_id: f.drive_id || '' };
+      });
+    });
+    return copia;
+  }
+
   // --- Envío ----------------------------------------------------------------
 
   /**
@@ -111,27 +166,45 @@
       equipo: nombreEquipo(),
       app_version: registro.app_version,
       tablas: window.Exportador.filasParaSincronizar(registro),
+      /* Fotos de la encuesta (campos tipo 'fotos'), aparte de las tablas: el
+         receptor las guarda en Drive con el id de la encuesta y devuelve los
+         enlaces. Un receptor viejo las ignora. */
+      fotos: fotosDe(registro),
+      /* Le dice al receptor que la lista de fotos de arriba es la lista
+         COMPLETA vigente: lo que este en Drive con este id y no aparezca aqui
+         es porque se quito. Un cliente viejo no manda esta marca y el
+         receptor entonces no borra nada. */
+      fotos_completas: true,
       /* Copia íntegra de la encuesta. El receptor la guarda aparte y es lo
          que permite recuperarla desde CUALQUIER equipo al iniciar sesión.
          Un receptor viejo simplemente la ignora. Los campos de estado de
          envío van normalizados: quien la importe la recibe como lo que es —
-         una encuesta que YA está en la base central. */
+         una encuesta que YA está en la base central. Las fotos van SIN sus
+         bytes (solo nombre y enlace): en Drive están completas y meterlas
+         aquí duplicaría megas en la hoja. */
       respaldo: JSON.stringify(Object.assign({}, registro, {
+        respuestas: respuestasSinBytesDeFotos(registro),
         sincronizada: true,
         fecha_sincronizacion: new Date().toISOString(),
         ultimo_error_sync: ''
       }))
     };
+    var cuerpo = JSON.stringify(payload);
+    /* El tiempo de espera crece con el tamaño real del envío: con señal de
+       campo (~50 KB/s en un mal momento) 2 MB de fotos pueden tardar más de
+       un minuto, y cortar antes obligaría a reintentar TODO el envío. Mínimo
+       el tiempo configurado; +1 s por cada 50 KB; tope 10 min. */
+    var tiempoLimite = Math.min(600000, Math.max(cfg.tiempoLimite, 60000 + Math.ceil(cuerpo.length / 50000) * 1000));
 
     var control = new AbortController();
-    var corte = setTimeout(function () { control.abort(); }, cfg.tiempoLimite);
+    var corte = setTimeout(function () { control.abort(); }, tiempoLimite);
 
     return fetch(cfg.url, {
       method: 'POST',
       // text/plain evita la verificación previa del navegador, que Apps Script
       // no responde. El script lee el cuerpo y lo interpreta como JSON.
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      body: cuerpo,
       redirect: 'follow',
       signal: control.signal
     })
@@ -155,7 +228,10 @@
           err.reintentar = datos.reintentar !== false;
           throw err;
         }
-        return { ok: true, filas: datos.filas_escritas, hora: datos.hora_servidor };
+        return { ok: true, filas: datos.filas_escritas, hora: datos.hora_servidor,
+                 fotos: Array.isArray(datos.fotos) ? datos.fotos : null,
+                 // Un receptor viejo no manda fotos_ok: se asume que no hubo fotos que perder.
+                 fotosOk: datos.fotos_ok !== false };
       })
       .catch(function (e) {
         clearTimeout(corte);
@@ -238,10 +314,23 @@
                envío, lo confirmado ya no es la versión vigente: se deja en
                la cola y el próximo ciclo envía la corrección. El receptor
                reemplaza por id, así que reenviar nunca duplica. */
-            if (String(actual.fecha_actualizacion || '') === String(registro.fecha_actualizacion || '')) {
+            /* Enlaces de Drive de las fotos: se anotan en la encuesta local
+               (junto a cada foto) para poder abrirlas desde el aplicativo. */
+            if (res.fotos && res.fotos.length) {
+              window.Almacen.anotarEnlacesFotos(registro.id_encuesta, res.fotos);
+            }
+            var sinCambiosEnVuelo = String(actual.fecha_actualizacion || '') === String(registro.fecha_actualizacion || '');
+            if (sinCambiosEnVuelo && res.fotosOk) {
               cambios.sincronizada = true;
               cambios.fecha_sincronizacion = new Date().toISOString();
               cambios.ultimo_error_sync = '';
+            } else if (!res.fotosOk) {
+              /* Los datos llegaron pero alguna foto no se pudo guardar en
+                 Drive: la encuesta se queda en la cola para reintentar SOLO
+                 lo que falta (las ya guardadas viajan con drive_id y se
+                 conservan). */
+              cambios.ultimo_error_sync = 'Datos recibidos; falta guardar alguna foto en Drive. Se reintentará.';
+              ultimoError = cambios.ultimo_error_sync;
             }
             enviadas++;
           } else {

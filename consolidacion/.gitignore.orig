@@ -1,0 +1,23 @@
+# base de datos y lock
+data/db/
+
+# archivos que llegan de la fuente real (Google Drive) o su simulacion
+data/onedrive_sim/
+
+# token de autenticacion de Google Drive: NUNCA debe subirse al repositorio
+.secrets/
+
+# base historica (datos reales sensibles)
+data/historico/
+
+# logs
+logs/
+
+# sistema
+.DS_Store
+.Rhistory
+.RData
+
+# datos del tablero (uso interno: coordenadas y datos de salud)
+app_tablero/js/datos_tablero.js
+app_tablero/descargas/

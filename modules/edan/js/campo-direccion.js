@@ -37,6 +37,20 @@
   var ZOOM_CIUDAD = 12;
   var ZOOM_PUNTO = 17;
 
+  /* Caja que envuelve el municipio de Cali (con margen). La búsqueda de
+     direcciones se ACOTA a este rectángulo: una «Calle 5 # 38-20» existe en
+     decenas de ciudades del país, y sin este límite el buscador devolvía la
+     de otra ciudad. Cualquier resultado fuera de la caja se descarta. */
+  var CAJA_CALI = { oeste: -76.66, sur: 3.30, este: -76.42, norte: 3.56 };
+
+  /* Nombre largo del tipo de vía, que es como aparece en el mapa base
+     (OpenStreetMap). Al buscador se le habla en su idioma. */
+  var VIA_LARGA = {
+    'Cra': 'Carrera', 'Cll': 'Calle', 'Av': 'Avenida', 'Dg': 'Diagonal',
+    'Tv': 'Transversal', 'Av Cra': 'Avenida Carrera', 'Av Cll': 'Avenida Calle',
+    'Cir': 'Circular', 'Aut': 'Autopista', 'Km': 'Kilómetro', 'Mz': 'Manzana'
+  };
+
   /* Tipos de vía. Lista ampliable: agregar aquí una línea basta, no hay que
      tocar ninguna otra parte de la aplicación. */
   var TIPOS_VIA = [
@@ -76,6 +90,7 @@
     { id: 'fuente_georreferenciacion', etiqueta: 'Fuente de la georreferenciación', derivado: true },
     { id: 'precision_gps_m', etiqueta: 'Precisión del GPS (m)', derivado: true },
     { id: 'direccion_geocodificada', etiqueta: 'Dirección devuelta por geocodificación', derivado: true },
+    { id: 'precision_geocodificacion', etiqueta: 'Precisión de la búsqueda (predio / cruce / vía)', derivado: true },
     { id: 'fecha_georreferenciacion', etiqueta: 'Fecha de la georreferenciación', derivado: true },
     { id: 'ubicacion_confirmada', etiqueta: '¿El diligenciador confirmó la ubicación?', derivado: true },
     { id: 'fecha_confirmacion_ubicacion', etiqueta: 'Fecha de confirmación de la ubicación', derivado: true }
@@ -643,6 +658,9 @@
     if (textoGeocodificado !== undefined) {
       valoresActual.direccion_geocodificada = textoGeocodificado || '';
     }
+    // La precisión de la búsqueda solo describe puntos que vinieron de ella.
+    // Si el usuario movió el marcador o usó el GPS, el punto ya es suyo.
+    if (fuente !== 'GEOCODIFICACION') valoresActual.precision_geocodificacion = '';
     // Si el punto cambia, la confirmación anterior deja de valer.
     valoresActual.ubicacion_confirmada = '';
     valoresActual.fecha_confirmacion_ubicacion = '';
@@ -817,14 +835,40 @@
    * Es una acción explícita: manda la dirección a un servicio externo.
    * La respuesta NO sobrescribe la dirección declarada.
    */
+  /**
+   * Búsqueda de la dirección escrita en el mapa base.
+   *
+   * POR QUÉ NO SE LE PIDE «LA DIRECCIÓN» AL BUSCADOR
+   * El mapa base (OpenStreetMap) tiene las VÍAS de Cali pero no la placa de
+   * cada predio (el «38-20»), y su buscador NO sabe resolver cruces («Calle 5
+   * con Carrera 38» devuelve la Calle 5 entera, o una Carrera 38 cualquiera
+   * —hay varias, al norte y al sur del río—). Pedir la dirección como texto
+   * era lo que mandaba el punto a kilómetros, o a otra ciudad.
+   *
+   * CÓMO SE HACE AQUÍ
+   *   1. Se piden por separado la GEOMETRÍA de la vía («Calle 5», todos sus
+   *      tramos) y la de la vía generadora («Carrera 38», todos sus tramos),
+   *      siempre acotadas a la caja de Cali.
+   *   2. Se calcula el CRUCE: el par de tramos que se intersecan (o el punto
+   *      donde más se acercan, si el mapa no los dibuja tocándose).
+   *   3. Con la placa («20» en 38-20) se avanza esa distancia en metros desde
+   *      el cruce, a lo largo de la vía, en el sentido en que crece la
+   *      numeración: en Cali la placa es aproximadamente la distancia en
+   *      metros desde la vía generadora. Eso deja el punto a la altura del
+   *      predio — precisión de decenas de metros, no de kilómetros.
+   *   4. Si solo hay vía (sin generador), se centra el mapa en la vía y se
+   *      avisa que el punto es aproximado.
+   * En todos los casos se dice en pantalla qué tan fino fue el acierto y se
+   * guarda en precision_geocodificacion (predio / cruce / via). El marcador
+   * queda arrastrable para el ajuste final, y el GPS en sitio sigue siendo la
+   * mejor fuente.
+   */
   function geocodificar() {
     var base = componer(valoresActual);
     if (!base) {
       estado('Escriba primero la dirección para poder buscarla.');
       return;
     }
-
-    // Nominatim pide no superar una consulta por segundo.
     var ahora = Date.now();
     if (ahora - ultimaGeocodificacion < 1500) {
       estado('Espere un momento antes de volver a buscar.');
@@ -833,37 +877,318 @@
     ultimaGeocodificacion = ahora;
 
     var municipio = (window.CampoDireccion.contexto && window.CampoDireccion.contexto.municipio) || 'Cali';
-    var departamento = (window.CampoDireccion.contexto && window.CampoDireccion.contexto.departamento) || 'Valle del Cauca';
-    var consulta = base + ', ' + municipio + ', ' + departamento + ', Colombia';
+    if (/^santiago de cali$/i.test(municipio)) municipio = 'Cali';
 
-    estado('Buscando la dirección…');
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=co&q=' +
-      encodeURIComponent(consulta);
+    var tipo = limpio(valoresActual.tipo_via);
+    var numero = limpio(valoresActual.numero_via) + sufijoEfectivo(valoresActual);
+    var generador = limpio(valoresActual.numero_generador);
+    var placa = parseInt(limpio(valoresActual.placa_inmueble), 10);
+    var viaLarga = VIA_LARGA[tipo] || tipo;
+    var cruzada = /^Cll|Calle/i.test(tipo) ? 'Carrera' : /^Cra|Carrera/i.test(tipo) ? 'Calle' : '';
 
-    fetch(url, { headers: { 'Accept': 'application/json' } })
-      .then(function (r) {
-        if (!r.ok) throw new Error('respuesta ' + r.status);
-        return r.json();
-      })
-      .then(function (datos) {
-        if (!datos || !datos.length) {
-          estado('No se encontró esa dirección. Marque el punto tocando el mapa.');
-          return;
+    if (!viaLarga || !numero) {
+      // Sin vía reconocible (Km, Mz, texto suelto): búsqueda libre acotada.
+      estado('Buscando en el mapa…');
+      buscarVia(base + ', ' + municipio, municipio, true).then(function (tramos) {
+        if (!tramos.length) { sinResultado(); return; }
+        var p = tramos[0].puntos[0];
+        fijar(p[1], p[0], 'via', tramos[0].nombre, base);
+      }).catch(fallo);
+      return;
+    }
+
+    estado('Buscando la vía en el mapa…');
+    var nombreVia = viaLarga + ' ' + numero;
+    var nombreGen = cruzada && generador ? cruzada + ' ' + generador : '';
+
+    buscarVia(nombreVia, municipio, false).then(function (tramosVia) {
+      if (!tramosVia.length) { sinResultado(); return; }
+      if (!nombreGen) {
+        // Solo la vía. Si es única (o casi), se marca; si tiene muchos tramos
+        // repartidos por la ciudad, marcar uno al azar engaña más que ayuda.
+        var t = masCentral(tramosVia);
+        var p = t.puntos[Math.floor(t.puntos.length / 2)];
+        if (tramosVia.length <= 3) {
+          fijar(p[1], p[0], 'via', t.nombre, nombreVia);
+        } else {
+          if (mapa) mapa.setView([p[1], p[0]], 14);
+          estado('La vía <strong>' + esc(nombreVia) + '</strong> tiene ' + tramosVia.length + ' tramos por la ciudad. ' +
+            'Escriba el número generador (el cruce) para ubicar el punto, marque tocando el mapa ' +
+            'o use «Usar mi ubicación actual».');
         }
-        fijarCoordenadas(parseFloat(datos[0].lat), parseFloat(datos[0].lon),
-          'GEOCODIFICACION', null, datos[0].display_name);
-      })
-      .catch(function () {
-        estado('No fue posible consultar el servicio de búsqueda (puede que no haya ' +
-          'conexión). Marque el punto tocando el mapa o use la ubicación actual.');
+        return;
+      }
+      estado('Buscando el cruce con ' + esc(nombreGen) + '…');
+      return esperar(1100).then(function () { return buscarVia(nombreGen, municipio, false); })
+        .then(function (tramosGen) {
+          if (!tramosGen.length) {
+            // La generadora no está en el mapa base: no hay cómo saber en qué
+            // tramo de la vía cae. Se avisa y NO se marca un punto que puede
+            // estar a kilómetros; el mapa se centra en la vía para orientar.
+            var t2 = masCentral(tramosVia);
+            var p2 = t2.puntos[Math.floor(t2.puntos.length / 2)];
+            if (mapa) mapa.setView([p2[1], p2[0]], 14);
+            estado('Se encontró la vía <strong>' + esc(nombreVia) + '</strong> pero no la generadora ' +
+              '<strong>' + esc(nombreGen) + '</strong> en el mapa base, y esa vía tiene ' + tramosVia.length +
+              ' tramos por la ciudad: no se puede saber en cuál cae la dirección. ' +
+              'Marque el punto tocando el mapa o use «Usar mi ubicación actual».');
+            return;
+          }
+          var cruce = mejorCruce(tramosVia, tramosGen);
+          if (!cruce) {
+            /* Las dos vías existen pero el mapa base no las dibuja
+               encontrándose (pasa en zonas de parcelaciones, como Pance).
+               El mejor punto es el tramo de la vía MÁS CERCANO a la
+               generadora: eso ubica al menos la zona correcta. Tomar el tramo
+               «principal» sería un error: la Calle 18 tiene 23 tramos por
+               toda la ciudad y el más largo puede estar a 12 km. */
+          var cercano = tramoMasCercano(tramosVia, tramosGen);
+          fijar(cercano.punto[1], cercano.punto[0], 'via', cercano.tramo.nombre,
+            nombreVia + ' cerca de ' + nombreGen);
+            return;
+          }
+          var punto = cruce.punto;
+          var nivel = 'cruce';
+          if (!isNaN(placa) && placa > 0) {
+            // Avanzar la placa (≈ metros) desde el cruce a lo largo de la
+            // vía, en el sentido en que crece la numeración de la generadora.
+            var avanzado = avanzarPorVia(cruce.tramoVia.puntos, punto, placa, cruce.sentido);
+            if (avanzado) { punto = avanzado; nivel = 'predio'; }
+          }
+          fijar(punto[1], punto[0], nivel, cruce.tramoVia.nombre, nombreVia + ' con ' + nombreGen);
+        });
+    }).catch(fallo);
+
+    // ---- helpers de esta búsqueda ----
+    function esperar(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    function fallo() {
+      estado('No fue posible consultar el servicio de mapas (puede que no haya ' +
+        'conexión). Marque el punto tocando el mapa o use la ubicación actual.');
+    }
+    function sinResultado() {
+      estado('No se encontró esa vía dentro de Cali. Revise el tipo y el número de vía, ' +
+        'marque el punto tocando el mapa o, si está en el sitio, use «Usar mi ubicación actual».');
+    }
+    /* REGLA (decisión del equipo, 2026-08-15): la búsqueda SOLO registra una
+       coordenada cuando llega a nivel de PREDIO (cruce hallado + placa). Si
+       apenas ubica el cruce o la vía, NO se marca ningún punto: una
+       coordenada aproximada que parece exacta es peor que ninguna. En ese
+       caso se orienta el mapa a la zona y se pide marcar tocando el mapa o
+       usar la ubicación actual. */
+    function fijar(lat, lon, nivel, nombreDevuelto, buscado) {
+      if (nivel === 'predio') {
+        fijarCoordenadas(lat, lon, 'GEOCODIFICACION', null, nombreDevuelto);
+        valoresActual.precision_geocodificacion = nivel;
+        guardar();
+        if (mapa) mapa.setView([lat, lon], 18);
+        estado(textoEstado(valoresActual) +
+          '<br>Punto estimado <strong>a la altura del predio</strong> a partir del cruce y la placa. ' +
+          'Verifique en el mapa; si no coincide, arrastre el marcador o use «Usar mi ubicación actual». Luego confirme.');
+        return;
+      }
+      // Sin coordenada: se limpia cualquier punto anterior y se orienta el mapa.
+      limpiarUbicacion();
+      if (mapa) mapa.setView([lat, lon], nivel === 'cruce' ? 17 : 15);
+      var razon = nivel === 'cruce'
+        ? 'Se ubicó el <strong>cruce de las dos vías</strong>, pero no la dirección exacta.'
+        : 'Se ubicó la zona de la vía <strong>' + esc(buscado) + '</strong>, pero no la dirección exacta ' +
+          '(el mapa base no tiene la numeración de las casas).';
+      estado('<strong>No se registró ninguna coordenada.</strong> ' + razon +
+        ' El mapa quedó centrado en esa zona: <strong>toque el mapa</strong> sobre el predio para marcarlo, ' +
+        'o si está en el sitio use <strong>«Usar mi ubicación actual»</strong>.');
+    }
+  }
+
+  /** Geometría de todos los tramos de una vía dentro de Cali: [{nombre, puntos:[[lon,lat],…]}]. */
+  function buscarVia(nombre, municipio, libre) {
+    var comunes = '&format=jsonv2&limit=50&polygon_geojson=1&countrycodes=co' +
+      '&viewbox=' + CAJA_CALI.oeste + ',' + CAJA_CALI.norte + ',' + CAJA_CALI.este + ',' + CAJA_CALI.sur +
+      '&bounded=1';
+    var url = libre
+      ? 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(nombre) + comunes
+      : 'https://nominatim.openstreetmap.org/search?street=' + encodeURIComponent(nombre) +
+        '&city=' + encodeURIComponent(municipio) + comunes;
+    return fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('respuesta ' + r.status); return r.json(); })
+      .then(function (datos) {
+        var tramos = [];
+        (datos || []).forEach(function (d) {
+          if (!d.geojson) {
+            if (d.lat && d.lon) tramos.push({ nombre: d.display_name, puntos: [[parseFloat(d.lon), parseFloat(d.lat)]] });
+            return;
+          }
+          var g = d.geojson;
+          var lineas = g.type === 'LineString' ? [g.coordinates]
+            : g.type === 'MultiLineString' ? g.coordinates
+            : g.type === 'Point' ? [[g.coordinates]] : [];
+          lineas.forEach(function (l) {
+            if (l && l.length) tramos.push({ nombre: d.display_name, puntos: l });
+          });
+        });
+        // Solo lo que cae en Cali.
+        return tramos.filter(function (t) {
+          return t.puntos.some(function (p) {
+            return p[1] >= CAJA_CALI.sur && p[1] <= CAJA_CALI.norte && p[0] >= CAJA_CALI.oeste && p[0] <= CAJA_CALI.este;
+          });
+        });
       });
+  }
+
+  /** Metros aproximados entre dos [lon,lat] (equirectangular; suficiente en una ciudad). */
+  function metros(a, b) {
+    var kx = 111320 * Math.cos(((a[1] + b[1]) / 2) * Math.PI / 180);
+    var ky = 110540;
+    var dx = (a[0] - b[0]) * kx, dy = (a[1] - b[1]) * ky;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  /** Tramo de `tramosVia` más cercano a cualquier tramo de `tramosGen`, y el punto de acercamiento. */
+  function tramoMasCercano(tramosVia, tramosGen) {
+    var mejor = null;
+    tramosVia.forEach(function (tv) {
+      tramosGen.forEach(function (tg) {
+        tv.puntos.forEach(function (pv) {
+          tg.puntos.forEach(function (pg) {
+            var d = metros(pv, pg);
+            if (!mejor || d < mejor.d) mejor = { d: d, tramo: tv, punto: pv };
+          });
+        });
+      });
+    });
+    return mejor;
+  }
+
+  /** El tramo con más puntos (proxy del principal). */
+  function masCentral(tramos) {
+    return tramos.slice().sort(function (a, b) { return b.puntos.length - a.puntos.length; })[0];
+  }
+
+  /**
+   * Punto donde dos polilíneas se cruzan o más se acercan. Devuelve
+   * { punto:[lon,lat], tramoVia, tramoGen, sentido } o null si están a más
+   * de 120 m (entonces no es un cruce real).
+   */
+  function mejorCruce(tramosVia, tramosGen) {
+    var mejor = null;
+    var segundoMejor = null;   // distancia del segundo mejor par de TRAMOS (para medir ambigüedad)
+    tramosVia.forEach(function (tv) {
+      tramosGen.forEach(function (tg) {
+        for (var i = 0; i < tv.puntos.length - 1 || (tv.puntos.length === 1 && i === 0); i++) {
+          var a1 = tv.puntos[i], a2 = tv.puntos[Math.min(i + 1, tv.puntos.length - 1)];
+          for (var j = 0; j < tg.puntos.length - 1 || (tg.puntos.length === 1 && j === 0); j++) {
+            var b1 = tg.puntos[j], b2 = tg.puntos[Math.min(j + 1, tg.puntos.length - 1)];
+            var inter = interseccion(a1, a2, b1, b2);
+            var punto, d;
+            if (inter) { punto = inter; d = 0; }
+            else {
+              // Distancia mínima entre los dos segmentos: probar los 4 extremos.
+              var c = [
+                [proyectar(a1, b1, b2), a1], [proyectar(a2, b1, b2), a2],
+                [proyectar(b1, a1, a2), b1], [proyectar(b2, a1, a2), b2]
+              ];
+              c.forEach(function (par) {
+                var dd = metros(par[0], par[1]);
+                if (d === undefined || dd < d) { d = dd; punto = par[0]; }
+              });
+            }
+            if (!mejor || d < mejor.d) {
+              // El anterior mejor pasa a segundo solo si era de OTRO par de tramos.
+              if (mejor && (mejor.tramoVia !== tv || mejor.tramoGen !== tg)) segundoMejor = mejor.d;
+              mejor = { d: d, punto: punto, tramoVia: tv, tramoGen: tg, iVia: i };
+            } else if (mejor && (mejor.tramoVia !== tv || mejor.tramoGen !== tg) &&
+                       (segundoMejor === null || d < segundoMejor)) {
+              segundoMejor = d;
+            }
+          }
+        }
+      });
+    });
+    /* Tolerancia: los tramos de OSM no siempre se dibujan tocándose y traen
+       pocos vértices, así que el cruce real cae entre vértices. Hasta 400 m se
+       acepta como cruce. Entre 400 y 900 m se acepta SOLO si el par es
+       inequívoco (ningún otro par de tramos queda a menos del doble): es el
+       caso de zonas de parcelaciones, donde las vías existen pero el mapa
+       las dibuja sin encontrarse. Más allá, no es un cruce. */
+    if (!mejor) return null;
+    if (mejor.d > 900) return null;
+    if (mejor.d > 400 && !(mejor.d * 2 < (segundoMejor || Infinity))) return null;
+    mejor.sentido = sentidoDeNumeracion(mejor.tramoVia, mejor.punto);
+    return mejor;
+  }
+
+  /** Intersección de segmentos a1-a2 y b1-b2 en [lon,lat], o null. */
+  function interseccion(a1, a2, b1, b2) {
+    var d = (a2[0] - a1[0]) * (b2[1] - b1[1]) - (a2[1] - a1[1]) * (b2[0] - b1[0]);
+    if (Math.abs(d) < 1e-12) return null;
+    var t = ((b1[0] - a1[0]) * (b2[1] - b1[1]) - (b1[1] - a1[1]) * (b2[0] - b1[0])) / d;
+    var u = ((b1[0] - a1[0]) * (a2[1] - a1[1]) - (b1[1] - a1[1]) * (a2[0] - a1[0])) / d;
+    if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+    return [a1[0] + t * (a2[0] - a1[0]), a1[1] + t * (a2[1] - a1[1])];
+  }
+
+  /** Proyección del punto p sobre el segmento a-b (recortada al segmento). */
+  function proyectar(p, a, b) {
+    var dx = b[0] - a[0], dy = b[1] - a[1];
+    var l2 = dx * dx + dy * dy;
+    if (l2 === 0) return a;
+    var t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return [a[0] + t * dx, a[1] + t * dy];
+  }
+
+  /**
+   * En qué sentido crece la numeración de las generadoras a lo largo de la
+   * vía. Regla de la nomenclatura de Cali: las carreras aumentan hacia el
+   * SUR-OCCIDENTE al alejarse del río Cali, y las calles hacia el sur. Aquí se
+   * usa la aproximación: para una CALLE, las carreras crecen hacia el
+   * sur-oeste (lat↓, lon↓); para una CARRERA, las calles crecen hacia el sur
+   * (lat↓). Devuelve +1 si el índice creciente del tramo va en ese sentido,
+   * -1 si va al revés.
+   */
+  function sentidoDeNumeracion(tramo, punto) {
+    var pts = tramo.puntos;
+    if (pts.length < 2) return 1;
+    var a = pts[0], b = pts[pts.length - 1];
+    var esCalle = /calle/i.test(tramo.nombre) && !/carrera/i.test(tramo.nombre.split(',')[0]);
+    var haciaSur = b[1] < a[1];
+    var haciaOeste = b[0] < a[0];
+    if (esCalle) return (haciaSur || haciaOeste) ? 1 : -1;
+    return haciaSur ? 1 : -1;
+  }
+
+  /** Avanza `metrosAvance` a lo largo de la polilínea desde `desde`, en `sentido`. */
+  function avanzarPorVia(pts, desde, metrosAvance, sentido) {
+    if (pts.length < 2) return null;
+    // Índice del vértice más cercano al punto de partida.
+    var k = 0, dk = Infinity;
+    pts.forEach(function (p, i) { var d = metros(p, desde); if (d < dk) { dk = d; k = i; } });
+    var restante = metrosAvance;
+    var actual = desde;
+    var i = k;
+    var paso = sentido >= 0 ? 1 : -1;
+    // Primer tramo: desde el punto de partida hacia el siguiente vértice.
+    var siguiente = pts[i + paso];
+    if (!siguiente) { paso = -paso; siguiente = pts[i + paso]; if (!siguiente) return null; }
+    while (siguiente) {
+      var d = metros(actual, siguiente);
+      if (d >= restante) {
+        var f = d === 0 ? 0 : restante / d;
+        return [actual[0] + (siguiente[0] - actual[0]) * f, actual[1] + (siguiente[1] - actual[1]) * f];
+      }
+      restante -= d;
+      actual = siguiente;
+      i += paso;
+      siguiente = pts[i + paso];
+    }
+    return actual;   // se acabó la vía: el extremo
   }
 
   function limpiarUbicacion() {
     clearTimeout(temporizadorInverso);
     ['latitud', 'longitud', 'sistema_coordenadas', 'fuente_georreferenciacion',
-     'precision_gps_m', 'direccion_geocodificada', 'fecha_georreferenciacion',
-     'ubicacion_confirmada', 'fecha_confirmacion_ubicacion']
+     'precision_gps_m', 'direccion_geocodificada', 'precision_geocodificacion',
+     'fecha_georreferenciacion', 'ubicacion_confirmada', 'fecha_confirmacion_ubicacion']
       .forEach(function (c) { valoresActual[c] = ''; });
     if (marcador && mapa) { mapa.removeLayer(marcador); marcador = null; }
     ocultarSugerencia();

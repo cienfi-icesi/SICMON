@@ -31,5 +31,15 @@ expandir_plantilla <- function(datos, plantilla, diccionario) {
   for (col in setdiff(names(plantilla), names(datos))) {
     datos[[col]] <- NA_character_
   }
-  datos[, names(plantilla)]
+  datos <- datos[, names(plantilla)]
+
+  ## el sistema corre en locale C, asi que un literal escrito en el codigo del
+  ## generador —"Sí", "Mampostería"— llega hasta aca con la codificacion sin
+  ## declarar, y export() graba en el Excel el texto impreso "S<c3><ad>" en vez
+  ## del caracter. De ahi pasaba a la base, a la consulta y al tablero.
+  ## Los bytes ya son UTF-8 correctos; solo falta decirlo.
+  for (col in names(datos)) {
+    if (is.character(datos[[col]])) Encoding(datos[[col]]) <- "UTF-8"
+  }
+  datos
 }

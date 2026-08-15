@@ -16,11 +16,11 @@
   <!-- Leaflet alojado en el proyecto, no en un CDN: así la aplicación carga
        sin internet. Solo los mosaicos del mapa requieren conexión. -->
   <link rel="stylesheet" href="assets/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="styles.css?v=1.8.2" />
+  <link rel="stylesheet" href="styles.css?v=2.1.5" />
   <!-- Integración con el portal: solo agrega el enlace de regreso. Se mantiene
        en un archivo aparte para que styles.css siga siendo idéntico al del
        aplicativo original. -->
-  <link rel="stylesheet" href="integracion-portal.css?v=1.8.2" />
+  <link rel="stylesheet" href="integracion-portal.css?v=2.1.5" />
 </head>
 <body>
 
@@ -238,8 +238,9 @@
             <label for="filtro-tipo">Tipo de formulario</label>
             <select id="filtro-tipo">
               <option value="">Todos</option>
-              <option value="vivienda">Vivienda</option>
-              <option value="personas">Personas / Familia</option>
+              <option value="vivienda">Edificaciones</option>
+              <option value="afectaciones">Afectaciones</option>
+              <option value="personas">Personas y familias</option>
             </select>
           </div>
           <div class="field">
@@ -321,18 +322,20 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/leaflet/leaflet.js"></script>
-  <script src="js/config.js?v=1.8.2"></script>
-  <script src="js/codigos.js?v=1.8.2"></script>
-  <script src="js/campo-direccion.js?v=1.8.2"></script>
-  <script src="js/ayuda-nivel-dano.js?v=1.8.2"></script>
-  <script src="js/form-vivienda.js?v=1.8.2"></script>
-  <script src="js/form-personas.js?v=1.8.2"></script>
-  <script src="js/storage.js?v=1.8.2"></script>
-  <script src="js/export.js?v=1.8.2"></script>
+  <script src="js/config.js?v=2.1.5"></script>
+  <script src="js/codigos.js?v=2.1.5"></script>
+  <script src="js/campo-direccion.js?v=2.1.5"></script>
+  <script src="js/campo-fotos.js?v=2.1.5"></script>
+  <script src="js/ayuda-nivel-dano.js?v=2.1.5"></script>
+  <script src="js/form-vivienda.js?v=2.1.5"></script>
+  <script src="js/form-personas.js?v=2.1.5"></script>
+  <script src="js/form-afectaciones.js?v=2.1.5"></script>
+  <script src="js/storage.js?v=2.1.5"></script>
+  <script src="js/export.js?v=2.1.5"></script>
   <!-- Envío a la base central de CIENFI (Google Drive). config-sync.js debe
        cargarse antes: sincronizacion.js lee de él la dirección y el token. -->
-  <script src="js/config-sync.js?v=1.8.2"></script>
-  <script src="js/sincronizacion.js?v=1.8.2"></script>
-  <script src="js/app.js?v=1.8.2"></script>
+  <script src="js/config-sync.js?v=2.1.5"></script>
+  <script src="js/sincronizacion.js?v=2.1.5"></script>
+  <script src="js/app.js?v=2.1.5"></script>
 </body>
 </html>

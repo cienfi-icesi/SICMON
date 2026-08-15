@@ -13,7 +13,7 @@
 #   - personas_hoja.csv   (grano: persona)
 # Siempre con el mismo nombre, sobrescribiendo: la version vigente de la hoja
 # es la que vale. Si el contenido no cambio, el hash es el mismo y 01_ingest.R
-# ni lo mira.
+# ni lo mira. Si una tabla viene vacia, su CSV se retira.
 #
 # Autenticacion: NINGUNA credencial de Google. Se manda el token general (el de
 # config-sync.js, que no es secreto) y el token de extraccion, que si lo es y
@@ -109,15 +109,19 @@ resultado <- tryCatch({
 
   n_tablas <- 0
   for (tabla in TABLAS_HOJA) {
+    ruta  <- file.path(CARPETA_INGESTA, sprintf("%s_hoja.csv", tabla))
     datos <- descargar_tabla(tabla)
 
-    ## una tabla vacia no borra lo que ya se habia bajado antes
+    ## la hoja RESPONDIO y la tabla esta vacia de verdad (distinto de "Google no
+    ## contesto", que cae en el error de abajo y no llega aqui). Si alguien
+    ## limpio la hoja, el CSV viejo no puede quedarse: 01_ingest.R lo volveria
+    ## a leer y la base seguiria mostrando registros que ya no existen
     if (is.null(datos)) {
-      log_msg(sprintf("hoja: %s viene vacia; se conserva lo que ya hay en %s", tabla, CARPETA_INGESTA))
+      if (file.exists(ruta)) unlink(ruta)
+      log_msg(sprintf("hoja: %s viene vacia; se retira %s", tabla, basename(ruta)))
       next
     }
 
-    ruta <- file.path(CARPETA_INGESTA, sprintf("%s_hoja.csv", tabla))
     export(datos, ruta)
     n_tablas <- n_tablas + 1
     log_msg(sprintf("hoja: %s -> %s (%d filas, %d columnas)",

@@ -2,7 +2,8 @@
    codigos.js — Numeración de preguntas.
 
    Cada pregunta tiene un código corto y estable: V### para el formulario de
-   Vivienda y P### para el de Personas / Familia. El código aparece junto a la
+   Vivienda (edificaciones), P### para el de Personas / Familia y A### para
+   el de Afectaciones. El código aparece junto a la
    pregunta en pantalla, se exporta en el CSV y encabeza el diccionario de
    variables, de modo que un análisis pueda referirse a "V046" sin depender del
    texto de la pregunta, que puede corregirse con el tiempo.
@@ -10,7 +11,7 @@
    REGLA QUE NO SE DEBE ROMPER
    ---------------------------
    Estos códigos están CONGELADOS. Si mañana se agrega una pregunta, se le
-   asigna el siguiente número libre (V104, P027…) aunque quede en la mitad del
+   asigna el siguiente número libre (V105, P027, A041…) aunque quede en la mitad del
    formulario. NUNCA se renumera lo existente: hacerlo rompería la
    comparabilidad con los datos ya recolectados.
 
@@ -138,25 +139,33 @@
       'viv_inf_cc': 'V090',
       'viv_inf_parentesco': 'V091',
       'viv_inf_telefono': 'V092',
-      'viv_inf_firma': 'V093',
+      /* V093 (firma del informante) RETIRADO el 2026-08-15: la operación es
+         completamente virtual, no hay formato físico. No se reutiliza. */
 
       // Sección 8 — Afectado que no cumple requisitos
       'viv_declaracion_tipo': 'V094',
       'viv_nc_nombre': 'V095',
       'viv_nc_cc': 'V096',
       'viv_nc_telefono': 'V097',
-      'viv_nc_firma': 'V098',
+      /* V098 (firma en la sección 8) RETIRADO el 2026-08-15: operación
+         virtual. No se reutiliza. */
 
-      // Sección 9 — Firma y aprobación
+      // Sección 9 — Firma
       'viv_firma_profesional_nombre': 'V099',
-      'viv_firma_profesional_ok': 'V100',
-      'viv_aprobo_coordinador_nombre': 'V101',
-      'viv_aprobo_coordinador_ok': 'V102',
+      /* V100, V101 y V102 RETIRADOS el 2026-08-15 y no se reutilizan:
+         · V100 y V102 eran las casillas «Firmó el formato físico» — la
+           operación pasó a ser completamente virtual.
+         · V101 era la aprobación del coordinador del Consejo Territorial,
+           que corresponde a la visita oficial posterior (el futuro
+           formulario de registro de afectaciones). */
 
       /* Agregada en la versión 1.6.0, al retirarse la Secretaría. Aparece en la
          sección 1 (datos del profesional), pero toma el siguiente número libre
          para no renumerar lo ya recolectado. */
-      'viv_prof_organismo': 'V103'
+      'viv_prof_organismo': 'V103',
+      /* Agregada el 2026-08-15: qué tan fino fue el acierto de la búsqueda
+         de la dirección en el mapa (predio / cruce / vía). */
+      'precision_geocodificacion': 'V104'
     },
 
     // ================== FORMULARIO DE PERSONAS / FAMILIA ==================
@@ -182,7 +191,8 @@
 
       // Sección 5 — Datos finales del formato
       'edan_elaborado_por': 'P018',
-      'edan_elaborado_por_firma': 'P019',
+      /* P019 (casilla «Firmó el formato físico») RETIRADO el 2026-08-15:
+         operación virtual. No se reutiliza. */
       'edan_entidad_operativa': 'P020',
       'edan_observaciones': 'P021'
 
@@ -194,6 +204,68 @@
          P026 (edan_ficha_no, número de ficha automático) se agregó y se
          RETIRÓ ese mismo día: la numeración automática no se adoptó.
          También queda retirado. */
+    },
+
+    // =================== FORMULARIO DE AFECTACIONES (A###) ===================
+    // Fuente: formulario de Google «Caracterización Daños y Afectaciones —
+    // Evento Sísmico Cali» de la Alcaldía. Agregado el 2026-08-15.
+    afectaciones: {
+      // Sección 1 — Identificación del reporte
+      'afe_correo': 'A001',
+      'afe_consecutivo_id': 'A002',
+
+      // Sección 2 — Ubicación geográfica del evento
+      // Componentes de la dirección estructurada (mismo campo compuesto que
+      // usa el registro de edificaciones; aquí con códigos propios).
+      'tipo_via': 'A003',
+      'numero_via': 'A004',
+      'sufijo_via': 'A005',
+      'sufijo_via_otro': 'A006',
+      'numero_generador': 'A007',
+      'placa_inmueble': 'A008',
+      'tipo_inmueble': 'A009',
+      'nombre_conjunto': 'A010',
+      'tipo_unidad': 'A011',
+      'numero_unidad': 'A012',
+      'torre_bloque': 'A013',
+      'direccion_completa': 'A014',
+      // Georreferenciación (las «Coordenadas WGS84» del formulario original)
+      'latitud': 'A015',
+      'longitud': 'A016',
+      'sistema_coordenadas': 'A017',
+      'fuente_georreferenciacion': 'A018',
+      'precision_gps_m': 'A019',
+      'direccion_geocodificada': 'A020',
+      'fecha_georreferenciacion': 'A021',
+      'ubicacion_confirmada': 'A022',
+      'fecha_confirmacion_ubicacion': 'A023',
+      'afe_nombre_edificacion': 'A024',
+      'afe_barrio': 'A025',
+      'afe_comuna': 'A026',
+
+      // Sección 3 — Descripción de la afectación
+      'afe_descripcion': 'A027',
+      'afe_colapso': 'A028',
+      'afe_requieren_evacuacion': 'A029',
+
+      // Sección 4 — Personas afectadas
+      'afe_fallecidos': 'A030',
+      'afe_atrapadas': 'A031',
+      'afe_necesitan_evacuar': 'A032',
+
+      // Sección 5 — Edificación atendida
+      'afe_tipo_edificacion': 'A033',
+      'afe_cantidad_viviendas': 'A034',
+
+      // Sección 6 — Observaciones y soportes
+      'afe_observaciones': 'A035',
+      'afe_fotos': 'A036',
+
+      // Sección 7 — Persona que diligencia
+      'afe_diligencia_nombre': 'A037',
+      'afe_organismo': 'A038',
+      'afe_grupo_voluntarios': 'A039',
+      'precision_geocodificacion': 'A040'
     }
   };
 

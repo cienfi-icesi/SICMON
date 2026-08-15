@@ -4,24 +4,20 @@
 
 ## rutas principales (relativas a la raiz del repo)
 ##
-## HOY EL SISTEMA CORRE CON LA BASE SIMULADA. Mientras la operacion arranca
-## (la hoja de Google solo trae 4 viviendas de prueba), la base, la consulta
-## y el tablero se alimentan de los datos ficticios de data/pruebas. La base
-## real no se toca: queda congelada en data/db/base_oficial.sqlite, con sus
-## dos canales de llegada (Drive y hoja) apagados mas abajo.
+## La ingesta vigila data/entrada, que SOLO llenan los dos pasos 00 con lo que
+## baja de Google Drive y de la hoja del Apps Script: es el canal real y nada
+## mas. Los datos ficticios de synthetic/ van a data/pruebas, que el pipeline
+## no mira. Las dos carpetas no se mezclan nunca: ya paso una vez, la consulta
+## termino mostrando 48 edificaciones inventadas y toco reconstruir la base.
 ##
-## Para pasar a la base real el dia que haya datos de verdad, dejar:
-##   CARPETA_INGESTA <- "data/entrada"
-##   RUTA_DB         <- "data/db/base_oficial.sqlite"
-##   CONECTAR_HOJA   <- TRUE     (y CONECTAR_DRIVE si se usa ese canal)
-## y correr el pipeline: la consulta y el tablero se regeneran solos.
-##
-## Las dos carpetas no se mezclan nunca: data/entrada es del canal real (la
-## llenan los pasos 00) y data/pruebas es de los generadores de synthetic/.
-## Mezclarlas en una misma base ya paso una vez y toco reconstruirla.
-CARPETA_INGESTA <- "data/pruebas"
+## Para trabajar un rato con la base simulada (ver el tablero con volumen):
+##   CARPETA_INGESTA <- CARPETA_PRUEBAS
+##   RUTA_DB         <- "data/db/base_simulada.sqlite"
+##   CONECTAR_DRIVE  <- FALSE ; CONECTAR_HOJA <- FALSE
+## y correr el pipeline. Para volver, deshacer esas lineas y correr otra vez.
+CARPETA_INGESTA <- "data/entrada"
 CARPETA_PRUEBAS <- "data/pruebas"   ## aqui escriben los generadores de synthetic/
-RUTA_DB          <- "data/db/base_simulada.sqlite"
+RUTA_DB          <- "data/db/base_oficial.sqlite"
 CARPETA_LOGS     <- "logs"
 RUTA_LOCK        <- "data/db/pipeline.lock"
 
@@ -32,7 +28,7 @@ RUTA_LOCK        <- "data/db/pipeline.lock"
 ## y de ahi en adelante corre solo, incluida la corrida automatica cada 10 min.
 ## Si no hay token todavia, 00_conectar_drive.R lo avisa en el log y se salta
 ## sin detener el resto del pipeline.
-CONECTAR_DRIVE    <- FALSE   ## apagado mientras se trabaja con la base simulada (ver arriba)
+CONECTAR_DRIVE    <- TRUE
 ID_CARPETA_DRIVE  <- "1j5eT5lfjiv6LPxog3elwxL-QPr8pT-4v"   ## carpeta "Registro_afectados_sismo"
 SUBCARPETA_DRIVE  <- "data"
 CARPETA_CACHE_DRIVE <- ".secrets"   ## aqui queda el token; NUNCA se sube al repo (.gitignore)
@@ -44,15 +40,12 @@ CARPETA_CACHE_DRIVE <- ".secrets"   ## aqui queda el token; NUNCA se sube al rep
 ## 00_conectar_hoja.R las deja en CARPETA_INGESTA como CSV. A diferencia del
 ## canal de Drive, aqui nadie tiene que descargar ni subir nada a mano.
 ## Ver README, seccion "Conexion a la hoja del Apps Script".
-CONECTAR_HOJA <- FALSE   ## apagado mientras se trabaja con la base simulada (ver arriba)
-## OJO: esta NO es la misma direccion que usa la app para escribir. El proyecto
-## de Apps Script tiene dos implementaciones publicadas:
-##   - la original (AKfycbwBKU_ZW...), que es a la que le escriben los celulares
-##     en campo y esta en ../modules/edan/js/config-sync.js
-##   - esta, mas nueva, que es la unica que trae la extraccion de tablas
-## Las dos van a la misma hoja, asi que funciona; pero si algun dia se actualiza
-## el Codigo.gs hay que republicar LAS DOS o consolidar en una sola.
-URL_HOJA      <- "https://script.google.com/macros/s/AKfycbzm82Z5rJTbtdOLI-dBONWaUhuV0zhg8-zLnfvgD70LFT6k07qLcfOo7ytYzojisg9cRQ/exec"
+CONECTAR_HOJA <- TRUE
+## Consolidada en una sola implementacion publicada: la misma URL que usan los
+## celulares en campo para escribir (../modules/edan/js/config-sync.js) sirve
+## tambien aqui para leer/extraer. Si se vuelve a publicar un deploy nuevo,
+## actualizar los DOS lugares a la vez.
+URL_HOJA      <- "https://script.google.com/macros/s/AKfycbwXjt0oChd7-8YcTL3Uao6P0t5fZPwVumVijddwpYyFE_5Bt88wF4mtJ4jFzm4050zX_Q/exec"
 TOKEN_HOJA    <- "sismo_2026_01234567891011121314"   ## el general; el mismo de ../modules/edan/js/config-sync.js
                                                      ## no es un secreto: viaja al navegador de quien abra la app
 ## el token de EXTRACCION si es secreto y por eso vive en un archivo aparte,
@@ -65,7 +58,7 @@ RUTA_TOKEN_HOJA <- ".secrets/token_exportacion.txt"
 ## 01_ingest.R lo leeria como el archivo persona a persona, que tiene otro grano
 ## (una fila por hogar, sin per_nombres ni documento). Lo que trae se deriva
 ## solo de la tabla personas.
-TABLAS_HOJA           <- c("viviendas", "personas")
+TABLAS_HOJA           <- c("viviendas", "afectaciones", "personas")
 FILAS_POR_PAGINA_HOJA <- 500   ## debe ser <= FILAS_POR_PAGINA_MAX del Apps Script
 TIEMPO_LIMITE_HOJA    <- 120   ## segundos que se espera una pagina antes de darla por fallida
 

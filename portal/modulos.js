@@ -38,9 +38,9 @@
        exportación y panel de coordinación. Al entrar se elige allí cuál de
        los dos se va a diligenciar. Ver modules/edan/js/app.js.
 
-       El de afectaciones es la visita oficial posterior, que confirma la
-       edificación; sus preguntas todavía no están definidas, así que apunta
-       a su propia página de módulo en preparación.
+       El de afectaciones —la visita oficial posterior— también vive en el
+       aplicativo de captura (agregado el 2026-08-15, a partir del formulario
+       de Google de la Alcaldía). Los tres se eligen allí tras el ingreso.
        ====================================================================== */
     registro: [
       {
@@ -54,9 +54,9 @@
       {
         id: 'afectaciones',
         nombre: 'Registro de afectaciones',
-        descripcion: 'Visita oficial que confirma la edificación y las afectaciones reportadas.',
-        estado: 'preparacion',
-        url: 'modules/afectaciones/index.html',
+        descripcion: 'Visita oficial que confirma la edificación y caracteriza la afectación, con soportes fotográficos.',
+        estado: 'disponible',
+        url: 'modules/edan/index.html',
         icono: 'informacion'
       },
       {

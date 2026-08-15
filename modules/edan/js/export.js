@@ -128,6 +128,10 @@
       // sistema_coordenadas y fuente_georreferenciacion.
       return window.CampoDireccion.columnas();
     }
+    if (campo.tipo === 'fotos') {
+      // Nunca los bytes: solo cuántas, sus nombres y sus enlaces en Drive.
+      return [campo.id + '_cantidad', campo.id + '_nombres', campo.id + '_enlaces'];
+    }
     return [campo.id];
   }
 
@@ -144,6 +148,14 @@
         var v = contenedor[col];
         fila[col] = (v === undefined || v === null) ? '' : v;
       });
+      return;
+    }
+
+    if (campo.tipo === 'fotos') {
+      var r = window.CampoFotos.resumenParaExportar(contenedor[campo.id]);
+      fila[campo.id + '_cantidad'] = r.cantidad;
+      fila[campo.id + '_nombres'] = r.nombres;
+      fila[campo.id + '_enlaces'] = r.enlaces;
       return;
     }
 
@@ -250,6 +262,23 @@
 
     var filas = registros
       .filter(function (r) { return r.tipo_formulario === 'vivienda'; })
+      .map(function (r) {
+        var fila = filaMeta(r);
+        campos.forEach(function (c) { valoresDeCampo(c, r.respuestas, fila); });
+        return fila;
+      });
+
+    return { columnas: columnas, filas: filas, csv: construirCsv(columnas, filas, separador) };
+  }
+
+  /** afectaciones.csv — una fila por registro de afectaciones. */
+  function csvAfectaciones(registros, separador) {
+    var campos = camposConDato(window.FORM_AFECTACIONES.secciones);
+    var columnas = COLUMNAS_META.slice();
+    campos.forEach(function (c) { columnas = columnas.concat(columnasDeCampo(c)); });
+
+    var filas = registros
+      .filter(function (r) { return r.tipo_formulario === 'afectaciones'; })
       .map(function (r) {
         var fila = filaMeta(r);
         campos.forEach(function (c) { valoresDeCampo(c, r.respuestas, fila); });
@@ -424,6 +453,9 @@
 
     agregar('vivienda', window.FORM_VIVIENDA.nombre, window.FORM_VIVIENDA.secciones);
     agregar('personas', window.FORM_PERSONAS.nombre, window.FORM_PERSONAS.secciones);
+    if (window.FORM_AFECTACIONES) {
+      agregar('afectaciones', window.FORM_AFECTACIONES.nombre, window.FORM_AFECTACIONES.secciones);
+    }
 
     return { columnas: columnas, filas: filas, csv: construirCsv(columnas, filas, separador) };
   }
@@ -432,6 +464,7 @@
 
   var GENERADORES = {
     viviendas: { fn: csvViviendas, archivo: 'viviendas' },
+    afectaciones: { fn: csvAfectaciones, archivo: 'afectaciones' },
     personas_hogares: { fn: csvHogares, archivo: 'personas_hogares' },
     personas: { fn: csvPersonas, archivo: 'personas' },
     indice: { fn: csvIndice, archivo: 'indice_encuestas' },
@@ -476,6 +509,9 @@
     if (registro.tipo_formulario === 'vivienda') {
       var v = csvViviendas(solo, ',');
       if (v.filas.length) tablas.push({ nombre: 'viviendas', encabezados: v.columnas, filas: v.filas });
+    } else if (registro.tipo_formulario === 'afectaciones') {
+      var a = csvAfectaciones(solo, ',');
+      if (a.filas.length) tablas.push({ nombre: 'afectaciones', encabezados: a.columnas, filas: a.filas });
     } else {
       var h = csvHogares(solo, ',');
       if (h.filas.length) tablas.push({ nombre: 'personas_hogares', encabezados: h.columnas, filas: h.filas });
@@ -498,6 +534,7 @@
   function conteos(registros) {
     return {
       viviendas: csvViviendas(registros, ',').filas.length,
+      afectaciones: csvAfectaciones(registros, ',').filas.length,
       personas_hogares: csvHogares(registros, ',').filas.length,
       personas: csvPersonas(registros, ',').filas.length,
       indice: csvIndice(registros, ',').filas.length,

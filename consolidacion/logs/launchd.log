@@ -1,0 +1,175 @@
+[2026-08-15 10:47:39] === corrida 4 iniciada === 
+[2026-08-15 10:47:39] ERROR: pipeline/00_conectar_drive.R termino con codigo 127; la corrida se detiene 
+[2026-08-15 10:47:39] === corrida 4 terminada (error): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 10:48:49] === corrida 5 iniciada === 
+[2026-08-15 10:48:50] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 10:48:52] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 10:48:51 
+[2026-08-15 10:48:57] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 10:49:23] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 10:49:37] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 10:49:37] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 10:49:37] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 10:49:37] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 10:49:37] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 10:49:38] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:49:38] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:49:38] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:49:38] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 10:49:39] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 10:49:39] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 10:49:39] === corrida 5 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 10:59:40] === corrida 6 iniciada === 
+[2026-08-15 10:59:41] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 10:59:43] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 10:59:43 
+[2026-08-15 10:59:45] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 10:59:47] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 10:59:48] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 10:59:48] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 10:59:49] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 10:59:49] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 10:59:49] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 10:59:50] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:59:50] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:59:50] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 10:59:50] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 10:59:51] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 10:59:51] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 10:59:51] === corrida 6 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 11:09:52] === corrida 7 iniciada === 
+[2026-08-15 11:09:52] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 11:09:54] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 11:09:54 
+[2026-08-15 11:09:56] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 11:09:57] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 11:09:59] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 11:09:59] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 11:09:59] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 11:10:00] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 11:10:00] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 11:10:00] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:10:00] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:10:00] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:10:01] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 11:10:01] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 11:10:02] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 11:10:02] === corrida 7 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 11:20:05] === corrida 8 iniciada === 
+[2026-08-15 11:20:05] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 11:20:08] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 11:20:07 
+[2026-08-15 11:20:09] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 11:20:11] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 11:20:12] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 11:20:12] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 11:20:13] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 11:20:13] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 11:20:13] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 11:20:13] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:20:13] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:20:13] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:20:14] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 11:20:15] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 11:20:15] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 11:20:16] === corrida 8 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 11:30:17] === corrida 9 iniciada === 
+[2026-08-15 11:30:17] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 11:30:20] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 11:30:19 
+[2026-08-15 11:30:21] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 11:30:23] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 11:30:24] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 11:30:24] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 11:30:24] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 11:30:24] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 11:30:24] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 11:30:25] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:30:25] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:30:25] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:30:26] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 11:30:26] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 11:30:27] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 11:30:27] === corrida 9 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 11:40:28] === corrida 10 iniciada === 
+[2026-08-15 11:40:28] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 11:40:30] hoja: receptor version 1.4.0, hora del servidor 2026-08-15 11:40:30 
+[2026-08-15 11:40:31] hoja: viviendas=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 11:40:33] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 11:40:34] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 11:40:34] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 11:40:35] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 11:40:35] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 11:40:35] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 11:40:36] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:40:36] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:40:36] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:40:36] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 11:40:37] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 11:40:37] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 11:40:37] === corrida 10 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 11:50:38] === corrida 11 iniciada === 
+[2026-08-15 11:50:39] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 11:50:41] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 11:50:40 
+[2026-08-15 11:50:42] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 11:50:44] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 11:50:45] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 11:50:45] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 11:50:46] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 11:50:46] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 11:50:46] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 11:50:46] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:50:46] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:50:46] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 11:50:47] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 11:50:47] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 11:50:48] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 11:50:48] === corrida 11 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 12:00:49] === corrida 12 iniciada === 
+[2026-08-15 12:00:49] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 12:00:51] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 12:00:51 
+[2026-08-15 12:00:52] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 12:00:54] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 12:00:56] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 12:00:56] hoja: 0 de 2 tabla(s) descargada(s) 
+[2026-08-15 12:00:56] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 12:00:56] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 12:00:56] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 12:00:57] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:00:57] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:00:57] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:00:57] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 12:00:58] consulta: 0 personas, 0 afectaciones, 0 edificaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 12:00:58] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 12:00:58] === corrida 12 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 12:10:59] === corrida 13 iniciada === 
+[2026-08-15 12:10:59] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 12:11:02] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 12:11:01 
+[2026-08-15 12:11:03] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 12:11:04] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 12:11:06] hoja: afectaciones viene vacia; se retira afectaciones_hoja.csv 
+[2026-08-15 12:11:07] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 12:11:07] hoja: 0 de 3 tabla(s) descargada(s) 
+[2026-08-15 12:11:07] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 12:11:07] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 12:11:08] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 12:11:08] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:11:08] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:11:08] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:11:09] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 12:11:09] consulta: 0 personas, 0 hogares, 0 edificaciones, 0 afectaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 12:11:10] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 12:11:10] === corrida 13 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 12:21:10] === corrida 14 iniciada === 
+[2026-08-15 12:21:11] drive: no hay un token guardado en .secrets. Corra este script una vez de forma interactiva para autorizar el acceso (vea el README, seccion "Conexion a Google Drive"). — se omite este paso y se sigue con lo que ya hay en data/entrada 
+[2026-08-15 12:21:13] hoja: receptor version 1.5.0, hora del servidor 2026-08-15 12:21:13 
+[2026-08-15 12:21:15] hoja: viviendas=0 | afectaciones=0 | personas_hogares=0 | personas=0 | indice=0 | diccionario=0 
+[2026-08-15 12:21:16] hoja: viviendas viene vacia; se retira viviendas_hoja.csv 
+[2026-08-15 12:21:17] hoja: afectaciones viene vacia; se retira afectaciones_hoja.csv 
+[2026-08-15 12:21:19] hoja: personas viene vacia; se retira personas_hoja.csv 
+[2026-08-15 12:21:19] hoja: 0 de 3 tabla(s) descargada(s) 
+[2026-08-15 12:21:19] ingestion: 0 archivo(s) en la carpeta 
+[2026-08-15 12:21:19] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 12:21:20] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 12:21:20] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:21:20] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:21:20] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 12:21:21] matching:  | 0 cambio(s) en esta corrida 
+[2026-08-15 12:21:21] consulta: 0 personas, 0 hogares, 0 edificaciones, 0 afectaciones, 0 fichas -> ../modules/consulta 
+[2026-08-15 12:21:22] tablero: 0 personas, 0 viviendas, 0 casos por revisar 
+[2026-08-15 12:21:22] === corrida 14 terminada (ok): 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio === 

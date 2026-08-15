@@ -105,9 +105,13 @@ n_igual    <- 0
 archivos <- list.files(CARPETA_INGESTA, pattern = "\\.(xlsx|csv)$", full.names = T)
 log_msg(sprintf("ingestion: %d archivo(s) en la carpeta", length(archivos)))
 
+## vapply y no sapply: con la carpeta vacia sapply devuelve una lista, hash
+## queda como columna-lista y el anti_join de abajo falla por tipos. Una carpeta
+## sin archivos es un estado normal (base en cero, o la hoja todavia sin datos)
 pendientes <- tibble(ruta    = archivos,
                      archivo = basename(archivos),
-                     hash    = sapply(archivos, function(a) digest(file = a, algo = "sha256")),
+                     hash    = vapply(archivos, function(a) digest(file = a, algo = "sha256"),
+                                      character(1)),
                      mtime   = format(file.mtime(archivos), "%Y-%m-%dT%H:%M:%S"))
 
 procesados <- dbGetQuery(con, "SELECT archivo, hash FROM source_files WHERE estado = 'procesado'")
@@ -142,6 +146,18 @@ for (i in seq_len(nrow(pendientes))) {
       ## no con el caracter literal: el sistema corre en locale C y un literal
       ## multibyte dentro de un patron rompe la expresion regular
       names(datos)[1] <- sub("^\ufeff", "", names(datos)[1], useBytes = T)
+      ## read.csv devuelve el texto con la codificacion SIN DECLARAR. Al escribir
+      ## en SQLite, enc2utf8() no sabe que son bytes UTF-8 validos y los cambia
+      ## por su representacion impresa: en la base terminaba el texto literal
+      ## "Mamposter<c3><ad>a" en vez de "Mamposteria" con tilde, y de ahi pasaba
+      ## a la consulta y al tablero. Los archivos de la app y de la hoja son
+      ## UTF-8, asi que solo hay que declararlo; los bytes no se tocan.
+      ## (No se usa el argumento encoding= de read.csv: en locale C rompe la
+      ## lectura, se come filas y trunca las tildes.)
+      datos[] <- lapply(datos, function(columna) {
+                   Encoding(columna) <- "UTF-8"
+                   columna
+                 })
       ## una celda vacia es "sin respuesta", venga escrita como ,, o como ,"",
       datos <- datos %>% mutate(across(everything(), ~ ifelse(. == "", NA_character_, .)))
     } else {
@@ -213,6 +229,85 @@ for (i in seq_len(nrow(pendientes))) {
                        usuario             = columna(datos, "usuario")[j],
                        estado              = columna(datos, "estado")[j],
                        fecha               = columna(datos, "fecha")[j],
+                       fecha_actualizacion = fila$fecha_actualizacion,
+                       archivo_origen      = archivo,
+                       hash_fila           = fila$hash_fila)
+        upsert_registro("encuestas", "id_encuesta", indice, c("estado", "fecha_actualizacion"))
+      }
+    }
+
+    ##------------------------------------------------------------------------
+    ## archivos de afectaciones (una fila por reporte de evento/edificacion)
+    ##
+    ## Grano distinto al de viviendas: aqui un registro es una edificacion
+    ## atendida por un organismo de socorro, con conteos declarados de personas
+    ## (fallecidas, atrapadas, por evacuar). No trae cedula ni id_hogar, asi
+    ## que no se enlaza con las otras tablas; entra como entidad independiente.
+    ##------------------------------------------------------------------------
+    if (grepl("^afectaciones", archivo)) {
+
+      filas <- tibble(id_encuesta          = columna(datos, "id_encuesta"),
+                      consecutivo_id       = columna(datos, "afe_consecutivo_id"),
+                      correo               = columna(datos, "afe_correo"),
+                      nombre_edificacion   = columna(datos, "afe_nombre_edificacion"),
+                      barrio               = columna(datos, "afe_barrio"),
+                      comuna               = columna(datos, "afe_comuna"),
+                      tipo_via             = columna(datos, "tipo_via"),
+                      numero_via           = columna(datos, "numero_via"),
+                      sufijo_via           = columna(datos, "sufijo_via"),
+                      numero_generador     = columna(datos, "numero_generador"),
+                      placa_inmueble       = columna(datos, "placa_inmueble"),
+                      direccion_completa   = columna(datos, "direccion_completa"),
+                      direccion_norm       = llave_direccion(columna(datos, "tipo_via"),
+                                                             columna(datos, "numero_via"),
+                                                             columna(datos, "sufijo_via"),
+                                                             columna(datos, "numero_generador"),
+                                                             columna(datos, "placa_inmueble")),
+                      latitud              = columna(datos, "latitud"),
+                      longitud             = columna(datos, "longitud"),
+                      descripcion          = columna(datos, "afe_descripcion"),
+                      colapso              = columna_etiqueta(datos, "afe_colapso"),
+                      requieren_evacuacion = columna_etiqueta(datos, "afe_requieren_evacuacion"),
+                      fallecidos           = columna(datos, "afe_fallecidos"),
+                      atrapadas            = columna(datos, "afe_atrapadas"),
+                      necesitan_evacuar    = columna(datos, "afe_necesitan_evacuar"),
+                      tipo_edificacion     = columna(datos, "afe_tipo_edificacion"),
+                      cantidad_viviendas   = columna(datos, "afe_cantidad_viviendas"),
+                      observaciones        = columna(datos, "afe_observaciones"),
+                      fotos_cantidad       = columna(datos, "afe_fotos_cantidad"),
+                      fotos_nombres        = columna(datos, "afe_fotos_nombres"),
+                      fotos_enlaces        = columna(datos, "afe_fotos_enlaces"),
+                      diligencia_nombre    = columna(datos, "afe_diligencia_nombre"),
+                      organismo            = columna(datos, "afe_organismo"),
+                      grupo_voluntarios    = columna_etiqueta(datos, "afe_grupo_voluntarios"),
+                      secretaria           = columna(datos, "secretaria"),
+                      fecha                = columna(datos, "fecha"),
+                      fecha_actualizacion  = columna(datos, "fecha_actualizacion"),
+                      archivo_origen       = archivo)
+
+      campos_hist <- c("descripcion", "colapso", "requieren_evacuacion", "fallecidos",
+                       "atrapadas", "necesitan_evacuar", "cantidad_viviendas",
+                       "observaciones", "fotos_cantidad", "direccion_completa",
+                       "fecha_actualizacion")
+
+      for (j in seq_len(nrow(filas))) {
+        fila           <- as.list(filas[j, ])
+        payload        <- toJSON(as.list(datos[j, ]), auto_unbox = T)
+        fila$hash_fila <- digest(payload, algo = "sha256")
+        resultado <- upsert_registro("afectaciones", "id_encuesta", fila, campos_hist)
+        if (resultado == "insertado")   n_insert <- n_insert + 1
+        if (resultado == "actualizado") n_update <- n_update + 1
+        if (resultado == "sin_cambio")  n_igual  <- n_igual  + 1
+        if (resultado != "sin_cambio") {
+          guardar_raw(fila$id_encuesta, "afectaciones", archivo, fila$hash_fila, payload)
+        }
+        ## indice general de encuestas
+        indice <- list(id_encuesta         = fila$id_encuesta,
+                       tipo_formulario     = "afectaciones",
+                       secretaria          = fila$secretaria,
+                       usuario             = columna(datos, "usuario")[j],
+                       estado              = columna(datos, "estado")[j],
+                       fecha               = fila$fecha,
                        fecha_actualizacion = fila$fecha_actualizacion,
                        archivo_origen      = archivo,
                        hash_fila           = fila$hash_fila)
