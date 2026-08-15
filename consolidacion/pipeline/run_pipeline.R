@@ -61,9 +61,31 @@ log_msg(sprintf("=== corrida %d iniciada ===", run_id))
 ##=== 3. Ejecucion de los pasos                                            ===##
 ##============================================================================##
 
-pasos  <- c("pipeline/00_conectar_drive.R", "pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R",
-            "pipeline/02_dedup.R", "pipeline/03_matching.R", "pipeline/04_exportar_consulta.R",
-            "pipeline/05_exportar_tablero.R", "pipeline/06_publicar_hoja.R")
+## Dos listas, segun donde corra la consolidacion.
+##
+## En un equipo (launchd) van los ocho pasos: los dos ultimos escriben archivos
+## que solo sirven ahi —el Excel de trabajo del equipo y el datos_tablero.js del
+## tablero de control—.
+##
+## En GitHub Actions esos dos sobran, y el 05 ademas estorba: escribe dentro del
+## repositorio y el repositorio es publico, asi que subir su salida seria
+## publicar coordenadas y estado de salud. La maquina de Actions se destruye al
+## terminar, de modo que lo que escriba ahi se pierde de todas formas; lo unico
+## que trasciende es lo que el 06 deja en la hoja de Google. Mientras el tablero
+## no lea por fetch como ya lo hace la consulta, en Actions no se actualiza.
+##
+## El 00 de Drive tampoco corre: su token se obtiene de forma interactiva y una
+## maquina de Actions no tiene a nadie que autorice. La hoja es el canal real.
+EN_ACTIONS <- Sys.getenv("GITHUB_ACTIONS") == "true"
+
+pasos <- if (EN_ACTIONS) {
+  c("pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R", "pipeline/02_dedup.R",
+    "pipeline/03_matching.R", "pipeline/06_publicar_hoja.R")
+} else {
+  c("pipeline/00_conectar_drive.R", "pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R",
+    "pipeline/02_dedup.R", "pipeline/03_matching.R", "pipeline/04_exportar_consulta.R",
+    "pipeline/05_exportar_tablero.R", "pipeline/06_publicar_hoja.R")
+}
 estado <- "ok"
 
 ## ruta completa al Rscript de ESTA instalacion de R, no "Rscript" a secas:
