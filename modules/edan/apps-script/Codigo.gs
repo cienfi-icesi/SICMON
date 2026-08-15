@@ -120,8 +120,14 @@ var TABLAS_PERMITIDAS = ['viviendas', 'afectaciones', 'personas_hogares', 'perso
    dejaba la actualización a que alguien se acordara de subirla. Ahora el dato
    se queda aquí y el sitio lo pide por fetch: el repositorio no lleva ni un
    registro personal. */
+// c_tablero es distinta de las demas: no es una tabla sino el volcado completo
+// del tablero de control (un JSON), troceado en filas de 40.000 caracteres
+// porque no cabe en una celda. La lee el tablero con la MISMA accion y la misma
+// contrasena que la consulta: lleva coordenadas y estado de salud fila por fila,
+// asi que es dato personal aunque no traiga nombre ni cedula.
 var TABLAS_CONSOLIDADAS = ['c_personas', 'c_hogares', 'c_edificaciones', 'c_afectaciones',
-                           'c_fichas', 'c_diccionario', 'c_revisar', 'c_duplicados'];
+                           'c_fichas', 'c_diccionario', 'c_revisar', 'c_duplicados',
+                           'c_tablero'];
 
 // Marca de tiempo de la última publicación del pipeline. Es lo que el
 // aplicativo muestra como «actualizado el …».

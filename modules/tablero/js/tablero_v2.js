@@ -83,7 +83,30 @@ function repararDatos(nodo) {
   return repararTexto(nodo);
 }
 
-const D = repararDatos(window.TABLERO);
+/* Los datos ya no vienen de un archivo cargado con <script>, sino de la hoja de
+   Google, por fetch (ver js/config-tablero.js). Por eso D deja de ser const:
+   arranca vacío y se llena cuando el receptor responde.
+
+   Se conserva window.TABLERO como respaldo para poder abrir el tablero contra
+   un volcado local —el que 05_exportar_tablero.R deja en data/salida/tablero—
+   sin depender de la red. Si ese archivo está presente, se usa y no se pide
+   nada; es lo que permite revisar el tablero con la base simulada. */
+const VACIO = { actualizado: '', simulado: false, personas: [], viviendas: [],
+                danio: [], revisar: [], duplicados: [], afectaciones: [] };
+
+/* Rellena las claves que falten con listas vacías.
+   NO es una precaución teórica: un volcado producido por una versión anterior
+   del pipeline no trae las tablas que se agregaron después, y el tablero se caía
+   entero al abrir la pestaña que las usaba —pasó con `afectaciones` la primera
+   vez que se probó—. Como el volcado y el tablero se despliegan por caminos
+   distintos (uno lo publica el pipeline en la hoja, el otro va en el sitio), no
+   hay forma de garantizar que vayan a la par: el tablero tiene que aguantar un
+   volcado viejo mostrando esa pestaña vacía, no rompiéndose. */
+function completar(datos) {
+  return Object.assign({}, VACIO, datos || {});
+}
+
+let D = completar(repararDatos(window.TABLERO));
 
 /* paleta secundaria de datos — máximo cinco */
 const COLOR = {
@@ -113,6 +136,74 @@ const VIVIENDAS = ['vivienda', 'viviendas'];
 const HOGARES   = ['hogar', 'hogares'];
 
 const FUENTE = 'Fuente: base oficial consolidada de afectaciones, CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali.';
+
+/* ============================================================
+   1b. Red — el volcado vive en la hoja, no en el repositorio
+   ------------------------------------------------------------
+   El tablero pide la pestaña c_tablero con la MISMA acción y la
+   misma contraseña que usa la consulta del equipo. No tiene una
+   puerta propia a propósito: quien puede ver la base puede ver
+   el tablero, y quien no, ninguno de los dos.
+   ============================================================ */
+
+const CFG = window.CONFIG_TABLERO || {};
+
+/* El cuerpo va como text/plain aunque sea JSON: las Web App de Apps Script no
+   atienden peticiones que disparen la verificación previa del navegador, y el
+   script lo interpreta igual. Mismo patrón que la aplicación de campo. */
+function pedir(cuerpo) {
+  cuerpo.token = CFG.token;
+  const control = new AbortController();
+  const corte = setTimeout(() => control.abort(), CFG.tiempoLimite || 60000);
+
+  return fetch(CFG.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(cuerpo),
+    redirect: 'follow',
+    signal: control.signal
+  })
+    .then((r) => {
+      clearTimeout(corte);
+      if (!r.ok) throw new Error(`El servidor respondió ${r.status}`);
+      return r.text();
+    })
+    .then((t) => {
+      const d = JSON.parse(t);
+      if (!d.ok) throw new Error(d.error || 'error_desconocido');
+      return d;
+    });
+}
+
+/* c_tablero no es una tabla: es el volcado entero en JSON, partido en trozos de
+   40.000 caracteres porque no cabe en una celda de Sheets. Aquí se piden todas
+   las páginas, se ordenan por su columna `orden` y se pega el texto de vuelta.
+
+   Se ordena explícitamente en vez de confiar en el orden de llegada: el volcado
+   se rearma concatenando texto, así que un solo trozo fuera de sitio no da un
+   dato raro sino un JSON que no parsea. */
+function traerTablero(password) {
+  let trozos = [];
+
+  function pagina(desde) {
+    return pedir({ accion: 'consulta_completa', tabla: 'c_tablero',
+                   token_lectura: password, desde,
+                   limite: CFG.filasPorPagina || 200 })
+      .then((d) => {
+        const iOrden = d.encabezados.indexOf('orden');
+        const iCont  = d.encabezados.indexOf('contenido');
+        d.filas.forEach((f) => trozos.push({ orden: Number(f[iOrden]), texto: f[iCont] }));
+        if (d.hay_mas) return pagina(desde + d.devueltas);
+        return trozos;
+      });
+  }
+
+  return pagina(1).then((t) => {
+    if (!t.length) throw new Error('tablero_vacio');
+    const json = t.sort((a, b) => a.orden - b.orden).map((x) => x.texto).join('');
+    return completar(repararDatos(JSON.parse(json)));
+  });
+}
 
 /* ============================================================
    1. Utilidades
@@ -835,6 +926,71 @@ function pintarSituaciones(pfx) {
 }
 
 /* ============================================================
+   7b. Afectaciones
+   ------------------------------------------------------------
+   OTRO GRANO, Y POR ESO OTRA PESTAÑA.
+   Aquí una fila no es un hogar ni una vivienda: es UN REPORTE que
+   un organismo de socorro hizo sobre una edificación entera. Un
+   solo reporte puede cubrir un conjunto de doscientos
+   apartamentos, y dos organismos pueden reportar el mismo
+   edificio.
+
+   Por eso sus cifras NUNCA se suman con las de personas y
+   viviendas, ni comparten los indicadores de arriba. Sumar
+   «personas atrapadas» con «personas encuestadas» daría un número
+   que no significa nada.
+
+   Los conteos de fallecidos, atrapadas y por evacuar son
+   DECLARADOS en el reporte, no personas identificadas: si el
+   mismo edificio se reporta dos veces, sus muertos se cuentan
+   dos veces. Se muestran como lo que son —lo que reportó el
+   organismo— y el pie de cada gráfico lo dice.
+   ============================================================ */
+
+function afectaciones() {
+  return D.afectaciones.filter((a) => pasaGeneral(a));
+}
+
+const PIE_AFE = 'Cifras declaradas en los reportes de los organismos de socorro. ' +
+                'Un reporte cubre una edificación completa, no un hogar: no son ' +
+                'comparables ni sumables con las de personas y viviendas.';
+
+function pintarAfectaciones() {
+  const afe = afectaciones();
+
+  /* los cuatro conteos que la sala de crisis mira primero */
+  const suma = (campo) => afe.reduce((t, a) => t + (Number(a[campo]) || 0), 0);
+  franja($('a-indicadores'), [
+    { cifra: afe.length,                  rango: 'reportes',   nombre: 'Edificaciones reportadas' },
+    { cifra: suma('fallecidos'),          rango: 'declarados', nombre: 'Fallecidos' },
+    { cifra: suma('atrapadas'),           rango: 'declaradas', nombre: 'Personas atrapadas' },
+    { cifra: suma('necesitan_evacuar'),   rango: 'declaradas', nombre: 'Personas por evacuar' }
+  ]);
+
+  /* colapso: es la razón de ser del formulario, así que va primero y con
+     acento semántico —el verde no es «bueno», es «sin riesgo»— */
+  const colorColapso = (f) => /sin riesgo|no aplica/i.test(f.etiqueta) ? SEMAFORO.verde
+                            : /total|colaps/i.test(f.etiqueta)         ? SEMAFORO.rojo
+                            :                                            SEMAFORO.ambar;
+  barrasH($('g-colapso'), aFilas(contar(afe, 'colapso')), colorColapso, ['reporte', 'reportes']);
+  $('f-colapso').innerHTML = PIE_AFE;
+
+  barrasH($('g-tipo-edificacion'), aFilas(contar(afe, 'tipo_edificacion')),
+          COLOR.d1, ['reporte', 'reportes']);
+  $('f-tipo-edificacion').innerHTML = PIE_AFE;
+
+  /* quién reporta: sirve para saber de qué organismo depende la cobertura y
+     dónde hay que insistir si un sector no está siendo visitado */
+  barrasH($('g-organismo'), aFilas(contar(afe, 'organismo')),
+          COLOR.d4, ['reporte', 'reportes']);
+  $('f-organismo').innerHTML = PIE_AFE;
+
+  barrasH($('g-afe-comuna'), aFilas(contar(afe, 'comuna')),
+          COLOR.d2, ['reporte', 'reportes']);
+  $('f-afe-comuna').innerHTML = PIE_AFE;
+}
+
+/* ============================================================
    8. Evolución
    ============================================================ */
 
@@ -1398,7 +1554,7 @@ function seleccionarComuna(num) {
    11. Navegación y orquestación
    ============================================================ */
 
-const VISTAS = ['resumen', 'territorio', 'personas', 'viviendas', 'necesidades'];
+const VISTAS = ['resumen', 'territorio', 'personas', 'viviendas', 'necesidades', 'afectaciones'];
 let vistaActiva = 'resumen';
 
 function mostrarVista(nombre) {
@@ -1418,10 +1574,18 @@ function ajustarFiltros() {
     'filtros-personas':  ['etario', 'inmueble', 'ayuda'],
     'filtros-viviendas': ['evacuacion', 'danio']
   };
+  /* Afectaciones no filtra por edad ni por daño de la vivienda: son reportes
+     sobre edificaciones completas, otro grano. Un filtro que no hace nada es
+     peor que uno ausente, porque quien lo mueve cree que el gráfico cambió. */
+  const sinFiltrosPropios = vistaActiva === 'resumen' || vistaActiva === 'afectaciones';
   Object.entries(grupos).forEach(([id, claves]) => {
     const activo = claves.some((c) => estado[c]);
-    $(id).classList.toggle('oculto', vistaActiva === 'resumen' && !activo);
+    $(id).classList.toggle('oculto', sinFiltrosPropios && !activo);
   });
+
+  /* La línea de universo cuenta personas, hogares y viviendas: en Afectaciones
+     estaría contando otra cosa distinta de la que se muestra. */
+  $('universo').classList.toggle('oculto', vistaActiva === 'afectaciones');
 }
 
 /* se pinta solo la vista visible: los contenedores ocultos no tienen ancho */
@@ -1450,6 +1614,9 @@ function pintar() {
   if (vistaActiva === 'necesidades') {
     pintarAyudas('n');
     pintarSituaciones('n');
+  }
+  if (vistaActiva === 'afectaciones') {
+    pintarAfectaciones();
   }
 }
 
@@ -1566,6 +1733,101 @@ function iniciar() {
   pintar();
 }
 
-document.addEventListener('DOMContentLoaded', iniciar);
+/* ============================================================
+   13. Acceso
+   ------------------------------------------------------------
+   El tablero no pedía contraseña mientras leía un archivo del
+   disco. Servido por internet sí tiene que pedirla: el volcado
+   trae estado de salud por persona, coordenadas por vivienda y
+   direcciones en la tabla de duplicados. No hay nombres ni
+   cédulas, pero con una coordenada y un estado de salud se
+   identifica un hogar sin esfuerzo.
+
+   Es la misma puerta de la consulta del equipo, a propósito: la
+   contraseña ES el TOKEN_LECTURA del Apps Script, la valida
+   Google y no este código, y cambiarla allá la cambia para los
+   dos aplicativos de una vez.
+   ============================================================ */
+
+const CLAVE_SESION = 'tablero_sesion';
+
+function mostrarAcceso(visible) {
+  $('vista-acceso').classList.toggle('oculto', !visible);
+  $('panel-tablero').classList.toggle('oculto', visible);
+}
+
+/* Carga el volcado y arranca. Se usa igual al entrar por contraseña que al
+   restaurar una sesión, para que no haya dos caminos que puedan divergir. */
+function cargarYArrancar(password) {
+  return traerTablero(password).then((datos) => {
+    D = datos;
+    mostrarAcceso(false);
+    iniciar();
+  });
+}
+
+function iniciarAcceso() {
+  /* Con un volcado local presente no se pide nada: es el modo de trabajo
+     contra data/salida/tablero, y ese archivo ya está en el disco de quien lo
+     abre. La red es para el sitio publicado. */
+  if (window.TABLERO) {
+    mostrarAcceso(false);
+    iniciar();
+    return;
+  }
+
+  const error = $('acceso-error');
+  const boton = $('acceso-entrar');
+
+  $('form-acceso').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const tecleado = $('acceso-usuario').value.trim().toLowerCase().replace(/\s/g, '');
+    const password = $('acceso-password').value;
+
+    const conocido = (CFG.usuarios || []).find((u) => u.usuario === tecleado);
+    /* el usuario se comprueba aquí y la contraseña allá, pero el mensaje es el
+       mismo a propósito: no hay que decirle a quien tantea cuál acertó */
+    if (!conocido || !password) {
+      error.textContent = 'Usuario o contraseña incorrectos.';
+      error.classList.remove('oculto');
+      return;
+    }
+
+    error.classList.add('oculto');
+    boton.disabled = true;
+    boton.textContent = 'Entrando…';
+
+    cargarYArrancar(password)
+      .then(() => sessionStorage.setItem(CLAVE_SESION, JSON.stringify({ usuario: tecleado, password })))
+      .catch((e) => {
+        error.textContent =
+          e.message === 'no_autorizado'          ? 'Usuario o contraseña incorrectos.'
+        : e.message === 'consulta_no_habilitada' ? 'El acceso no está habilitado todavía: falta crear la propiedad TOKEN_LECTURA en el script de Google.'
+        : e.message === 'tablero_vacio'          ? 'La base todavía no ha publicado datos del tablero. Espere a la próxima corrida del pipeline.'
+        :                                          `No se pudo conectar con la base (${e.message}).`;
+        error.classList.remove('oculto');
+      })
+      .then(() => { boton.disabled = false; boton.textContent = 'Entrar'; });
+  });
+
+  /* La sesión guarda la contraseña porque cada recarga tiene que volver a pedir
+     el volcado: aquí no queda ninguna copia local. Vive en sessionStorage, que
+     es por pestaña y se borra al cerrarla. Si la contraseña cambió en Google,
+     la recarga falla y se vuelve a pedir, que es lo que se busca: revocar allá
+     y que todos los navegadores queden fuera. */
+  let sesion = null;
+  try { sesion = JSON.parse(sessionStorage.getItem(CLAVE_SESION)); } catch (e) { sesion = null; }
+
+  if (sesion && sesion.password) {
+    cargarYArrancar(sesion.password).catch(() => {
+      sessionStorage.removeItem(CLAVE_SESION);
+      mostrarAcceso(true);
+    });
+  } else {
+    mostrarAcceso(true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', iniciarAcceso);
 
 })();

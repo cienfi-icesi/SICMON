@@ -24,9 +24,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/styles.css?v=2.3.0" />
-<link rel="stylesheet" href="css/tablero.css?v=2.3.0" />
-<link rel="stylesheet" href="css/tablero_v2.css?v=2.3.0" />
+<link rel="stylesheet" href="css/styles.css?v=2.4.1" />
+<link rel="stylesheet" href="css/tablero.css?v=2.4.1" />
+<link rel="stylesheet" href="css/tablero_v2.css?v=2.4.1" />
 </head>
 <body>
 
@@ -46,12 +46,46 @@
       <a class="nav__enlace" href="#" data-vista="personas">Personas</a>
       <a class="nav__enlace" href="#" data-vista="viviendas">Viviendas</a>
       <a class="nav__enlace" href="#" data-vista="necesidades">Necesidades</a>
+      <a class="nav__enlace" href="#" data-vista="afectaciones">Afectaciones</a>
       <a class="nav__enlace" href="../../index.html">← Volver al portal principal</a>
     </nav>
   </div>
 </header>
 
 <main class="contenedor">
+
+  <!-- ===================== ACCESO =====================
+       El tablero no pedía contraseña mientras leía un archivo del disco.
+       Servido por internet sí: el volcado trae estado de salud por persona,
+       coordenadas por vivienda y direcciones en la tabla de duplicados. No hay
+       nombres ni cédulas, pero con coordenada y estado de salud se identifica
+       un hogar sin esfuerzo.
+
+       Es la misma puerta de la consulta del equipo: la contraseña ES el
+       TOKEN_LECTURA del script de Google, la valida Google y no este sitio, y
+       cambiarla allá la cambia para los dos aplicativos a la vez.
+
+       Abriendo el tablero contra un volcado local (data/salida/tablero) no se
+       pide nada: ese archivo ya está en el disco de quien lo abre.
+       ================================================== -->
+  <section id="vista-acceso" class="oculto">
+    <div class="cabecera-pagina">
+      <p class="etiqueta-superior"><span aria-hidden="true"></span><span>Uso interno · Información sensible</span></p>
+      <h1>Tablero de control</h1>
+      <p class="subtitulo">Este tablero muestra información sensible de las familias afectadas.
+         Ingrese con las credenciales del equipo a cargo de la base.</p>
+    </div>
+    <div class="acceso">
+      <form id="form-acceso" autocomplete="off">
+        <input class="acceso__campo" id="acceso-usuario" type="text" placeholder="Usuario" autocomplete="username" />
+        <input class="acceso__campo" id="acceso-password" type="password" placeholder="Contraseña" autocomplete="current-password" />
+        <button class="boton boton--primario" id="acceso-entrar" type="submit">Entrar</button>
+        <p class="acceso__error oculto" id="acceso-error"></p>
+      </form>
+    </div>
+  </section>
+
+  <div id="panel-tablero" class="oculto">
 
   <!-- Aviso de datos simulados. Nace oculto y solo lo muestra tablero_v2.js
        cuando el volcado viene marcado con simulado = true. La marca viaja
@@ -347,6 +381,61 @@
     </div>
   </section>
 
+  <!-- ============================================================
+       VISTA · AFECTACIONES
+       ------------------------------------------------------------
+       OTRO GRANO, Y POR ESO PESTAÑA APARTE. Aquí una fila es un
+       REPORTE de un organismo de socorro sobre una edificación
+       completa, no un hogar. Un reporte puede cubrir un conjunto
+       de doscientos apartamentos, y dos organismos pueden reportar
+       el mismo edificio.
+
+       Sus cifras no se suman ni se comparan con las de personas y
+       viviendas: por eso este panel trae sus propios indicadores
+       en vez de usar los de arriba.
+       ============================================================ -->
+  <section id="vista-afectaciones" class="oculto">
+
+    <div class="etarios" id="a-indicadores" aria-label="Cifras declaradas en los reportes"></div>
+
+    <div class="paneles">
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Estado de colapso</h2>
+        <p class="panel__bajada">Es la pregunta central del formulario de afectaciones. El verde no significa
+           «sin daño» sino que el organismo no encontró riesgo de colapso; una edificación puede estar
+           gravemente afectada y aun así no colapsar.</p>
+        <div class="panel__lienzo" id="g-colapso"></div>
+        <p class="panel__fuente" id="f-colapso"></p>
+      </article>
+
+      <article class="panel">
+        <h2 class="panel__titulo">Tipo de edificación</h2>
+        <p class="panel__bajada">Un conjunto residencial y una casa cuentan igual aquí: cada uno es un reporte.
+           La cantidad de viviendas que cubre cada reporte va aparte.</p>
+        <div class="panel__lienzo" id="g-tipo-edificacion"></div>
+        <p class="panel__fuente" id="f-tipo-edificacion"></p>
+      </article>
+
+      <article class="panel">
+        <h2 class="panel__titulo">Comuna</h2>
+        <p class="panel__bajada">Dónde se concentran los reportes. No es lo mismo que dónde hay más daño:
+           refleja también hasta dónde ha llegado la visita de los organismos.</p>
+        <div class="panel__lienzo" id="g-afe-comuna"></div>
+        <p class="panel__fuente" id="f-afe-comuna"></p>
+      </article>
+
+      <article class="panel panel--ancho">
+        <h2 class="panel__titulo">Organismo que reporta</h2>
+        <p class="panel__bajada">Sirve para ver de qué organismo depende la cobertura de cada zona, y dónde
+           hay que insistir si un sector no está siendo visitado.</p>
+        <div class="panel__lienzo" id="g-organismo"></div>
+        <p class="panel__fuente" id="f-organismo"></p>
+      </article>
+    </div>
+  </section>
+
+  </div><!-- /panel-tablero -->
+
 </main>
 
 <footer class="pie">
@@ -356,8 +445,15 @@
   </div>
 </footer>
 
-<script src="js/cali-geo.js?v=2.3.0"></script>
-<script src="js/datos_tablero.js?v=2.3.0"></script>
-<script src="js/tablero_v2.js?v=2.3.0"></script>
+<script src="js/cali-geo.js?v=2.4.1"></script>
+<!-- De dónde salen los datos. datos_tablero.js ya NO viaja en el repositorio:
+     el volcado vive en la hoja de Google y esta página lo pide por fetch. El
+     archivo local se sigue cargando si existe —lo deja 05_exportar_tablero.R en
+     data/salida/tablero— para poder revisar el tablero sin red; si no está, el
+     navegador se queja en la consola y el tablero pide los datos, que es el
+     camino normal. -->
+<script src="js/config-tablero.js?v=2.4.1"></script>
+<script src="js/datos_tablero.js?v=2.4.1"></script>
+<script src="js/tablero_v2.js?v=2.4.1"></script>
 </body>
 </html>

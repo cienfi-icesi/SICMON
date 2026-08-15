@@ -67,12 +67,15 @@ log_msg(sprintf("=== corrida %d iniciada ===", run_id))
 ## que solo sirven ahi —el Excel de trabajo del equipo y el datos_tablero.js del
 ## tablero de control—.
 ##
-## En GitHub Actions esos dos sobran, y el 05 ademas estorba: escribe dentro del
-## repositorio y el repositorio es publico, asi que subir su salida seria
-## publicar coordenadas y estado de salud. La maquina de Actions se destruye al
-## terminar, de modo que lo que escriba ahi se pierde de todas formas; lo unico
-## que trasciende es lo que el 06 deja en la hoja de Google. Mientras el tablero
-## no lea por fetch como ya lo hace la consulta, en Actions no se actualiza.
+## En GitHub Actions sobra el 04 —el Excel de trabajo, que nadie recogeria de una
+## maquina que se destruye al terminar—, pero el 05 SI corre, y hace falta.
+##
+## Antes no corria, por dos razones que ya no aplican: escribia datos personales
+## dentro del repositorio publico, y el tablero leia un archivo estatico que de
+## todas formas habia que subir a mano. Hoy CARPETA_TABLERO apunta fuera del
+## repositorio y el tablero pide sus datos por fetch, igual que la consulta. El
+## 05 dejo de ser un paso que escribe en el sitio y paso a ser el que PREPARA el
+## volcado que el 06 publica en la hoja, asi que tiene que correr antes que el.
 ##
 ## El 00 de Drive tampoco corre: su token se obtiene de forma interactiva y una
 ## maquina de Actions no tiene a nadie que autorice. La hoja es el canal real.
@@ -80,7 +83,8 @@ EN_ACTIONS <- Sys.getenv("GITHUB_ACTIONS") == "true"
 
 pasos <- if (EN_ACTIONS) {
   c("pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R", "pipeline/02_dedup.R",
-    "pipeline/03_matching.R", "pipeline/06_publicar_hoja.R")
+    "pipeline/03_matching.R", "pipeline/05_exportar_tablero.R",
+    "pipeline/06_publicar_hoja.R")
 } else {
   c("pipeline/00_conectar_drive.R", "pipeline/00_conectar_hoja.R", "pipeline/01_ingest.R",
     "pipeline/02_dedup.R", "pipeline/03_matching.R", "pipeline/04_exportar_consulta.R",

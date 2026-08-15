@@ -198,6 +198,36 @@ duplicados <- dbGetQuery(con, "
   ORDER BY d.confianza") %>%
               as.data.table()
 
+##============================================================================##
+##=== 5b. Afectaciones  (grano: reporte de un organismo sobre una           ===##
+##===      edificacion completa)                                           ===##
+##============================================================================##
+
+## OJO: grano distinto al de viviendas. Aqui una fila no es un hogar ni una
+## vivienda, sino UN REPORTE que un organismo de socorro hizo sobre una
+## edificacion entera: cuantas viviendas tiene, cuantas personas quedaron
+## atrapadas, si colapso. Sumar sus conteos con los de personas seria contar dos
+## veces, y por eso el tablero los muestra en su propia pestaña y nunca los
+## mezcla con los indicadores de hogares.
+##
+## Los conteos de fallecidos, atrapadas y necesitan_evacuar son DECLARADOS en el
+## reporte, no personas identificadas: no hay forma de saber si el mismo
+## fallecido aparece en dos reportes del mismo edificio.
+##
+## No lleva descripcion ni observaciones: son texto libre donde el diligenciador
+## a veces escribe nombres, y este volcado alimenta un tablero sin identidades.
+afectaciones <- dbGetQuery(con, "
+  SELECT id_encuesta, barrio, comuna, latitud, longitud,
+         colapso, requieren_evacuacion,
+         fallecidos, atrapadas, necesitan_evacuar,
+         tipo_edificacion, cantidad_viviendas,
+         organismo, fotos_cantidad, fecha
+  FROM afectaciones
+  WHERE duplicate = 0") %>%
+                mutate(across(c(colapso, requieren_evacuacion, tipo_edificacion),
+                              ~ sub("^[^·]+· ", "", .))) %>%
+                as.data.table()
+
 corrida <- dbGetQuery(con, "
   SELECT fin FROM processing_runs WHERE estado = 'ok' ORDER BY run_id DESC LIMIT 1")
 
@@ -210,7 +240,7 @@ corrida <- dbGetQuery(con, "
 ## sistema corre en locale C, asi que esos literales llegan con la codificacion
 ## sin declarar y toJSON() los serializa como "a<c3><b1>os". Los bytes ya son
 ## UTF-8; solo falta decirlo, y hay que hacerlo antes de serializar
-for (tabla in c("personas", "viviendas", "danio", "revisar", "duplicados")) {
+for (tabla in c("personas", "viviendas", "danio", "revisar", "duplicados", "afectaciones")) {
   d <- get(tabla)
   for (col in names(d)) {
     if (is.character(d[[col]])) Encoding(d[[col]]) <- "UTF-8"
@@ -221,18 +251,20 @@ for (tabla in c("personas", "viviendas", "danio", "revisar", "duplicados")) {
 ## la marca viaja CON los datos y no en la configuracion del tablero: asi no
 ## puede desincronizarse. Un archivo de datos simulados dice que lo es, se
 ## copie a donde se copie, y el tablero pinta el aviso en pantalla
-datos <- list(actualizado = ifelse(nrow(corrida) == 0, "", corrida$fin[1]),
-              simulado    = MODO_SIMULADO,
-              personas    = personas,
-              viviendas   = viviendas,
-              danio       = danio,
-              revisar     = revisar,
-              duplicados  = duplicados)
+datos <- list(actualizado  = ifelse(nrow(corrida) == 0, "", corrida$fin[1]),
+              simulado     = MODO_SIMULADO,
+              personas     = personas,
+              viviendas    = viviendas,
+              danio        = danio,
+              revisar      = revisar,
+              duplicados   = duplicados,
+              afectaciones = afectaciones)
 
 ## export data (window.TABLERO para que el tablero funcione con file://)
 writeLines(paste0("window.TABLERO = ", toJSON(datos, auto_unbox = T, na = "null"), ";"),
            file.path(out, "datos_tablero.js"), useBytes = T)
 
-log_msg(sprintf("tablero: %d personas, %d viviendas, %d casos por revisar",
-                nrow(personas), nrow(viviendas), nrow(revisar) + nrow(duplicados)))
+log_msg(sprintf("tablero: %d personas, %d viviendas, %d afectaciones, %d casos por revisar",
+                nrow(personas), nrow(viviendas), nrow(afectaciones),
+                nrow(revisar) + nrow(duplicados)))
 dbDisconnect(con)

@@ -231,6 +231,46 @@ resultado <- tryCatch({
     nrow(datos)
   }
 
+  ## El volcado del tablero, tal cual lo dejo 05_exportar_tablero.R.
+  ##
+  ## POR QUE SE REENVIA EL ARCHIVO EN VEZ DE REHACER LAS CONSULTAS
+  ## Ese volcado no es un SELECT: el nivel de dano sale de pivotar los payload
+  ## crudos y las categorias vienen ya limpias de sus prefijos ("1 · "). Rehacer
+  ## eso aqui seria mantener la misma transformacion en dos sitios, y el dia que
+  ## cambie una sola de las dos el tablero y la hoja empiezan a discrepar sin que
+  ## nadie lo note. Se publica lo que 05 produjo, palabra por palabra.
+  ##
+  ## Eso ademas conserva la marca `simulado` pegada a los datos, que es como se
+  ## diseño a proposito: un volcado de datos inventados dice que lo es se copie a
+  ## donde se copie, y el tablero pinta el aviso sin depender de su configuracion.
+  ##
+  ## Va troceado porque una celda de Sheets admite 50.000 caracteres y el volcado
+  ## completo pasa de 50 KB con apenas 65 personas. El mismo reparto que usa la
+  ## pestaña de respaldos: una fila por trozo, con su orden para rearmarlo.
+  publicar_tablero <- function() {
+    ruta <- file.path(CARPETA_TABLERO, "js", "datos_tablero.js")
+    if (!file.exists(ruta)) {
+      log_msg(sprintf("publicacion: no hay volcado del tablero en %s; se omite c_tablero", ruta))
+      return(0)
+    }
+
+    ## el archivo es "window.TABLERO = {...};": se guarda solo el JSON
+    texto <- paste(readLines(ruta, warn = F), collapse = "\n")
+    json  <- sub("^\\s*window\\.TABLERO\\s*=\\s*", "", texto)
+    json  <- sub(";\\s*$", "", json)
+
+    trozos <- substring(json,
+                        seq(1, nchar(json), by = TAM_TROZO_TABLERO),
+                        pmin(seq(TAM_TROZO_TABLERO, nchar(json) + TAM_TROZO_TABLERO,
+                                 by = TAM_TROZO_TABLERO), nchar(json)))
+
+    publicar_tabla("c_tablero",
+                   data.frame(orden     = seq_along(trozos),
+                              total     = length(trozos),
+                              contenido = trozos,
+                              stringsAsFactors = F))
+  }
+
   ## el ping confirma que la implementacion publicada trae estas acciones: pegar
   ## el codigo en el editor no basta, hay que implementar una version nueva
   ping <- pedir_hoja(list(accion = "ping"))
@@ -331,6 +371,7 @@ resultado <- tryCatch({
   publicar_tabla("c_diccionario",   diccionario)
   publicar_tabla("c_revisar",       revisar)
   publicar_tabla("c_duplicados",    duplicados)
+  publicar_tablero()
 
   ## la marca va de ULTIMA, cuando ya esta todo arriba: si la corrida se cae a
   ## la mitad, el aplicativo sigue mostrando la fecha de la ultima publicacion

@@ -138,6 +138,10 @@ PUBLICAR_HOJA <- env_logico("SICMON_PUBLICAR_HOJA", TRUE)
 ## margen de sobra frente al limite de Apps Script y evita que la ejecucion se
 ## alargue tanto que Google cierre la conexion, que es como fallan estas cosas.
 BYTES_POR_PAGINA_PUBLICAR <- 300000
+## tamaño de cada trozo del volcado del tablero al publicarlo en c_tablero. Una
+## celda de Sheets admite 50.000 caracteres; 40.000 deja margen, igual que en la
+## pestaña de respaldos del Apps Script.
+TAM_TROZO_TABLERO <- 40000
 ## Publicar es reemplazar. Con esto en FALSE, 06_publicar_hoja.R se niega a
 ## dejar la hoja vacia si alli ya hay registros publicados: una base vieja
 ## sirve, una borrada no. Poner en TRUE solo para vaciar a proposito.
