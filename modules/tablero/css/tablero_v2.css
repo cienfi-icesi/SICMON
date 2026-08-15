@@ -8,6 +8,19 @@
    hay aquí afecta a index.html, que no enlaza este archivo.
    ============================================================ */
 
+/* ---------- Aviso de base simulada ----------
+   Lo enciende tablero_v2.js cuando el volcado viene marcado. Va arriba del
+   título y con la franja ámbar a la izquierda, deliberadamente difícil de
+   pasar por alto: quien abre este tablero en una emergencia tiene que saber
+   de entrada si las cifras que va a leer son inventadas. */
+.aviso-simulado {
+  border: 1px solid var(--ambar); border-left: 4px solid var(--ambar);
+  border-radius: var(--radio);
+  background: #FFF8EC;
+  padding: 12px 16px; margin-bottom: 22px;
+  font-size: 13.5px; line-height: 1.5;
+}
+
 /* ---------- Cifras titulares: cuatro, no seis ---------- */
 .kpis--4 { grid-template-columns: repeat(4, 1fr); margin-bottom: 38px; }
 

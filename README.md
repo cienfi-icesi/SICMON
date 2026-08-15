@@ -36,9 +36,36 @@ El alcance de esta etapa es **recolectar → almacenar → respaldar → consult
 visualizar**. Los tres primeros accesos de la portada están operativos y sus
 destinos se configuran en `js/config.js`.
 
-Ni la consulta ni el tablero calculan nada en el navegador: los dos leen
-archivos que regenera el pipeline de `consolidacion/` en cada corrida, a
-partir de la base oficial.
+## De dónde salen los datos
+
+```
+Aplicación EDAN → Hoja de Google → pipeline de R → Hoja de Google → app_consulta
+   (campo)         (Apps Script)    (consolidacion/)  (pestañas c_*)   (fetch)
+```
+
+**Este repositorio no lleva ningún dato personal, y no debe llevarlo.** Es
+público: todo lo que esté versionado lo sirve GitHub Pages y queda visible para
+siempre, aunque después se borre. Los nombres, las cédulas, el estado de salud,
+las direcciones y las coordenadas viven en la hoja de Google, y el sitio los
+pide por `fetch` al Apps Script, que es quien comprueba las credenciales.
+
+Por eso el aplicativo de consulta se actualiza solo, sin ningún commit. Antes
+leía un archivo `js/datos.js` que el pipeline escribía dentro del repositorio:
+eso publicaba la base entera y, además, dejaba la consulta desactualizada cada
+vez que a alguien se le olvidaba subirla.
+
+El pipeline corre **automáticamente en GitHub Actions**, disparado por el propio
+Apps Script cuando llegan encuestas nuevas. Cómo funciona, qué secrets hace
+falta configurar y cómo se controla el acceso está en
+[README/07_automatizacion.md](README/07_automatizacion.md).
+
+> Antes de cualquier commit, desde la raíz:
+> ```bash
+> bash consolidacion/tools/verificar_publico.sh
+> ```
+> Revisa que no haya credenciales ni datos personales en el índice de git. El
+> `.gitignore` por sí solo no basta: no saca del índice lo que ya entró, y en
+> este proyecto eso ya pasó.
 
 ## Estructura
 
@@ -49,8 +76,12 @@ web_damage_cali/
 ├── portal/           modulos.js (registro) · portal.js · portal.css · cali-geo.js
 ├── assets/           logos institucionales · shared.css · maps/cali.geojson
 ├── modules/          Un módulo = una carpeta
-├── consolidacion/    Pipeline en R: consolida, deduplica y alimenta
-│                     modules/consulta y modules/tablero
+├── consolidacion/    Pipeline en R: extrae de la hoja, consolida, deduplica
+│   ├── pipeline/     Los ocho pasos de una corrida
+│   ├── tools/        Estado cifrado, verificación de exposición pública
+│   ├── tests/        Nueve pruebas (Rscript tests/correr_pruebas.R)
+│   └── renv.lock     Versiones fijadas de los paquetes de R
+├── .github/workflows/  La corrida automática
 ├── tools/            servir.ps1 (el servidor)
 └── README/           Documentación
 ```
@@ -78,5 +109,7 @@ No hay que tocar el portal ni los demás módulos.
 | [README/04_development.md](README/04_development.md) | Guía de desarrollo |
 | [README/05_persistencia.md](README/05_persistencia.md) | Persistencia, trazabilidad y respaldo centralizado |
 | [README/06_integracion.md](README/06_integracion.md) | Qué se integró de cada desarrollo y por qué |
+| [README/07_automatizacion.md](README/07_automatizacion.md) | Automatización, estado y protección de datos |
 
-Cada módulo tiene además su propio `README.md`.
+Cada módulo tiene además su propio `README.md`, y el pipeline el suyo en
+[consolidacion/README.md](consolidacion/README.md).

@@ -32,6 +32,9 @@ source("config/functions.R")    # conectar_db, run_actual, log_msg
 ##=== 1. Lockfile: evitar corridas solapadas                               ===##
 ##============================================================================##
 
+## carpeta del lockfile y de la base: fuera de git, asi que puede no existir
+dir.create(dirname(RUTA_LOCK), showWarnings = F, recursive = T)
+
 if (file.exists(RUTA_LOCK)) {
   edad_min <- as.numeric(difftime(Sys.time(), file.mtime(RUTA_LOCK), units = "mins"))
   if (edad_min < LOCK_MAX_MIN) {

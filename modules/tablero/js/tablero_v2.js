@@ -1463,6 +1463,12 @@ function iniciar() {
   $('actualizado').textContent = D.actualizado ? `· Corte ${D.actualizado}` : '';
   $('pie-actualizado').textContent = D.actualizado ? `Corte ${D.actualizado}` : '';
 
+  /* Aviso de base simulada. La marca la escribe el pipeline dentro del propio
+     volcado (05_exportar_tablero.R), así que acompaña al archivo se copie a
+     donde se copie. Un tablero de emergencia que muestre cifras inventadas sin
+     decirlo es peor que un tablero vacío. */
+  if (D.simulado) $('aviso-simulado').classList.remove('oculto');
+
   /* rango de fechas disponible */
   const fechas = D.personas.map((p) => p.fecha).filter(Boolean).sort();
   if (fechas.length) {

@@ -1,9 +1,9 @@
 ##============================================================================##
 # 05_exportar_tablero.R  —  Datos para el tablero de control
 #------------------------------------------------------------------------------#
-# Vuelca la base oficial a los archivos que lee el tablero estatico, que es un
-# modulo mas del portal (CARPETA_TABLERO en config/parameters.R, hoy
-# ../modules/tablero; HTML+CSS+JS, sin servidor):
+# Vuelca la base oficial a los archivos que lee el tablero estatico
+# (CARPETA_TABLERO en config/parameters.R, hoy data/salida/tablero — FUERA del
+# repositorio publicado; el modulo del portal es HTML+CSS+JS, sin servidor):
 #   - <CARPETA_TABLERO>/js/datos_tablero.js   window.TABLERO = {...}
 #       personas   (grano: persona canonica, sin identificadores directos;
 #                   conserva id_encuesta de la familia para poder contar
@@ -15,8 +15,13 @@
 #
 # El tablero agrega y filtra en el navegador: por eso el volcado es a nivel de
 # fila y no de tabla agregada. No lleva cedula ni nombre, pero si lleva estado
-# de salud, coordenadas y direccion de vivienda.
-# USO INTERNO: no publicar sin autorizacion de la Alcaldia (ver .gitignore).
+# de salud, coordenadas y direccion de vivienda: es dato personal sin
+# identificador directo, no un agregado.
+#
+# USO INTERNO. Por eso el destino ya NO es ../modules/tablero: esa carpeta la
+# sirve GitHub Pages y el archivo quedaba a un `git add` de ser publico. Para
+# publicar el tablero habria que generar antes un volcado agregado (conteos, sin
+# filas ni coordenadas) y contar con autorizacion de la Alcaldia.
 ##============================================================================##
 
 ## configuracion inicial
@@ -25,9 +30,11 @@ source("config/packages.R")
 source("config/parameters.R")   # RUTA_DB, CARPETA_TABLERO
 source("config/functions.R")    # conectar_db, log_msg
 
-if (!dir.exists(CARPETA_TABLERO)) {
-  stop(sprintf("no existe la carpeta del tablero: %s", CARPETA_TABLERO))
-}
+## la carpeta se crea si no esta: el destino por omision (data/salida/tablero)
+## vive fuera del repositorio y por tanto no existe en un clon nuevo. Antes esto
+## era un stop() porque el destino era ../modules/tablero, una carpeta que
+## siempre existia; si faltaba, era senal de que la ruta estaba mal configurada
+dir.create(CARPETA_TABLERO, showWarnings = F, recursive = T)
 
 con <- conectar_db()
 out <- file.path(CARPETA_TABLERO, "js")
@@ -211,7 +218,11 @@ for (tabla in c("personas", "viviendas", "danio", "revisar", "duplicados")) {
   assign(tabla, d)
 }
 
+## la marca viaja CON los datos y no en la configuracion del tablero: asi no
+## puede desincronizarse. Un archivo de datos simulados dice que lo es, se
+## copie a donde se copie, y el tablero pinta el aviso en pantalla
 datos <- list(actualizado = ifelse(nrow(corrida) == 0, "", corrida$fin[1]),
+              simulado    = MODO_SIMULADO,
               personas    = personas,
               viviendas   = viviendas,
               danio       = danio,

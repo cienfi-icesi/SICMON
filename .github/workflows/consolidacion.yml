@@ -1,0 +1,152 @@
+##============================================================================##
+# Consolidación — corrida automática del pipeline de R
+#------------------------------------------------------------------------------#
+# Reemplaza al launchd que corría en un solo Mac (scheduler/*.plist). El flujo es
+# el mismo de siempre; lo único que cambia es de dónde sale y a dónde vuelve la
+# base, porque el runner arranca vacío en cada corrida:
+#
+#   repo privado de estado  →  descifrar  →  pipeline  →  cifrar  →  repo privado
+#                                              ↓
+#                              hoja de Google (pestañas c_*)  →  app_consulta
+#
+# QUÉ NO SALE DE AQUÍ
+# Este repositorio es público y el registro de ejecución de este workflow
+# también. Por eso la base viaja cifrada, nunca se sube como artefacto y los
+# logs del pipeline se redactan (SICMON_LOG_REDACTAR) antes de imprimirse.
+##============================================================================##
+
+name: Consolidación
+
+on:
+  # (1) Aviso del Apps Script cuando detecta filas nuevas en la hoja. Es el
+  #     camino normal: corre cuando hay algo que consolidar y no antes.
+  repository_dispatch:
+    types: [hoja_actualizada]
+
+  # (2) Respaldo por reloj, por si el disparador de Google falla o se
+  #     desactiva. Cada 30 minutos, de lunes a viernes, 12:00–23:00 UTC =
+  #     07:00–18:00 en Bogotá (UTC-5, sin horario de verano).
+  schedule:
+    - cron: '*/30 12-23 * * 1-5'
+
+  # (3) A mano, desde la pestaña Actions. Para una corrida fuera de horario o
+  #     para probar un cambio sin esperar al cron.
+  workflow_dispatch:
+
+# Dos corridas simultáneas se pisarían: las dos escribirían las pestañas c_* de
+# la hoja y las dos subirían su versión de la base. Se encolan.
+# cancel-in-progress en falso a propósito: cancelar a media corrida dejaría el
+# consolidado a medio publicar en la hoja.
+concurrency:
+  group: consolidacion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  consolidar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: consolidacion
+
+    env:
+      # --- Canales de datos ---
+      # Drive apagado: su autenticación es OAuth de usuario y solo se obtiene
+      # abriendo un navegador, cosa que un runner no puede hacer. El canal real
+      # es la hoja del Apps Script, que va con token y no con credencial de
+      # Google. Ver README, «Por qué Drive está apagado en la nube».
+      SICMON_CONECTAR_DRIVE: 'false'
+      SICMON_CONECTAR_HOJA:  'true'
+      SICMON_PUBLICAR_HOJA:  'true'
+
+      # El token de extracción entra por aquí y nunca toca el disco.
+      SICMON_TOKEN_EXPORTACION: ${{ secrets.TOKEN_EXPORTACION }}
+
+      # El volcado del tablero lleva salud y coordenadas: se queda en el runner
+      # y muere con él. No se publica ni se guarda.
+      SICMON_CARPETA_TABLERO: data/salida/tablero
+
+      # El log de este job es público. Esto tacha las secuencias de 7 o más
+      # dígitos (cédulas) antes de imprimirlas.
+      SICMON_LOG_REDACTAR: 'true'
+
+      # --- Estado entre corridas ---
+      ESTADO_REPO:  ${{ secrets.ESTADO_REPO }}
+      ESTADO_TOKEN: ${{ secrets.ESTADO_TOKEN }}
+      ESTADO_CLAVE: ${{ secrets.ESTADO_CLAVE }}
+
+      # --- R ---
+      # Los paquetes se instalan aquí y no en la biblioteca del sistema. Cada
+      # paso del pipeline corre en su propio Rscript (run_pipeline.R los lanza
+      # con system2) y todos heredan esta variable, así que todos ven la misma
+      # biblioteca sin necesidad de un .Rprofile que activaría renv también en
+      # los equipos del equipo.
+      R_LIBS_USER: ${{ github.workspace }}/.rlib
+
+      # Binarios de Ubuntu en vez de compilar desde el fuente: la instalación
+      # baja de ~20 minutos a menos de 2. renv respeta esta variable por encima
+      # del repositorio anotado en renv.lock.
+      RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/__linux__/jammy/latest
+
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Librerías del sistema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libcurl4-openssl-dev libssl-dev libxml2-dev libicu-dev zlib1g-dev
+        working-directory: .
+
+      - name: Instalar R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.0'
+          use-public-rspm: true
+
+      # La llave incluye el hash de renv.lock: mientras el lockfile no cambie,
+      # la biblioteca se restaura de la caché y el paso siguiente no baja nada.
+      - name: Caché de paquetes
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r450-${{ hashFiles('consolidacion/renv.lock') }}
+          restore-keys: ${{ runner.os }}-r450-
+
+      - name: Instalar los paquetes del lockfile
+        run: |
+          dir.create(Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)
+          .libPaths(Sys.getenv("R_LIBS_USER"))
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore(lockfile = "renv.lock",
+                        library  = Sys.getenv("R_LIBS_USER"),
+                        prompt   = FALSE)
+        shell: Rscript {0}
+
+      # Sin este paso la base se crearía de cero y 01_ingest.R volvería a marcar
+      # como «insertado» todo lo que ya estaba consolidado.
+      - name: Recuperar el estado de la corrida anterior
+        run: bash tools/estado_descargar.sh
+
+      - name: Ejecutar el pipeline
+        run: Rscript pipeline/run_pipeline.R
+
+      # Solo si el pipeline terminó bien. Si falló a mitad, la base del runner
+      # se descarta y la próxima corrida parte de la última buena: la ingestión
+      # detecta cambios por hash, así que reprocesar lo mismo da el mismo
+      # resultado y no duplica nada. Guardar un estado a medias sí sería un
+      # problema, porque no hay forma de saber hasta dónde alcanzó a llegar.
+      - name: Guardar el estado
+        run: bash tools/estado_guardar.sh
+
+      # Ninguna de estas comprobaciones mira los datos: miran qué quedó escrito
+      # donde no debía. Corre siempre, incluso si el pipeline falló, porque un
+      # fallo a media corrida es justo cuando pueden quedar archivos sueltos.
+      - name: Verificar que no quedó nada sensible en el árbol público
+        if: always()
+        run: bash tools/verificar_publico.sh

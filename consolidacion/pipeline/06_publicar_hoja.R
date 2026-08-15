@@ -26,15 +26,23 @@
 #   c_duplicados     (bitacora de duplicados marcados)
 #   c_meta           (momento de esta publicacion)
 #
-# Como los dos pasos 00, este NUNCA tumba la corrida: si falta el token o Google
-# no responde, se avisa en el log y la base local queda igual de valida.
+# ANTES DE SUBIR NADA SE PRUEBA LA CERRADURA
+# Este paso pone datos personales en la hoja, y de ahi los lee el aplicativo.
+# Eso solo es aceptable si la puerta de lectura del Apps Script exige contrasena.
+# Por eso, antes de publicar, se pide una tabla con una contrasena inventada: si
+# el receptor la deja pasar, este paso se niega a publicar y dice como cerrarla.
+# Ver la seccion 3.b, que explica por que se agrego.
+#
+# Como los dos pasos 00, este NUNCA tumba la corrida: si falta el token, si
+# Google no responde o si la cerradura esta abierta, se avisa en el log y la base
+# local queda igual de valida.
 ##============================================================================##
 
 ## configuracion inicial
 rm(list = ls())
 source("config/packages.R")
-source("config/parameters.R")   # RUTA_DB, URL_HOJA, TOKEN_HOJA, RUTA_TOKEN_HOJA, BYTES_POR_PAGINA_PUBLICAR
-source("config/functions.R")    # conectar_db, log_msg
+source("config/parameters.R")   # RUTA_DB, URL_HOJA, TOKEN_HOJA, BYTES_POR_PAGINA_PUBLICAR
+source("config/functions.R")    # conectar_db, log_msg, token_exportacion
 
 if (!PUBLICAR_HOJA) {
   log_msg("publicacion: desactivada (PUBLICAR_HOJA = FALSE); se omite")
@@ -43,13 +51,7 @@ if (!PUBLICAR_HOJA) {
 
 resultado <- tryCatch({
 
-  if (!file.exists(RUTA_TOKEN_HOJA)) {
-    stop(sprintf(paste("no hay token de extraccion en %s.",
-                       "Cree el archivo con la misma cadena de la propiedad TOKEN_EXPORTACION",
-                       "del script de Google (vea el README)."),
-                 RUTA_TOKEN_HOJA))
-  }
-  token_extraccion <- trimws(readLines(RUTA_TOKEN_HOJA, warn = F)[1])
+  token_extraccion <- token_exportacion()
 
   con <- conectar_db()
 
@@ -160,14 +162,23 @@ resultado <- tryCatch({
   ## el cuerpo va como text/plain aunque sea JSON, por lo mismo que en
   ## 00_conectar_hoja.R: las Web App de Apps Script no atienden peticiones que
   ## disparen la verificacion previa del navegador
-  pedir_hoja <- function(cuerpo) {
-    cuerpo$token             <- TOKEN_HOJA
-    cuerpo$token_exportacion <- token_extraccion
+  ## la peticion tal cual, SIN interpretar la respuesta. La usa la prueba de la
+  ## cerradura de mas abajo, donde un rechazo es el resultado correcto y no un
+  ## error. Con `exportacion = FALSE` va solo el token general, que es lo unico
+  ## que tiene un navegador: asi la prueba mide lo que puede hacer un extraño y
+  ## no lo que puede hacer el pipeline.
+  pedir_hoja_cruda <- function(cuerpo, exportacion = TRUE) {
+    cuerpo$token <- TOKEN_HOJA
+    if (exportacion) cuerpo$token_exportacion <- token_extraccion
     respuesta <- POST(URL_HOJA,
                       body = toJSON(cuerpo, auto_unbox = T, na = "null"),
                       content_type("text/plain"),
                       timeout(TIEMPO_LIMITE_HOJA))
-    datos <- fromJSON(content(respuesta, as = "text", encoding = "UTF-8"))
+    fromJSON(content(respuesta, as = "text", encoding = "UTF-8"))
+  }
+
+  pedir_hoja <- function(cuerpo) {
+    datos <- pedir_hoja_cruda(cuerpo)
     if (!isTRUE(datos$ok)) {
       stop(sprintf("el receptor respondio '%s' (accion %s, tabla %s)",
                    datos$error, cuerpo$accion, cuerpo$tabla))
@@ -220,6 +231,58 @@ resultado <- tryCatch({
   ping <- pedir_hoja(list(accion = "ping"))
   log_msg(sprintf("publicacion: receptor version %s", ping$version))
 
+  ##============================================================================##
+  ##=== 3.b Prueba de la cerradura ANTES de subir nada                       ===##
+  ##============================================================================##
+
+  ## POR QUE ESTO EXISTE
+  ## El 15 de agosto de 2026 se comprobo que la implementacion publicada era la
+  ## 1.6.0, anterior a la que hace que consulta_completa falle cerrado. Con esa
+  ## version, una peticion SIN contrasena devolvia ok y las 29 columnas de
+  ## c_personas —documento, nombre, estado de salud, direccion—. No entrego
+  ## registros solo porque las pestañas estaban vacias: la primera publicacion
+  ## real los habria dejado al alcance de cualquiera, porque la direccion y el
+  ## token general estan en config-consulta.js, que es publico.
+  ##
+  ## El codigo correcto llevaba semanas en el repositorio. Lo que fallo fue el
+  ## paso manual de implementar la version nueva, y nada lo revisaba.
+  ##
+  ## Asi que antes de subir un solo registro se toca la puerta con una
+  ## contrasena inventada. Si abre, esto NO publica. Que el aplicativo se quede
+  ## con datos viejos es un problema; que la base entera quede descargable sin
+  ## credenciales es otro, y mucho peor.
+  cerradura <- pedir_hoja_cruda(list(accion        = "consulta_completa",
+                                     tabla         = "c_personas",
+                                     token_lectura = paste0("cerradura-", as.integer(Sys.time())),
+                                     desde = 1, limite = 1),
+                                exportacion = FALSE)
+
+  ##
+  ## EL ENCLAVAMIENTO SOLO APLICA A LA BASE REAL. Lo que protege es que no
+  ## salgan datos personales por una puerta abierta; con la base simulada no hay
+  ## ninguno que proteger, son personas inventadas. Si aqui se bloqueara tambien
+  ## el modo simulado, no habria forma de dejar la consulta funcionando mientras
+  ## se arregla el Apps Script, que es justo para lo que existe ese modo.
+  if (isTRUE(cerradura$ok)) {
+    aviso <- paste("LA PUERTA DE LECTURA ESTA ABIERTA: consulta_completa respondio 'ok' a una",
+                   "contrasena inventada, asi que las tablas consolidadas quedan al alcance",
+                   "de cualquiera que abra el sitio.",
+                   "\n  Para cerrarla, en el script de Google:",
+                   "\n    1. Propiedades del script: cree TOKEN_LECTURA con la contrasena del equipo.",
+                   "\n    2. Implementar -> Gestionar implementaciones -> editar -> Version: Nueva.",
+                   "\n       (pegar el codigo NO basta; la direccion sigue sirviendo la version anterior)",
+                   sprintf("\n  Version publicada ahora: %s. Se necesita 1.6.1 o posterior.", ping$version))
+
+    if (!MODO_SIMULADO) {
+      stop(paste(aviso, "\n  NO se publico nada: la base real no sale por una puerta abierta."))
+    }
+    log_msg(paste(aviso, "\n  Se publica de todas formas porque son DATOS SIMULADOS,",
+                  "pero no cambie a la base real hasta cerrarla."))
+  } else {
+    log_msg(sprintf("publicacion: la puerta de lectura rechaza contrasenas invalidas (%s)",
+                    cerradura$error))
+  }
+
   ## export data (pestañas c_* de la hoja; las lee el aplicativo de consulta)
   publicar_tabla("c_personas",      personas)
   publicar_tabla("c_hogares",       hogares)
@@ -233,7 +296,15 @@ resultado <- tryCatch({
   ## la marca va de ULTIMA, cuando ya esta todo arriba: si la corrida se cae a
   ## la mitad, el aplicativo sigue mostrando la fecha de la ultima publicacion
   ## completa y no una que corresponde a datos a medias
+  ##
+  ## En modo simulado el aviso viaja PEGADO a la fecha. Es la unica forma de que
+  ## el aplicativo lo muestre sin cambiarle el codigo ni republicar el Apps
+  ## Script: la pantalla pinta este texto tal cual bajo el titulo ("Actualizada:
+  ## ..."), asi que quien abra la consulta lee de entrada que lo que ve no es la
+  ## operacion real. Y como la marca la escribe esta misma corrida, no puede
+  ## quedar diciendo "simulado" sobre datos reales ni al reves.
   marca <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+  if (MODO_SIMULADO) marca <- paste(marca, "· DATOS SIMULADOS (no es la base real)")
   pedir_hoja(list(accion = "marcar_consolidado", actualizado = marca))
 
   log_msg(sprintf("publicacion: consolidado en la hoja, marcado %s", marca))

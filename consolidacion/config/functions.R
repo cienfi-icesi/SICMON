@@ -8,6 +8,7 @@
 #   - llave_unidad()       llave canonica de la UNIDAD dentro del edificio
 #   - conectar_db()        conexion SQLite con el esquema aplicado
 #   - run_actual()         run_id de la corrida abierta en processing_runs
+#   - token_exportacion()  el token del Apps Script, del entorno o del archivo
 #   - log_msg()            escribe en consola y en el log del dia
 ##============================================================================##
 
@@ -78,6 +79,10 @@ llave_unidad <- function(tipo_unidad, numero_unidad, torre_bloque) {
 
 ## conexion a la base oficial; aplica el esquema si la base es nueva
 conectar_db <- function() {
+  ## data/db/ esta fuera de git (la base lleva nombres, cedulas y coordenadas),
+  ## asi que en un clon nuevo o en un runner efimero la carpeta no existe todavia
+  ## y dbConnect fallaria con "unable to open database file"
+  dir.create(dirname(RUTA_DB), showWarnings = F, recursive = T)
   con <- dbConnect(SQLite(), RUTA_DB)
   sentencias <- readLines("db/schema.sql")
   sentencias <- paste(sentencias[!grepl("^--", sentencias)], collapse = "\n")
@@ -112,10 +117,59 @@ run_actual <- function(con) {
   run$run_id[1]
 }
 
+## token de extraccion/publicacion del Apps Script (la propiedad TOKEN_EXPORTACION
+## del script de Google). Lo usan 00_conectar_hoja.R para bajar las tablas crudas
+## y 06_publicar_hoja.R para devolver el consolidado.
+##
+## Dos origenes, en este orden:
+##   1. la variable de entorno SICMON_TOKEN_EXPORTACION — asi llega en GitHub
+##      Actions, desde un secret del repositorio, sin quedar escrito en disco
+##   2. el archivo RUTA_TOKEN_HOJA — la maquina del equipo, fuera de git
+##
+## Nunca hay un tercer origen. Si no aparece por ninguna de las dos vias, esto
+## falla con un mensaje que dice como arreglarlo, y los dos pasos que lo llaman
+## se saltan sin tumbar la corrida.
+token_exportacion <- function() {
+  del_entorno <- trimws(Sys.getenv("SICMON_TOKEN_EXPORTACION", unset = ""))
+  if (nzchar(del_entorno)) return(del_entorno)
+
+  if (!file.exists(RUTA_TOKEN_HOJA)) {
+    stop(sprintf(paste("no hay token de extraccion. Defina la variable de entorno",
+                       "SICMON_TOKEN_EXPORTACION, o cree el archivo %s con la misma",
+                       "cadena de la propiedad TOKEN_EXPORTACION del script de Google",
+                       "(vea el README, seccion \"Conexion a la hoja del Apps Script\")."),
+                 RUTA_TOKEN_HOJA))
+  }
+  trimws(readLines(RUTA_TOKEN_HOJA, warn = F)[1])
+}
+
+## En GitHub Actions el registro de ejecucion del workflow es PUBLICO, porque el
+## repositorio lo es. Casi todo lo que imprime el pipeline son conteos, pero el
+## mensaje de error de un archivo que no se pudo leer puede arrastrar el valor
+## de una celda, y esa celda puede ser una cedula.
+##
+## Con SICMON_LOG_REDACTAR encendido, toda cadena de 7 o mas digitos seguidos se
+## reemplaza antes de imprimir. Tacha tambien alguna fecha compacta dentro de un
+## nombre de archivo (20260815); es un precio menor. En local va apagado y el
+## log sale completo, que es lo que se necesita para depurar.
+LOG_REDACTAR <- env_logico("SICMON_LOG_REDACTAR", FALSE)
+
+redactar <- function(texto) {
+  if (!LOG_REDACTAR) return(texto)
+  gsub("[0-9]{7,}", "[dato omitido]", texto)
+}
+
 ## mensaje con hora en consola y en logs/pipeline_YYYYMMDD.log
+## el archivo guarda el texto integro y la consola la version redactada: el log
+## en disco no sale del runner (ni del equipo), la consola si
 log_msg <- function(texto) {
   linea <- sprintf("[%s] %s", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), texto)
-  cat(linea, "\n")
+  cat(redactar(linea), "\n")
+  ## la carpeta de logs esta fuera de git (lleva cedulas en los mensajes de
+  ## error de la ingestion), asi que en un clon recien hecho no existe y en un
+  ## runner de GitHub Actions tampoco. Sin esto, la primera linea de log de la
+  ## primera corrida tumba el paso entero por "cannot open file"
+  dir.create(CARPETA_LOGS, showWarnings = F, recursive = T)
   archivo <- file.path(CARPETA_LOGS, sprintf("pipeline_%s.log", format(Sys.Date(), "%Y%m%d")))
   cat(linea, "\n", file = archivo, append = T)
 }

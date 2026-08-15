@@ -53,6 +53,16 @@
 
 <main class="contenedor">
 
+  <!-- Aviso de datos simulados. Nace oculto y solo lo muestra tablero_v2.js
+       cuando el volcado viene marcado con simulado = true. La marca viaja
+       dentro de datos_tablero.js, no en una opción de configuración: así no
+       puede quedar diciendo una cosa mientras se muestra otra. -->
+  <div id="aviso-simulado" class="aviso-simulado oculto" role="status">
+    <b>Datos simulados.</b> Este tablero está mostrando una base de prueba con
+    personas y viviendas inventadas. No corresponde a la operación real y no
+    sirve para tomar decisiones ni para reportar cifras.
+  </div>
+
   <div class="cabecera-pagina">
     <p class="etiqueta-superior"><span aria-hidden="true"></span><span>Uso interno · Información sensible</span></p>
     <h1>Afectaciones sísmicas · Santiago de Cali</h1>

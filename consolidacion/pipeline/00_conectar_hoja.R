@@ -29,8 +29,8 @@
 ## configuracion inicial
 rm(list = ls())
 source("config/packages.R")
-source("config/parameters.R")   # CONECTAR_HOJA, URL_HOJA, TOKEN_HOJA, RUTA_TOKEN_HOJA, TABLAS_HOJA, CARPETA_INGESTA
-source("config/functions.R")    # log_msg
+source("config/parameters.R")   # CONECTAR_HOJA, URL_HOJA, TOKEN_HOJA, TABLAS_HOJA, CARPETA_INGESTA
+source("config/functions.R")    # log_msg, token_exportacion
 
 if (!CONECTAR_HOJA) {
   log_msg("hoja: conexion desactivada (CONECTAR_HOJA = FALSE); se omite")
@@ -41,13 +41,7 @@ dir.create(CARPETA_INGESTA, showWarnings = F, recursive = T)
 
 resultado <- tryCatch({
 
-  if (!file.exists(RUTA_TOKEN_HOJA)) {
-    stop(sprintf(paste("no hay token de extraccion en %s.",
-                       "Cree el archivo con la misma cadena de la propiedad TOKEN_EXPORTACION",
-                       "del script de Google (vea el README, seccion \"Conexion a la hoja del Apps Script\")."),
-                 RUTA_TOKEN_HOJA))
-  }
-  token_extraccion <- trimws(readLines(RUTA_TOKEN_HOJA, warn = F)[1])
+  token_extraccion <- token_exportacion()
 
   ##============================================================================##
   ##=== 1. Una peticion al receptor                                          ===##

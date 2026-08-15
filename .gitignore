@@ -44,8 +44,17 @@ modules/tablero/js/datos_tablero.js
 consolidacion/logs/
 *.log
 
+# --- Bibliotecas de R -------------------------------------------------------
+# renv.lock SI entra al repositorio: es el que fija las versiones. Lo que no
+# entra son los paquetes en si, que pesan cientos de MB y son binarios de una
+# plataforma concreta. En GitHub Actions se restauran en .rlib desde el lockfile.
+consolidacion/renv/library/
+consolidacion/renv/staging/
+.rlib/
+
 # --- Sistema ----------------------------------------------------------------
 .DS_Store
 .Rhistory
 .RData
 .Rproj.user/
+consolidacion/.gitignore.orig

@@ -57,6 +57,13 @@
                 teclea el funcionario en «Acceso administrativo» y lo único
                 que abre las tablas completas en el aplicativo de consulta.
                 Cámbiela aquí y cambia para todos, sin tocar el sitio.
+     GITHUB_REPO     Opcional. "cienfi-icesi/SICMON". Con esta y la siguiente,
+                avisarGitHub() dispara la consolidación en GitHub Actions
+                cuando detecta encuestas nuevas o corregidas. Sin ellas, el
+                pipeline sigue corriendo por el cron del workflow.
+     GITHUB_TOKEN    Opcional. Token de GitHub con permiso de escritura de
+                contenidos sobre ese repositorio. Vive solo aquí.
+
      EXIGIR_APELLIDO   Opcional. En "1", la consulta ciudadana pide además el
                 primer apellido y no responde si no coincide. Sirve para que
                 nadie saque registros probando cédulas al azar. Apagada por
@@ -233,7 +240,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.6.1',
+    version: '1.7.0',
     hora_servidor: ahora_()
   });
 }
@@ -253,7 +260,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.1', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.7.0', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
@@ -1277,6 +1284,142 @@ function carpetaRespaldos_() {
 
 
 // ============================================================================
+//  AVISO A GITHUB ACTIONS  (el disparador de la consolidación)
+//
+//  Antes el pipeline corría cada 10 minutos en un Mac de la oficina. Ahora corre
+//  en GitHub Actions, y esta función es la que le dice cuándo:
+//
+//      esta hoja  →  avisarGitHub()  →  repository_dispatch  →  Actions  →  R
+//
+//  POR QUÉ MIRAR ANTES DE AVISAR
+//  Un disparador de tiempo que avise siempre es un cron con pasos extra: la
+//  mayoría de las corridas no tendrían nada que consolidar. Esta función compara
+//  una HUELLA de la hoja contra la de la última vez y solo avisa si cambió.
+//
+//  QUÉ ENTRA EN LA HUELLA, Y POR QUÉ NO LA FECHA DEL ARCHIVO
+//  Van los conteos de las tres tablas de campo más la mayor fecha_actualizacion
+//  del índice. Lo segundo es lo que detecta una encuesta CORREGIDA, donde el
+//  número de filas no cambia.
+//
+//  Lo que NO se puede usar es la fecha de modificación del archivo de Drive: el
+//  pipeline termina cada corrida escribiendo las pestañas c_*, así que esa fecha
+//  cambiaría por culpa de la corrida anterior y cada aviso provocaría el
+//  siguiente, para siempre. Las tablas de campo, en cambio, solo las toca la
+//  aplicación.
+//
+//  PUESTA EN MARCHA
+//  1. Propiedades del script:
+//       GITHUB_REPO    cienfi-icesi/SICMON
+//       GITHUB_TOKEN   token de GitHub con permiso de escritura sobre ese
+//                      repositorio (fine-grained: Contents → Read and write).
+//                      Vive AQUÍ y en ninguna otra parte: no va en este archivo
+//                      ni en el repositorio.
+//  2. Correr instalarAvisoGitHub() una vez desde el editor.
+// ============================================================================
+
+/**
+ * Huella del contenido de campo de la hoja. Dos huellas iguales significan que
+ * no ha llegado ni se ha corregido ninguna encuesta desde la última vez.
+ */
+function huellaDeLaHoja_(ss) {
+  var partes = ['viviendas', 'personas', 'afectaciones'].map(function (nombre) {
+    var hoja = ss.getSheetByName(nombre);
+    return nombre + '=' + (hoja ? Math.max(0, hoja.getLastRow() - 1) : 0);
+  });
+  partes.push('act=' + ultimaActualizacion_(ss));
+  return partes.join('|');
+}
+
+/** La mayor fecha_actualizacion del índice; '' si la pestaña no existe o está vacía. */
+function ultimaActualizacion_(ss) {
+  var hoja = ss.getSheetByName('indice');
+  if (!hoja || hoja.getLastRow() < 2) return '';
+
+  var encabezados = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0]
+    .map(function (v) { return String(v); });
+  var columna = encabezados.indexOf('fecha_actualizacion') + 1;
+  if (columna === 0) return '';
+
+  // Las fechas se guardan como texto ISO (yyyy-MM-ddTHH:mm:ss), así que el
+  // orden alfabético y el cronológico son el mismo y basta comparar cadenas.
+  var valores = hoja.getRange(2, columna, hoja.getLastRow() - 1, 1).getValues();
+  var mayor = '';
+  for (var i = 0; i < valores.length; i++) {
+    var v = aTexto_(valores[i][0]);
+    if (v > mayor) mayor = v;
+  }
+  return mayor;
+}
+
+/**
+ * Revisa si la hoja cambió y, solo entonces, dispara el workflow.
+ * Esta es la función que se pone en el activador de tiempo.
+ */
+function avisarGitHub() {
+  var repo  = propiedad_('GITHUB_REPO', false);
+  var token = propiedad_('GITHUB_TOKEN', false);
+  if (!repo || !token) {
+    Logger.log('Aviso a GitHub no configurado: faltan GITHUB_REPO o GITHUB_TOKEN. ' +
+               'La consolidación sigue corriendo por el cron del workflow.');
+    return;
+  }
+
+  var propiedades = PropertiesService.getScriptProperties();
+  var huella = huellaDeLaHoja_(libro_());
+
+  if (huella === propiedades.getProperty('ULTIMA_HUELLA_HOJA')) {
+    Logger.log('Sin cambios en la hoja (' + huella + '); no se avisa.');
+    return;
+  }
+
+  var respuesta = UrlFetchApp.fetch('https://api.github.com/repos/' + repo + '/dispatches', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    },
+    // El client_payload viaja al registro PÚBLICO del workflow: solo la hora.
+    // Ni la huella, que lleva conteos, ni nada de la hoja.
+    payload: JSON.stringify({
+      event_type: 'hoja_actualizada',
+      client_payload: { hora: ahora_() }
+    }),
+    muteHttpExceptions: true
+  });
+
+  var codigo = respuesta.getResponseCode();
+
+  // 204 es la respuesta correcta de /dispatches: aceptado y sin cuerpo.
+  if (codigo === 204) {
+    // La huella se guarda SOLO si el aviso llegó. Si GitHub estaba caído, la
+    // vieja se queda y el siguiente activador vuelve a intentarlo; si se
+    // guardara antes, ese cambio no se consolidaría hasta el siguiente.
+    propiedades.setProperty('ULTIMA_HUELLA_HOJA', huella);
+    Logger.log('Aviso enviado a ' + repo + ' (' + huella + ').');
+    return;
+  }
+
+  Logger.log('GitHub respondió ' + codigo + ': ' + respuesta.getContentText() +
+             ' — no se guarda la huella; se reintenta en el próximo activador.');
+}
+
+/**
+ * Crea el activador de tiempo de avisarGitHub(). Correr UNA vez desde el editor.
+ * Borra primero el que hubiera, para no terminar con tres activadores llamando
+ * a lo mismo si alguien la corre dos veces.
+ */
+function instalarAvisoGitHub() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'avisarGitHub') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('avisarGitHub').timeBased().everyMinutes(10).create();
+  Logger.log('Activador instalado: avisarGitHub cada 10 minutos.');
+}
+
+
+// ============================================================================
 //  PRUEBAS QUE SE PUEDEN CORRER DESDE EL EDITOR
 // ============================================================================
 
@@ -1286,11 +1429,26 @@ function probarConfiguracion() {
   var pestanas = ss.getSheets().map(function (h) { return h.getName(); });
   var tieneToken = !!propiedad_('TOKEN', false);
   var tieneExport = !!propiedad_('TOKEN_EXPORTACION', false);
+  var tieneLectura = !!propiedad_('TOKEN_LECTURA', false);
   Logger.log('Hoja encontrada: ' + ss.getName());
   Logger.log('Pestañas actuales: ' + (pestanas.join(', ') || '(ninguna)'));
   Logger.log('TOKEN configurado: ' + (tieneToken ? 'sí' : 'NO — falta crearlo'));
   Logger.log('TOKEN_EXPORTACION configurado: ' + (tieneExport ? 'sí' : 'no — la extracción está deshabilitada'));
+  Logger.log('TOKEN_LECTURA configurado: ' + (tieneLectura ? 'sí' : 'NO — el acceso del equipo a la consulta está cerrado para todos'));
+  Logger.log('Aviso a GitHub: ' + (propiedad_('GITHUB_REPO', false) && propiedad_('GITHUB_TOKEN', false)
+             ? 'configurado (' + propiedad_('GITHUB_REPO', false) + ')'
+             : 'no configurado — la consolidación depende solo del cron'));
   Logger.log('Carpeta de respaldos: ' + (carpetaRespaldos_() ? 'encontrada' : 'no encontrada'));
+}
+
+/**
+ * Prueba el aviso a GitHub SIN mirar la huella: borra la guardada y llama a
+ * avisarGitHub(), de modo que el aviso salga aunque la hoja no haya cambiado.
+ * Sirve para confirmar que el token y el nombre del repositorio están bien.
+ */
+function probarAvisoGitHub() {
+  PropertiesService.getScriptProperties().deleteProperty('ULTIMA_HUELLA_HOJA');
+  avisarGitHub();
 }
 
 /**

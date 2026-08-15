@@ -1,3 +1,0 @@
-source("config/packages.R")
-source("config/parameters.R")
-googledrive::drive_auth(cache = CARPETA_CACHE_DRIVE, email = TRUE)

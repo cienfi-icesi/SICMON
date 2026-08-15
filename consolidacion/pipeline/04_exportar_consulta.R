@@ -165,6 +165,7 @@ diccionario <- fread("synthetic/insumos/diccionario_variables.csv", encoding = "
 ##============================================================================##
 
 datos <- list(actualizado  = actualizado,
+              simulado     = MODO_SIMULADO,
               personas     = personas,
               familias     = familias,
               viviendas    = viviendas,

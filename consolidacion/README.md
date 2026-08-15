@@ -108,12 +108,48 @@ intacto (se salta por hash), registro modificado (queda en `record_history`),
 registro nuevo, y un match que se vuelve ambiguo. Una tercera corrida sin
 archivos nuevos no debe producir ningún cambio.
 
-## 4. Actualización automática (cada 10 minutos)
+## 3.b Pruebas
+
+```bash
+Rscript tests/correr_pruebas.R          # las que no necesitan red
+Rscript tests/correr_pruebas.R --red    # además las que hablan con Google
+```
+
+Nueve grupos, uno por cada cosa que puede romperse sin avisar: la conexión con
+la hoja, la extracción de registros nuevos, la ausencia de duplicados, la
+corrida completa, la persistencia del estado, lo que recibe `app_consulta`, lo
+que NO recibe quien no está autorizado, que no haya quedado nada sensible en
+git, y que todo pueda correr sin que nadie teclee nada.
+
+Ninguna escribe en la base oficial ni publica en la hoja: las que tocan el
+pipeline lo corren contra una base temporal con los canales de Google apagados.
+Las de red solo leen, y se saltan solas si no hay token en la máquina.
+
+## 4. Actualización automática
+
+Hoy corre en **GitHub Actions**, disparada por el Apps Script cuando llegan
+encuestas nuevas, con un cron de respaldo cada 30 minutos en horario laboral.
+Está explicada entera en [../README/07_automatizacion.md](../README/07_automatizacion.md):
+los tres disparadores, cómo sobrevive la SQLite a un runner efímero, qué
+secrets hay que configurar y por qué el canal de Drive va apagado en la nube.
+
+Para regenerar `renv.lock` después de agregar un paquete a `config/packages.R`,
+vea la sección 13.
+
+### La alternativa local (launchd, macOS)
+
+Sigue sirviendo para correrlo en un equipo del equipo, y es lo que se usaba
+antes de Actions:
 
 ```bash
 cp scheduler/com.cienfi.sicmon-consolidacion.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.cienfi.sicmon-consolidacion.plist
 ```
+
+> El `.plist` trae la ruta de una máquina concreta en `WorkingDirectory`. Hay
+> que cambiarla. Y **no conviene tener las dos cosas corriendo a la vez**: el
+> lockfile evita que se solapen en un mismo disco, pero no sabe nada de la
+> corrida que va en la nube, y las dos escribirían las mismas pestañas `c_*`.
 
 `run_pipeline.R` usa un lockfile para no solapar corridas; un lock huérfano
 (más de `LOCK_MAX_MIN` minutos) se elimina solo. Cada corrida queda registrada
@@ -390,6 +426,46 @@ queda en `edan_comparison/output/` (Excel + resumen en Markdown).
   `.secrets/token_exportacion.txt` no coincide con la de la propiedad
   `TOKEN_EXPORTACION`.
 
+## 13. Reproducibilidad (`renv.lock`)
+
+`renv.lock` fija las versiones de los 79 paquetes que usa el pipeline, para que
+una actualización de CRAN no lo rompa una mañana cualquiera. En GitHub Actions
+se restauran con `renv::restore()` en una biblioteca propia; en local no cambia
+nada, porque el archivo solo se lee cuando alguien lo pide.
+
+Después de agregar un paquete a `config/packages.R`, regenérelo desde esta
+carpeta con las versiones que tenga instaladas:
+
+```r
+paquetes <- c("dplyr","tidyr","rio","data.table","DBI","RSQLite","digest",
+              "jsonlite","stringi","stringdist","googledrive","httr",
+              "readxl","writexl","openxlsx","tibble","testthat")
+instalados <- installed.packages()
+base_r <- rownames(instalados)[!is.na(instalados[,"Priority"]) &
+                               instalados[,"Priority"] == "base"]
+todos <- setdiff(sort(unique(c(paquetes,
+           unlist(tools::package_dependencies(paquetes, db = instalados,
+                    recursive = TRUE,
+                    which = c("Depends","Imports","LinkingTo")))))), base_r)
+lock <- list(
+  R = list(Version = paste(R.version$major, R.version$minor, sep = "."),
+           Repositories = list(list(Name = "CRAN", URL = "https://cloud.r-project.org"))),
+  Packages = setNames(lapply(todos, function(p)
+    list(Package = p, Version = as.character(packageVersion(p)),
+         Source = "Repository", Repository = "CRAN")), todos))
+write(jsonlite::toJSON(lock, auto_unbox = TRUE, pretty = 2), "renv.lock")
+```
+
+Se escribe a mano y no con `renv::snapshot()` a propósito: snapshot anota el
+origen real de cada paquete, y basta tener uno instalado desde GitHub para que
+el lockfile quede apuntando a GitHub. La primera versión de este archivo tenía
+`testthat` así, y en un runner limpio habría intentado compilarlo desde el
+repositorio de r-lib. Aquí todo sale de CRAN, que es lo que se quiere.
+
+`readxl`, `writexl` y `openxlsx` están en la lista aunque el pipeline no los
+cargue: son los motores con los que `rio` lee y escribe `.xlsx`. Sin ellos, la
+ingestión de los Excel de Drive falla en un entorno recién montado.
+
 ## 12. Pendientes
 
 - Autorizar Google Drive en la máquina donde corra `run_pipeline.R` de forma
@@ -400,10 +476,30 @@ queda en `edan_comparison/output/` (Excel + resumen en Markdown).
   tanto sigue funcionando el canal de Drive, con la descarga manual de por
   medio. Decidir después si el de Drive se apaga (`CONECTAR_DRIVE = FALSE`)
   o se deja como respaldo.
-- Definir la máquina donde correrá el pipeline de forma permanente.
 - Matching de la base histórica contra las viviendas del formulario, por
   dirección normalizada (la base histórica no tiene cédulas).
 - Tableros de análisis (Gabriela): leerán directamente de
   `base_oficial.sqlite`; el portal ya tiene el punto de integración
   (`CONFIG.tablero` en `mockup_sismo`).
-- Autenticación del aplicativo de consulta antes de cualquier publicación.
+
+### Urgente, y en manos del equipo (agosto de 2026)
+
+Ninguno de estos se arregla escribiendo código: son pasos manuales en Google o
+en GitHub. Están explicados en [../README/07_automatizacion.md](../README/07_automatizacion.md).
+
+1. **Publicar una versión nueva del Apps Script.** La implementación que
+   responde hoy es la 1.6.0 y deja abierta la lectura de las tablas
+   consolidadas: `consulta_completa` contesta `ok` a una contraseña inventada.
+   El `Codigo.gs` del repositorio ya trae la corrección, pero pegar el código no
+   basta. Mientras no se publique, `06_publicar_hoja.R` **se niega a subir
+   datos** y lo dice en el log.
+2. **Crear la propiedad `TOKEN_LECTURA`** en el script, que es la contraseña del
+   equipo. Sin ella, la puerta queda cerrada para todos.
+3. **Rotar `TOKEN_EXPORTACION`.** El anterior estuvo versionado en un
+   repositorio público (`consolidacion/.secrets/token_exportacion.txt`, commit
+   `9f7fad8`) y hay que darlo por conocido. Después, `tools/purgar_historial.sh`
+   limpia el historial.
+4. **Sacar del `config.js` del módulo EDAN** los nombres, las cédulas y las
+   contraseñas de los diligenciadores. Está versionado y es público, y ahí la
+   contraseña de cada persona *es* su cédula.
+5. Crear el repositorio privado de estado y los cuatro secrets del workflow.
