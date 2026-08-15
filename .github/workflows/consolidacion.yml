@@ -33,10 +33,23 @@ on:
     types: [hoja_actualizada]
 
   # (2) Respaldo por reloj, por si el disparador de Google falla o se
-  #     desactiva. Cada 30 minutos, de lunes a viernes, 12:00–23:00 UTC =
-  #     07:00–18:00 en Bogotá (UTC-5, sin horario de verano).
+  #     desactiva. Cada 10 minutos, todos los días, a toda hora.
+  #
+  #     POR QUÉ NO SE LIMITA AL HORARIO LABORAL
+  #     Antes era de lunes a viernes, 07:00–18:00 de Bogotá. Un sismo no espera
+  #     al lunes: con esa ventana, una brigada que sale un sábado veía la
+  #     consulta congelada hasta el lunes por la mañana, sin que nada avisara.
+  #     Los repositorios públicos no consumen minutos de Actions, así que
+  #     restringir la ventana no ahorraba nada y sí dejaba un hueco de 62 horas
+  #     cada fin de semana.
+  #
+  #     OJO CON LA PUNTUALIDAD: GitHub no garantiza la hora de un `schedule`.
+  #     En horas de carga alta los encola y se saltan corridas; diez minutos
+  #     pedidos pueden ser veinte reales. Quien da la actualización rápida es el
+  #     repository_dispatch de arriba, que llega en segundos. Este cron es la
+  #     red de seguridad, no el mecanismo principal.
   schedule:
-    - cron: '*/30 12-23 * * 1-5'
+    - cron: '*/10 * * * *'
 
   # (3) A mano, desde la pestaña Actions. Para una corrida fuera de horario,
   #     para probar un cambio sin esperar al cron y —importante— para reactivar
