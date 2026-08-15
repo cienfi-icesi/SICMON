@@ -105,7 +105,8 @@ CREATE TABLE IF NOT EXISTS viviendas (
   placa_inmueble       TEXT,
   tipo_inmueble        TEXT,
   direccion_completa   TEXT,
-  direccion_norm       TEXT,
+  direccion_norm       TEXT,     -- llave del EDIFICIO (via, numero, placa)
+  unidad_norm          TEXT,     -- llave de la UNIDAD (apartamento, casa, torre)
   latitud              REAL,
   longitud             REAL,
   ubicacion_confirmada TEXT,
@@ -123,14 +124,19 @@ CREATE INDEX IF NOT EXISTS idx_viv_hogar     ON viviendas (id_hogar);
 CREATE INDEX IF NOT EXISTS idx_viv_cc        ON viviendas (prop_cc_norm);
 CREATE INDEX IF NOT EXISTS idx_viv_cc_inf    ON viviendas (inf_cc_norm);
 CREATE INDEX IF NOT EXISTS idx_viv_direccion ON viviendas (direccion_norm);
+CREATE INDEX IF NOT EXISTS idx_viv_unidad    ON viviendas (direccion_norm, unidad_norm);
 
 -- Una fila por reporte de afectacion (grano: EVENTO / edificacion atendida).
 -- OJO: grano distinto al de viviendas y familias. Este formulario lo diligencia
 -- un organismo de socorro sobre una edificacion completa (colapsos, personas
 -- atrapadas, cantidad de viviendas afectadas), no sobre un hogar. No trae
--- cedula ni id_hogar, asi que NO se enlaza con las otras tablas: entra como
--- entidad independiente. La direccion normalizada queda disponible por si mas
--- adelante se decide cruzarla con viviendas.
+-- cedula ni id_hogar, de modo que no puede enlazarse de forma dura con las
+-- otras tablas: sigue siendo una entidad independiente y su id_encuesta NO
+-- entra en familias.id_encuesta_vivienda.
+-- Lo unico que comparte con viviendas es direccion_norm, y por ahi se produce
+-- un cruce SUGERIDO (tabla cruce_direccion, 03_matching.R), que es 1:N porque
+-- un reporte cubre el edificio entero y bajo esa direccion puede haber varios
+-- hogares del EDAN.
 CREATE TABLE IF NOT EXISTS afectaciones (
   id_encuesta          TEXT PRIMARY KEY,
   consecutivo_id       TEXT,     -- consecutivo del CMGRD, si fue asignado
@@ -262,10 +268,29 @@ CREATE TABLE IF NOT EXISTS matches (
   timestamp            TEXT NOT NULL
 );
 
+-- cruce SUGERIDO entre el reporte de afectacion y las edificaciones del EDAN
+-- que comparten direccion. No es un enlace duro y no reemplaza al matching de
+-- familias: un mismo reporte puede apuntar a varias edificaciones (el reporte
+-- es del edificio, el EDAN es por hogar), por eso la llave es la pareja y se
+-- guarda n_viviendas para que quien revise sepa cuantas comparten direccion.
+-- Se recalcula en cada corrida; 'estado' sobrevive al recalculo para que una
+-- revision manual no se pierda.
+CREATE TABLE IF NOT EXISTS cruce_direccion (
+  id_encuesta_afectacion TEXT NOT NULL,
+  id_encuesta_vivienda   TEXT NOT NULL,
+  direccion_norm         TEXT,
+  confianza              REAL,
+  n_viviendas            INTEGER,         -- edificaciones EDAN en esa direccion
+  estado                 TEXT DEFAULT 'sugerido',  -- sugerido / confirmado / descartado
+  run_id                 INTEGER,
+  timestamp              TEXT NOT NULL,
+  PRIMARY KEY (id_encuesta_afectacion, id_encuesta_vivienda)
+);
+
 -- bitacora de duplicados detectados (el estado vigente vive en cada tabla)
 CREATE TABLE IF NOT EXISTS duplicados (
   dup_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-  tabla       TEXT NOT NULL,              -- viviendas / familias / personas
+  tabla       TEXT NOT NULL,              -- viviendas / afectaciones / familias / personas
   id_registro TEXT NOT NULL,
   id_canonico TEXT NOT NULL,
   criterio    TEXT NOT NULL,              -- documento / direccion / id_hogar / cedula_propietario

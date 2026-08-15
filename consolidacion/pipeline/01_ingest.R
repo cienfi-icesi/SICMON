@@ -68,11 +68,27 @@ upsert_registro <- function(tabla, llave, fila, campos_historial) {
       fila$fecha_actualizacion < actual$fecha_actualizacion) {
     return("sin_cambio")
   }
-  cambios <- campos_historial[sapply(campos_historial, function(cc) {
-               !identical(as.character(actual[[cc]]), as.character(fila[[cc]]))
+  ## se compara TODA la fila para decidir si hay que escribir, pero solo se
+  ## registran en el historial los campos de campos_historial. Antes se
+  ## comparaban unicamente esos: una columna derivada nueva (unidad_norm) daba
+  ## "sin_cambio" y se quedaba en NULL para siempre en los registros ya
+  ## cargados, porque el dato de origen no habia cambiado.
+  ##
+  ## Las columnas REAL/INTEGER se comparan como numero y no como texto: el CSV
+  ## trae la latitud "3.358000" y SQLite la devuelve 3.358, de modo que la
+  ## comparacion de texto daba siempre distinto. Cada corrida que tocara el
+  ## archivo marcaba el registro como actualizado y escribia una fila falsa en
+  ## record_history (las 8 primeras filas de esa tabla fueron todas de eso).
+  cambios <- names(fila)[sapply(names(fila), function(cc) {
+               viejo <- actual[[cc]]
+               nuevo <- fila[[cc]]
+               if (is.numeric(viejo)) {
+                 return(!isTRUE(all.equal(viejo, suppressWarnings(as.numeric(nuevo)))))
+               }
+               !identical(as.character(viejo), as.character(nuevo))
              })]
   if (length(cambios) == 0) return("sin_cambio")
-  for (cc in cambios) {
+  for (cc in intersect(cambios, campos_historial)) {
     dbExecute(con, "INSERT INTO record_history (tabla, id_registro, campo, valor_anterior, valor_nuevo, run_id, timestamp)
                     VALUES (?, ?, ?, ?, ?, ?, ?)",
               params = list(tabla, fila[[llave]], cc, as.character(actual[[cc]]),
@@ -200,6 +216,9 @@ for (i in seq_len(nrow(pendientes))) {
                                                              columna(datos, "sufijo_via"),
                                                              columna(datos, "numero_generador"),
                                                              columna(datos, "placa_inmueble")),
+                      unidad_norm          = llave_unidad(columna(datos, "tipo_unidad"),
+                                                          columna(datos, "numero_unidad"),
+                                                          columna(datos, "torre_bloque")),
                       latitud              = columna(datos, "latitud"),
                       longitud             = columna(datos, "longitud"),
                       ubicacion_confirmada = columna(datos, "ubicacion_confirmada"),

@@ -15,6 +15,17 @@
       por ahí por donde el pipeline de consolidación (consolidacion/, en R)
       se lleva los datos cada 10 minutos, sin que nadie descargue ni suba
       archivos a mano. Ver la sección EXTRACCIÓN, más abajo.
+   3. GUARDA Y SIRVE el resultado consolidado que devuelve ese pipeline, que
+      es lo que consulta el ciudadano por su cédula y lo que ve el equipo
+      cuando entra con su contraseña. Ver la sección RESULTADO CONSOLIDADO.
+
+   POR QUÉ ESTO ES EL CENTRO DEL SISTEMA
+   -------------------------------------
+   Los datos personales no viven en el repositorio: viven aquí. El sitio
+   publicado en GitHub Pages solo lleva HTML, CSS y JavaScript, y le pide a
+   esta dirección lo que necesita mostrar. Por eso actualizar la consulta no
+   requiere ningún commit —antes sí, y por eso la consulta se quedaba vieja
+   cada vez que a alguien se le olvidaba subir el archivo—.
 
    CÓMO EVITA PERDER O DEFORMAR DATOS
    ----------------------------------
@@ -38,9 +49,18 @@
      SHEET_ID   Identificador de la hoja de cálculo (obligatorio).
      TOKEN      Cadena larga inventada por el equipo (obligatorio).
      TOKEN_EXPORTACION   Otra cadena larga, DISTINTA de la anterior. Habilita
-                la extracción de las tablas. Sin ella, esa parte simplemente
-                no funciona. Vive solo en la máquina donde corre el pipeline;
-                no va en config-sync.js ni en ningún archivo del sitio.
+                la extracción de las tablas y la publicación del resultado
+                consolidado. Sin ella, esa parte simplemente no funciona. Vive
+                solo en la máquina donde corre el pipeline; no va en
+                config-sync.js ni en ningún archivo del sitio.
+     TOKEN_LECTURA   La contraseña del equipo a cargo de la base. Es lo que
+                teclea el funcionario en «Acceso administrativo» y lo único
+                que abre las tablas completas en el aplicativo de consulta.
+                Cámbiela aquí y cambia para todos, sin tocar el sitio.
+     EXIGIR_APELLIDO   Opcional. En "1", la consulta ciudadana pide además el
+                primer apellido y no responde si no coincide. Sirve para que
+                nadie saque registros probando cédulas al azar. Apagada por
+                omisión.
      CARPETA_RESPALDOS_ID   Opcional. Si no se define, el script busca solo
                 una carpeta llamada "respaldos" junto a la carpeta que
                 contiene la hoja.
@@ -76,6 +96,29 @@ var COLUMNAS_RESPALDO = ['id_encuesta', 'usuario', 'tipo_formulario', 'fecha_act
 // es operativa y la segunda guarda el JSON íntegro, que pesa muchísimo y no le
 // sirve a nadie fuera de la aplicación.
 var TABLAS_PERMITIDAS = ['viviendas', 'afectaciones', 'personas_hogares', 'personas', 'indice', 'diccionario'];
+
+/* Pestañas del RESULTADO CONSOLIDADO. Las escribe el pipeline al final de cada
+   corrida y son las que alimentan el aplicativo de consulta.
+
+   POR QUÉ EXISTEN, SI YA ESTÁN LAS TABLAS CRUDAS
+   Las de arriba son lo que llega del campo, tal cual, con duplicados y sin
+   enlazar. Estas son el resultado de la consolidación en R: duplicados
+   marcados, hogares emparejados con su edificación y las respuestas completas
+   de cada formulario. La consulta necesita esto, no lo crudo.
+
+   POR QUÉ NO VIAJAN EN EL REPOSITORIO
+   Antes el pipeline escribía un archivo js/datos.js dentro del repositorio y
+   había que hacer commit para que el sitio publicado se enterara. Eso ponía
+   cédulas, direcciones y estado de salud en un repositorio público y, peor,
+   dejaba la actualización a que alguien se acordara de subirla. Ahora el dato
+   se queda aquí y el sitio lo pide por fetch: el repositorio no lleva ni un
+   registro personal. */
+var TABLAS_CONSOLIDADAS = ['c_personas', 'c_hogares', 'c_edificaciones', 'c_afectaciones',
+                           'c_fichas', 'c_diccionario', 'c_revisar', 'c_duplicados'];
+
+// Marca de tiempo de la última publicación del pipeline. Es lo que el
+// aplicativo muestra como «actualizado el …».
+var HOJA_CONSOLIDADO_META = 'c_meta';
 
 // Cuántas filas devuelve la extracción de una vez. La hoja de viviendas tiene
 // 221 columnas, así que pedir "todo" en una sola respuesta se vuelve pesado
@@ -165,7 +208,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.5.0',
+    version: '1.6.0',
     hora_servidor: ahora_()
   });
 }
@@ -185,7 +228,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.5.0', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.0', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
@@ -209,6 +252,41 @@ function doPost(e) {
     if (payload.accion === 'exportar_tabla') {
       verificarTokenExportacion_(payload);
       return salida_(exportarTabla_(libro_(), payload));
+    }
+
+    /* --- Resultado consolidado: lo que alimenta el aplicativo de consulta --- */
+    if (payload.accion === 'consultar_cedula') {
+      // A propósito SIN token de lectura: el ciudadano no tiene credenciales.
+      // Lo que protege esta puerta es lo poco que devuelve —un registro, el de
+      // la cédula exacta que preguntó—, no un candado. Ver la nota sobre
+      // enumeración en la cabecera de consultarCedula_.
+      return salida_(consultarCedula_(libro_(), payload));
+    }
+    if (payload.accion === 'consulta_completa') {
+      verificarTokenLectura_(payload);
+      return salida_(consultaCompleta_(libro_(), payload));
+    }
+    if (payload.accion === 'publicar_consolidado') {
+      verificarTokenExportacion_(payload);
+      // Se serializa como las escrituras de encuestas: dos corridas del
+      // pipeline solapadas dejarían la pestaña a medio reemplazar.
+      var lockPub = LockService.getScriptLock();
+      try {
+        lockPub.waitLock(45000);
+      } catch (err) {
+        return salida_({ ok: false, error: 'ocupado', reintentar: true });
+      }
+      try {
+        return salida_(publicarConsolidado_(libro_(), payload));
+      } finally {
+        lockPub.releaseLock();
+      }
+    }
+    if (payload.accion === 'marcar_consolidado') {
+      verificarTokenExportacion_(payload);
+      return salida_({ ok: true,
+                       actualizado: marcaConsolidado_(libro_(), String(payload.actualizado || ahora_())),
+                       hora_servidor: ahora_() });
     }
 
     if (payload.accion === 'guardar_encuesta') {
@@ -691,6 +769,264 @@ function exportarTabla_(ss, payload) {
 
 
 // ============================================================================
+//  RESULTADO CONSOLIDADO: PUBLICACIÓN Y CONSULTA
+//
+//  Tres puertas, con tres candados distintos:
+//
+//    publicar_consolidado   la escribe el pipeline al final de cada corrida.
+//                           TOKEN_EXPORTACION (el más estricto).
+//    consultar_cedula       la usa el ciudadano, sin credenciales. Devuelve UN
+//                           registro: el de la cédula que preguntó, su hogar y
+//                           su edificación. No lista, no pagina, no busca por
+//                           dirección ni por nombre. TOKEN general.
+//    consulta_completa      la usa el equipo. Devuelve las tablas enteras.
+//                           TOKEN_LECTURA, que es la contraseña que el
+//                           funcionario teclea al entrar y que NO está escrita
+//                           en ningún archivo del sitio.
+//
+//  POR QUÉ LA CONSULTA CIUDADANA NO DEVUELVE AFECTACIONES
+//  El formulario de afectaciones lo diligencia un organismo de socorro sobre
+//  una edificación completa y no registra la cédula de nadie. No hay forma de
+//  saber que un reporte «es» de quien pregunta, así que no se devuelve: sería
+//  entregarle a cualquiera el estado estructural de un edificio con solo
+//  acertar una cédula.
+// ============================================================================
+
+/**
+ * Lee una pestaña consolidada completa como lista de objetos.
+ *
+ * Lee de una vez y filtra en memoria en lugar de usar TextFinder por columna.
+ * Con el volumen de esta operación —miles de registros, no millones— una
+ * lectura de rango es más rápida que varias búsquedas, y sobre todo es una
+ * sola llamada al servicio de hojas, que es lo que de verdad cuesta tiempo.
+ */
+function leerConsolidada_(ss, nombre) {
+  var hoja = ss.getSheetByName(nombre);
+  if (!hoja || hoja.getLastRow() < 2) return [];
+
+  var valores = hoja.getRange(1, 1, hoja.getLastRow(), hoja.getLastColumn()).getValues();
+  var encabezados = valores[0].map(function (v) { return aTexto_(v); });
+
+  return valores.slice(1).map(function (fila) {
+    var obj = {};
+    for (var i = 0; i < encabezados.length; i++) {
+      if (encabezados[i]) obj[encabezados[i]] = aTexto_(fila[i]);
+    }
+    return obj;
+  });
+}
+
+/**
+ * Reemplaza una pestaña consolidada con lo que manda el pipeline.
+ *
+ * payload = { accion: 'publicar_consolidado', token, token_exportacion,
+ *             tabla: 'c_personas', encabezados: [...], filas: [[...], ...],
+ *             reemplazar: true }
+ *
+ * El pipeline manda la tabla por páginas: la primera con reemplazar=true, que
+ * borra lo que hubiera; las siguientes con reemplazar=false, que anexan. Así
+ * una tabla grande no se pasa del tiempo máximo de ejecución.
+ *
+ * Las filas van como listas en el orden de los encabezados, no como objetos,
+ * por la misma razón que en la extracción: repetir el nombre del campo en cada
+ * fila multiplica el tamaño del envío sin agregar nada.
+ */
+function publicarConsolidado_(ss, payload) {
+  var nombre = String(payload.tabla || '');
+  if (TABLAS_CONSOLIDADAS.indexOf(nombre) === -1) {
+    throw new Error('tabla_no_permitida: ' + nombre);
+  }
+
+  var encabezados = payload.encabezados || [];
+  var filas = payload.filas || [];
+  var hoja = obtenerHoja_(ss, nombre);
+
+  if (payload.reemplazar) {
+    hoja.clear();
+    if (encabezados.length) {
+      hoja.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
+      formatearHoja_(hoja, encabezados.length);
+    }
+  }
+
+  if (filas.length && encabezados.length) {
+    var matriz = filas.map(function (fila) {
+      var salida = [];
+      for (var i = 0; i < encabezados.length; i++) salida.push(aTexto_(fila[i]));
+      return salida;
+    });
+    var inicio = Math.max(2, hoja.getLastRow() + 1);
+    var rango = hoja.getRange(inicio, 1, matriz.length, encabezados.length);
+    rango.setNumberFormat('@');   // texto plano: las cédulas no son números
+    rango.setValues(matriz);
+  }
+
+  return {
+    ok: true,
+    tabla: nombre,
+    escritas: filas.length,
+    total_filas: Math.max(0, hoja.getLastRow() - 1),
+    hora_servidor: ahora_()
+  };
+}
+
+/** Momento de la última publicación del pipeline. */
+function marcaConsolidado_(ss, valor) {
+  var hoja = obtenerHoja_(ss, HOJA_CONSOLIDADO_META);
+  if (valor) {
+    hoja.clear();
+    hoja.getRange(1, 1, 2, 1).setValues([['actualizado'], [valor]]);
+    return valor;
+  }
+  if (hoja.getLastRow() < 2) return '';
+  return aTexto_(hoja.getRange(2, 1).getValue());
+}
+
+/**
+ * La consulta del ciudadano: una cédula, su hogar y su edificación.
+ *
+ * payload = { accion: 'consultar_cedula', token, cedula: '1000001',
+ *             apellido: 'Rincón' }        <- solo si EXIGIR_APELLIDO está activa
+ *
+ * Devuelve exactamente la misma forma que consumía el aplicativo cuando leía
+ * datos.js, pero recortada a lo de esta persona. Así el código de pantalla
+ * quedó igual: lo único que cambió es de dónde salen los datos.
+ *
+ * SOBRE LA ENUMERACIÓN DE CÉDULAS
+ * Esta puerta no tiene candado, porque el ciudadano no tiene credenciales. Con
+ * la cédula como único dato, alguien puede ir probando números y sacar
+ * registros de uno en uno. No hay forma de evitarlo del todo sin pedirle algo
+ * más a quien consulta.
+ *
+ * Por eso existe la propiedad del script EXIGIR_APELLIDO: puesta en "1", la
+ * consulta exige además el primer apellido y solo responde si coincide con el
+ * del registro. Eso corta la enumeración casi por completo, a cambio de un
+ * campo más en el formulario. Viene APAGADA: la decisión de exigirlo es de la
+ * Alcaldía, no del código, y prenderla no requiere tocar el sitio publicado
+ * —solo crear la propiedad y volver a implementar—.
+ */
+function consultarCedula_(ss, payload) {
+  var cedula = String(payload.cedula || '').replace(/[^0-9]/g, '').replace(/^0+/, '');
+  if (!cedula) throw new Error('cedula_vacia');
+
+  var personas = leerConsolidada_(ss, 'c_personas');
+  var propias = personas.filter(function (p) { return p.documento === cedula; });
+
+  if (propias.length && propiedad_('EXIGIR_APELLIDO', false) === '1') {
+    var pedido = normalizarParaCotejo_(payload.apellido);
+    if (!pedido) throw new Error('apellido_requerido');
+    propias = propias.filter(function (p) {
+      // el nombre viene como "NOMBRES APELLIDOS": basta con que el apellido
+      // que teclearon aparezca entre sus palabras
+      return normalizarParaCotejo_(p.nombre).split(' ').indexOf(pedido) !== -1;
+    });
+  }
+
+  if (!propias.length) {
+    return { ok: true, encontrado: false, actualizado: marcaConsolidado_(ss),
+             hora_servidor: ahora_() };
+  }
+
+  // el hogar completo: las demás personas de la misma encuesta
+  var encuestas = {};
+  propias.forEach(function (p) { encuestas[p.id_encuesta] = true; });
+  var delHogar = personas.filter(function (p) { return encuestas[p.id_encuesta]; });
+
+  var hogares = leerConsolidada_(ss, 'c_hogares')
+    .filter(function (f) { return encuestas[f.id_encuesta]; });
+
+  var edificios = {};
+  hogares.forEach(function (f) {
+    if (f.id_encuesta_vivienda) edificios[f.id_encuesta_vivienda] = true;
+  });
+  var edificaciones = leerConsolidada_(ss, 'c_edificaciones')
+    .filter(function (v) { return edificios[v.id_encuesta]; });
+
+  // fichas: solo las de los registros que se devuelven
+  var quiere = {};
+  delHogar.forEach(function (p) { quiere[p.id_persona] = true; });
+  edificaciones.forEach(function (v) { quiere[v.id_encuesta] = true; });
+
+  var fichas = {};
+  leerConsolidada_(ss, 'c_fichas').forEach(function (f) {
+    if (!quiere[f.id_registro]) return;
+    try {
+      fichas[f.id_registro] = JSON.parse(f.contenido);
+    } catch (err) {
+      // una ficha ilegible no puede tumbar la consulta entera
+    }
+  });
+
+  return {
+    ok: true,
+    encontrado: true,
+    actualizado: marcaConsolidado_(ss),
+    personas: delHogar,
+    familias: hogares,
+    viviendas: edificaciones,
+    fichas: fichas,
+    diccionario: leerConsolidada_(ss, 'c_diccionario'),
+    hora_servidor: ahora_()
+  };
+}
+
+/**
+ * La consulta del equipo: una tabla consolidada completa, por páginas.
+ *
+ * payload = { accion: 'consulta_completa', token, token_lectura,
+ *             tabla: 'c_personas', desde: 1, limite: 2000 }
+ *
+ * Va por páginas y en formato comprimido (encabezados aparte, filas como
+ * listas) por lo mismo que la extracción: la respuesta de una tabla entera con
+ * miles de registros no cabe de una sola vez.
+ */
+function consultaCompleta_(ss, payload) {
+  var nombre = String(payload.tabla || '');
+  if (TABLAS_CONSOLIDADAS.indexOf(nombre) === -1) {
+    throw new Error('tabla_no_permitida: ' + nombre);
+  }
+
+  var hoja = ss.getSheetByName(nombre);
+  if (!hoja || hoja.getLastRow() < 1) {
+    return { ok: true, tabla: nombre, encabezados: [], filas: [], desde: 1,
+             devueltas: 0, total_filas: 0, hay_mas: false,
+             actualizado: marcaConsolidado_(ss), hora_servidor: ahora_() };
+  }
+
+  var columnas = hoja.getLastColumn();
+  var encabezados = hoja.getRange(1, 1, 1, columnas).getValues()[0]
+    .map(function (v) { return aTexto_(v); });
+  var total = Math.max(0, hoja.getLastRow() - 1);
+
+  var desde = Math.max(1, Number(payload.desde) || 1);
+  var limite = Number(payload.limite) || FILAS_POR_PAGINA;
+  limite = Math.min(Math.max(1, limite), FILAS_POR_PAGINA_MAX);
+
+  var filas = [];
+  if (desde <= total) {
+    var cuantas = Math.min(limite, total - desde + 1);
+    filas = hoja.getRange(desde + 1, 1, cuantas, columnas).getValues()
+      .map(function (fila) {
+        return fila.map(function (celda) { return aTexto_(celda); });
+      });
+  }
+
+  return {
+    ok: true,
+    tabla: nombre,
+    encabezados: encabezados,
+    filas: filas,
+    desde: desde,
+    devueltas: filas.length,
+    total_filas: total,
+    hay_mas: (desde + filas.length - 1) < total,
+    actualizado: marcaConsolidado_(ss),
+    hora_servidor: ahora_()
+  };
+}
+
+
+// ============================================================================
 //  MANEJO DE HOJAS
 // ============================================================================
 
@@ -797,6 +1133,17 @@ function aTexto_(valor) {
   if (valor === undefined || valor === null) return '';
   if (valor instanceof Date) return Utilities.formatDate(valor, ZONA_HORARIA, 'yyyy-MM-dd HH:mm:ss');
   return String(valor);
+}
+
+/**
+ * Texto comparable: mayúsculas, sin tildes y sin signos. Se usa para cotejar
+ * el apellido que teclea el ciudadano contra el que quedó en la base, donde
+ * «RINCON», «Rincón» y «rincon» tienen que valer lo mismo.
+ */
+function normalizarParaCotejo_(texto) {
+  return String(texto || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/ +/g, ' ').trim();
 }
 
 

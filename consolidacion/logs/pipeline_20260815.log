@@ -462,3 +462,53 @@
 [2026-08-15 12:48:41] consulta: 1 personas, 1 hogares, 1 edificaciones, 1 afectaciones, 3 fichas -> ../modules/consulta 
 [2026-08-15 12:48:41] tablero: 1 personas, 1 viviendas, 0 casos por revisar 
 [2026-08-15 12:48:41] === corrida 15 terminada (ok): 3 archivos | 3 insertados | 0 actualizados | 0 sin cambio === 
+[2026-08-15 13:11:47] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:11:47] ingestion: 0 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:11:47] ingestion: 0 archivos | 0 insertados | 0 actualizados | 0 sin cambio 
+[2026-08-15 13:12:37] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:12:37] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:12:37] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:37] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:37] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:37] ingestion: 3 archivos | 0 insertados | 2 actualizados | 1 sin cambio 
+[2026-08-15 13:12:44] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:12:44] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:12:45] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:45] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:45] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:12:45] ingestion: 3 archivos | 0 insertados | 2 actualizados | 1 sin cambio 
+[2026-08-15 13:13:12] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:13:12] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:13:12] DIAG afectaciones AFE-20260815-BXEUSE: latitud 
+[2026-08-15 13:13:12] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:12] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:12] DIAG viviendas VIV-20260815-4JRZYX: latitud, longitud 
+[2026-08-15 13:13:12] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:12] ingestion: 3 archivos | 0 insertados | 2 actualizados | 1 sin cambio 
+[2026-08-15 13:13:37] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:13:37] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:13:38] DIAG afectaciones latitud | guardado=[3.358] llega=[3.358000] 
+[2026-08-15 13:13:38] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:38] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:38] DIAG viviendas latitud | guardado=[3.34534] llega=[3.345340] 
+[2026-08-15 13:13:38] DIAG viviendas longitud | guardado=[-76.53081] llega=[-76.530810] 
+[2026-08-15 13:13:38] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:13:38] ingestion: 3 archivos | 0 insertados | 2 actualizados | 1 sin cambio 
+[2026-08-15 13:14:21] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:14:21] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:14:21] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:21] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:21] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:21] ingestion: 3 archivos | 0 insertados | 0 actualizados | 3 sin cambio 
+[2026-08-15 13:14:22] ingestion: 3 archivo(s) en la carpeta 
+[2026-08-15 13:14:22] ingestion: 3 archivo(s) nuevo(s) o modificado(s) 
+[2026-08-15 13:14:22] afectaciones_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:22] personas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:22] viviendas_hoja.csv: procesado (1 filas) 
+[2026-08-15 13:14:22] ingestion: 3 archivos | 0 insertados | 0 actualizados | 3 sin cambio 
+[2026-08-15 13:14:30] dedup personas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:14:30] dedup viviendas: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:14:30] dedup familias: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:14:30] dedup afectaciones: 0 duplicado(s) vigentes, 0 cambio(s) en esta corrida 
+[2026-08-15 13:14:31] matching: matched_hogar=1 | 0 cambio(s) en esta corrida 
+[2026-08-15 13:14:31] cruce direccion: 0 pareja(s) sobre 0 afectacion(es) | 0 nueva(s), 0 retirada(s) 

@@ -162,6 +162,8 @@ h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
 .chip--rojo { background: rgba(179, 38, 30, 0.1); color: var(--rojo); }
 .chip--ambar { background: rgba(138, 109, 31, 0.12); color: var(--ambar); }
 .chip--gris { background: var(--gris-fondo); color: var(--gris-medio); }
+/* azul = dato sugerido por el pipeline, todavia sin confirmar (cruce por direccion) */
+.chip--azul { background: var(--azul-suave); color: var(--azul); }
 
 /* ---------- Pie ---------- */
 .pie { border-top: 1px solid var(--gris-linea); background: var(--gris-fondo); }

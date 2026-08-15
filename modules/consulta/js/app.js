@@ -90,6 +90,30 @@
     return '<span class="chip chip--gris">' + c + (c === 1 ? ' foto' : ' fotos') + '</span>';
   }
 
+  /* ---------- cruce sugerido afectación <-> edificación ----------
+     El reporte de afectación no trae cédula ni código de hogar, así que no
+     entra en el matching de hogares. Lo único que comparte con las
+     edificaciones es la dirección del edificio, y sobre esa llave el pipeline
+     (03_matching.R) produce una SUGERENCIA. Es 1:N: el reporte cubre el
+     edificio completo y bajo esa dirección puede haber varios hogares.
+     Aquí solo se indexa en los dos sentidos; el cruce ya viene resuelto. */
+
+  var CRUCE_DE_AFECTACION  = {};
+  var CRUCE_DE_EDIFICACION = {};
+  (DATOS.cruce || []).forEach(function (c) {
+    (CRUCE_DE_AFECTACION[c.id_encuesta_afectacion] =
+       CRUCE_DE_AFECTACION[c.id_encuesta_afectacion] || []).push(c);
+    (CRUCE_DE_EDIFICACION[c.id_encuesta_vivienda] =
+       CRUCE_DE_EDIFICACION[c.id_encuesta_vivienda] || []).push(c);
+  });
+
+  function chipCruce(n) {
+    var c = parseInt(n, 10);
+    if (!c) return '<span class="chip chip--gris">Sin cruce</span>';
+    return '<span class="chip chip--azul">' + c +
+           (c === 1 ? ' edificación' : ' edificaciones') + '</span>';
+  }
+
   /* ---------- soportes fotográficos ----------
      El pipeline entrega los enlaces de Drive separados por |. De un enlace de
      Drive se puede sacar el id del archivo y con él una miniatura; si el
@@ -234,8 +258,38 @@
         '<div class="dato dato--ancho"><b>Observaciones:</b> ' + escapar(valor(r.observaciones)) + '</div>') +
       galeriaFotos(r.fotos_enlaces, r.fotos_nombres) +
 
+      bloqueCruce(r.id_encuesta) +
+
       '<div class="ficha__meta">Origen: ' + escapar(valor(r.archivo_origen)) +
       ' · Actualizado: ' + escapar(valor(r.last_update).replace('T', ' ')) + '</div>';
+  }
+
+  /* Sección 7 de la ficha del reporte. Se rotula explícitamente como sugerencia
+     porque no es un enlace confirmado: dos direcciones escritas igual pueden
+     ser el mismo edificio o no, y quien revisa tiene que decidirlo. */
+  function bloqueCruce(id) {
+    var lista = CRUCE_DE_AFECTACION[id] || [];
+    var titulo = '<h3 class="ficha-seccion">7 · Edificaciones del EDAN en esta dirección</h3>';
+
+    if (!lista.length) {
+      return titulo + '<p class="nota">Ninguna edificación del EDAN comparte dirección con este ' +
+             'reporte. Puede que todavía no se haya diligenciado el formulario de vivienda, o que ' +
+             'la dirección se haya escrito de otra forma.</p>';
+    }
+
+    return titulo +
+      '<p class="nota">Cruce <b>sugerido por dirección</b>, sin confirmar. El reporte es de la ' +
+      'edificación completa, así que bajo la misma dirección puede haber varios hogares del EDAN.</p>' +
+      '<div class="ficha__grupo">' + lista.map(function (c) {
+        return '<div class="dato dato--ancho">' +
+          '<span class="mono">' + escapar(c.id_encuesta_vivienda) + '</span> · ' +
+          escapar(valor(c.direccion_completa)) +
+          (c.prop_nombre ? ' · ' + escapar(c.prop_nombre) : '') +
+          (c.estado === 'confirmado'
+             ? ' <span class="chip chip--verde">Confirmado</span>'
+             : ' <span class="chip chip--azul">Sugerido</span>') +
+          '</div>';
+      }).join('') + '</div>';
   }
 
   function abrirFicha(id, titulo) {

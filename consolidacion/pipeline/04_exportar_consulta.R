@@ -11,6 +11,8 @@
 #   personas    grano persona (con su familia, su match y su vivienda)
 #   familias    grano formulario de afectaciones (EDAN personas/familia)
 #   viviendas   grano edificacion
+#   afectaciones grano reporte del organismo de socorro (edificacion completa)
+#   cruce       parejas afectacion <-> edificacion sugeridas por direccion
 #   fichas      respuestas COMPLETAS de cada encuesta (ultima version cruda),
 #               para que la consulta muestre todas las preguntas del formulario
 #   diccionario etiquetas: variable -> pregunta y seccion (libro de codigos)
@@ -71,28 +73,50 @@ familias <- dbGetQuery(con, "
   FROM familias f
   LEFT JOIN viviendas v ON v.id_encuesta = f.id_encuesta_vivienda")
 
+## reporte_afectacion sale de una subconsulta y no de un JOIN: con un JOIN, una
+## edificacion con dos reportes duplicaria la fila de la edificacion
 viviendas <- dbGetQuery(con, "
-  SELECT id_encuesta, id_hogar, prop_nombre, prop_cc, prop_cc_norm,
-         inf_nombre, inf_cc, inf_cc_norm,
-         cumple_requisitos, requiere_evacuacion, sistema_constructivo,
-         tipo_inmueble, direccion_completa, latitud, longitud,
-         ubicacion_confirmada, duplicate, id_canonico,
-         fecha_actualizacion, archivo_origen, last_update
-  FROM viviendas")
+  SELECT v.id_encuesta, v.id_hogar, v.prop_nombre, v.prop_cc, v.prop_cc_norm,
+         v.inf_nombre, v.inf_cc, v.inf_cc_norm,
+         v.cumple_requisitos, v.requiere_evacuacion, v.sistema_constructivo,
+         v.tipo_inmueble, v.direccion_completa, v.latitud, v.longitud,
+         v.ubicacion_confirmada, v.duplicate, v.id_canonico,
+         v.fecha_actualizacion, v.archivo_origen, v.last_update,
+         (SELECT GROUP_CONCAT(c.id_encuesta_afectacion, ' | ')
+          FROM cruce_direccion c
+          WHERE c.id_encuesta_vivienda = v.id_encuesta
+            AND c.estado <> 'descartado') AS reporte_afectacion
+  FROM viviendas v")
 
-## reportes de afectacion: grano evento/edificacion, entidad independiente
-## (no se enlaza con hogares ni personas; ver el comentario en db/schema.sql)
+## reportes de afectacion: grano evento/edificacion. Entidad independiente (no
+## se enlaza de forma dura con hogares ni personas), pero con el cruce sugerido
+## por direccion que produce 03_matching.R; ver el comentario en db/schema.sql
 afectaciones <- dbGetQuery(con, "
-  SELECT id_encuesta, consecutivo_id, nombre_edificacion, barrio, comuna,
-         direccion_completa, latitud, longitud,
-         descripcion, colapso, requieren_evacuacion,
-         fallecidos, atrapadas, necesitan_evacuar,
-         tipo_edificacion, cantidad_viviendas, observaciones,
-         fotos_cantidad, fotos_nombres, fotos_enlaces,
-         diligencia_nombre, organismo, grupo_voluntarios,
-         secretaria, fecha, fecha_actualizacion, duplicate, id_canonico,
-         archivo_origen, last_update
-  FROM afectaciones")
+  SELECT a.id_encuesta, a.consecutivo_id, a.nombre_edificacion, a.barrio, a.comuna,
+         a.direccion_completa, a.latitud, a.longitud,
+         a.descripcion, a.colapso, a.requieren_evacuacion,
+         a.fallecidos, a.atrapadas, a.necesitan_evacuar,
+         a.tipo_edificacion, a.cantidad_viviendas, a.observaciones,
+         a.fotos_cantidad, a.fotos_nombres, a.fotos_enlaces,
+         a.diligencia_nombre, a.organismo, a.grupo_voluntarios,
+         a.secretaria, a.fecha, a.fecha_actualizacion, a.duplicate, a.id_canonico,
+         a.archivo_origen, a.last_update,
+         (SELECT COUNT(*) FROM cruce_direccion c
+          WHERE c.id_encuesta_afectacion = a.id_encuesta
+            AND c.estado <> 'descartado') AS edificaciones_edan
+  FROM afectaciones a")
+
+## cruce sugerido, con los datos de las dos puntas para poder pintarlo en la
+## ficha sin que el navegador tenga que hacer el join
+cruce <- dbGetQuery(con, "
+  SELECT c.id_encuesta_afectacion, c.id_encuesta_vivienda, c.direccion_norm,
+         c.confianza, c.n_viviendas, c.estado,
+         v.direccion_completa, v.prop_nombre, v.id_hogar, v.cumple_requisitos,
+         a.nombre_edificacion, a.consecutivo_id, a.colapso, a.organismo
+  FROM cruce_direccion c
+  LEFT JOIN viviendas    v ON v.id_encuesta = c.id_encuesta_vivienda
+  LEFT JOIN afectaciones a ON a.id_encuesta = c.id_encuesta_afectacion
+  WHERE c.estado <> 'descartado'")
 
 revisar <- dbGetQuery(con, "
   SELECT id_encuesta, id_hogar, n_personas, match_status, secretaria, archivo_origen
@@ -144,6 +168,7 @@ datos <- list(actualizado  = actualizado,
               familias     = familias,
               viviendas    = viviendas,
               afectaciones = afectaciones,
+              cruce        = cruce,
               fichas       = fichas,
               diccionario  = diccionario,
               revisar      = revisar,
@@ -155,13 +180,14 @@ writeLines(paste0("window.DATOS = ", toJSON(datos, auto_unbox = T, na = "null"),
 ## OJO: "hogares" es el formulario EDAN de personas/familia; "afectaciones" es
 ## el reporte por evento. Antes la hoja de hogares se rotulaba "afectaciones",
 ## que ahora seria confuso porque ya existe una tabla con ese nombre.
-export(list(personas     = personas,
-            hogares      = familias,
+export(list(personas      = personas,
+            hogares       = familias,
             edificaciones = viviendas,
-            afectaciones = afectaciones),
+            afectaciones  = afectaciones,
+            cruce         = cruce),
        file.path(CARPETA_CONSULTA, "descargas/base_consulta.xlsx"))
 
-log_msg(sprintf("consulta: %d personas, %d hogares, %d edificaciones, %d afectaciones, %d fichas -> %s",
+log_msg(sprintf("consulta: %d personas, %d hogares, %d edificaciones, %d afectaciones, %d cruce(s), %d fichas -> %s",
                 nrow(personas), nrow(familias), nrow(viviendas), nrow(afectaciones),
-                length(fichas), CARPETA_CONSULTA))
+                nrow(cruce), length(fichas), CARPETA_CONSULTA))
 dbDisconnect(con)
