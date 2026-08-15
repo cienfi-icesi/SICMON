@@ -129,6 +129,48 @@ test_that("sin la clave correcta el estado guardado no se puede leer", {
   unlink(banco, recursive = TRUE)
 })
 
+test_that("guardar y recuperar funcionan con la ruta RELATIVA de la base", {
+  skip_if(!tiene("git") || !tiene("openssl"), "hacen falta git y openssl")
+
+  ## Es el caso de GitHub Actions, y el que se escapo: ahi SICMON_RUTA_DB no
+  ## se define y la base queda en la ruta relativa por defecto
+  ## (data/db/base_oficial.sqlite). Las demas pruebas de este archivo pasan
+  ## rutas absolutas y por eso nunca vieron que estado_guardar.sh hacia cd al
+  ## clon y desde ahi volvia a leer la base con la ruta relativa, que ya no
+  ## apuntaba a nada. La primera corrida real termino en
+  ## "base_oficial.sqlite: No such file or directory" justo al ir a guardar.
+  banco  <- file.path(tempdir(), paste0("sicmon-relativa-", Sys.getpid()))
+  unlink(banco, recursive = TRUE)
+  remoto <- file.path(banco, "remoto.git")
+  dir.create(file.path(banco, "trabajo/db"), showWarnings = FALSE, recursive = TRUE)
+  system2("git", c("init", "--bare", "--quiet", shQuote(remoto)))
+
+  suppressMessages({ library(DBI); library(RSQLite) })
+  con <- dbConnect(SQLite(), file.path(banco, "trabajo/db/base.sqlite"))
+  dbExecute(con, "CREATE TABLE t (x TEXT)"); dbExecute(con, "INSERT INTO t VALUES ('relativa')")
+  dbDisconnect(con)
+  huella <- tools::md5sum(file.path(banco, "trabajo/db/base.sqlite"))
+
+  ## los scripts se lanzan DESDE banco/trabajo con una ruta relativa, igual que
+  ## en el runner; system2 no tiene argumento de directorio, asi que se hace
+  ## el cd dentro del comando
+  correr <- function(script) {
+    system2("bash", c("-c", shQuote(sprintf("cd %s && bash %s/tools/%s",
+                                             shQuote(file.path(banco, "trabajo")),
+                                             shQuote(getwd()), script))),
+            env = c("SICMON_RUTA_DB=db/base.sqlite",
+                    sprintf("ESTADO_REPO=%s", remoto), "ESTADO_CLAVE=clave-relativa"),
+            stdout = FALSE, stderr = FALSE)
+  }
+
+  expect_equal(correr("estado_guardar.sh"), 0)
+  unlink(file.path(banco, "trabajo/db/base.sqlite"))
+  expect_equal(correr("estado_descargar.sh"), 0)
+  expect_equal(unname(tools::md5sum(file.path(banco, "trabajo/db/base.sqlite"))), unname(huella))
+
+  unlink(banco, recursive = TRUE)
+})
+
 test_that("sin repositorio de estado configurado no se rompe nada", {
   skip_if(!tiene("git"), "hace falta git")
 

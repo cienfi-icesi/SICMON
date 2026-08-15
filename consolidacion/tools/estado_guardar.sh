@@ -38,6 +38,13 @@ if [ ! -f "$RUTA_DB" ]; then
   exit 1
 fi
 
+## La ruta se vuelve ABSOLUTA aqui, antes de cualquier cd. Mas abajo el script
+## entra al clon del repositorio de estado y desde ahi vuelve a leer la base
+## para sacarle el hash: con la ruta relativa por defecto
+## (data/db/base_oficial.sqlite) eso fallaba con "No such file or directory".
+## En las pruebas nunca se vio porque SICMON_RUTA_DB llegaba absoluta.
+RUTA_DB="$(cd "$(dirname "$RUTA_DB")" && pwd)/$(basename "$RUTA_DB")"
+
 TEMPORAL="$(mktemp -d)"
 trap 'rm -rf "$TEMPORAL"' EXIT
 
