@@ -1521,14 +1521,33 @@ function probarEscritura() {
     'inicial y la placa debe verse 38-104, no una fecha.');
 }
 
+/**
+ * Borra TODO lo que dejó una prueba de extremo a extremo.
+ *
+ * Barre dos identificadores y no uno: una prueba realista escribe los dos
+ * formularios —el de vivienda y el de personas— porque la consulta ciudadana
+ * busca en c_personas, así que un registro de vivienda solo no aparecería
+ * nunca. Y barre también 'indice', donde guardarEncuesta_ deja una fila por
+ * encuesta: si esa se queda, la hoja sigue reportando una encuesta que ya no
+ * tiene datos y el inventario no cuadra con lo que ve el pipeline.
+ */
 function borrarPrueba() {
   var ss = libro_();
-  ['viviendas', HOJA_BITACORA].forEach(function (nombre) {
+  var IDS = ['PRUEBA-000', 'PRUEBA-000-P'];
+
+  ['viviendas', 'personas', 'indice', HOJA_BITACORA].forEach(function (nombre) {
     var hoja = ss.getSheetByName(nombre);
     if (!hoja || hoja.getLastRow() < 2) return;
     var encabezados = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0]
       .map(function (v) { return String(v); });
-    borrarFilasDeEncuesta_(hoja, encabezados, 'PRUEBA-000');
+    IDS.forEach(function (id) { borrarFilasDeEncuesta_(hoja, encabezados, id); });
   });
-  Logger.log('Filas de prueba eliminadas.');
+
+  /* La huella la guarda avisarGitHub() para saber si la hoja cambió. Si no se
+     limpia, la hoja queda con menos filas que la huella guardada y el siguiente
+     activador lo lee como un cambio: dispararía una consolidación por el hecho
+     de haber borrado la prueba. */
+  PropertiesService.getScriptProperties().deleteProperty('ULTIMA_HUELLA_HOJA');
+
+  Logger.log('Filas de prueba eliminadas (' + IDS.join(', ') + ') y huella reiniciada.');
 }
