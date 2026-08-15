@@ -131,7 +131,7 @@ Nueve secciones. Códigos de pregunta **V001 – V102** ([js/codigos.js:30](../j
 | Código | Campo | Tipo | Notas |
 |---|---|---|---|
 | V017 | `viv_departamento` — Departamento | texto | por defecto `Valle del Cauca` |
-| V018 | `viv_municipio` — Municipio | texto | por defecto `Santiago de Cali` |
+| V018 | `viv_municipio` — Municipio | lista (42 municipios del Valle, catálogo DANE en `js/municipios-valle.js`) | por defecto `Santiago de Cali`; obligatorio; se exporta con `viv_municipio_codigo` (código DANE). El mapa y la búsqueda de dirección se ajustan al municipio elegido |
 | — | `viv_direccion` — Dirección de la vivienda en cabecera municipal | **direccion** | campo compuesto; no tiene código propio y no guarda nada bajo su `id` |
 | V019–V039 | *(los 21 subcampos del widget de dirección)* | | Ver [05_location.md](05_location.md) |
 | V040 | `viv_corregimiento` — Corregimiento | texto | |

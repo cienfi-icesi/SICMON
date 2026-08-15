@@ -224,7 +224,7 @@ tramo de dirección dentro de `viviendas_20260812_2326.csv`:
 ```
 … viv_departamento, viv_municipio,
 tipo_via, numero_via, sufijo_via, sufijo_via_otro, numero_generador,
-placa_inmueble, tipo_inmueble, nombre_conjunto, tipo_unidad, numero_unidad,
+sufijo_generador, sufijo_generador_otro, placa_inmueble, tipo_inmueble, nombre_conjunto, tipo_unidad, numero_unidad,
 torre_bloque, direccion_completa, latitud, longitud, sistema_coordenadas,
 fuente_georreferenciacion, precision_gps_m, direccion_geocodificada,
 fecha_georreferenciacion, ubicacion_confirmada, fecha_confirmacion_ubicacion,

@@ -132,6 +132,11 @@
       // Nunca los bytes: solo cuántas, sus nombres y sus enlaces en Drive.
       return [campo.id + '_cantidad', campo.id + '_nombres', campo.id + '_enlaces'];
     }
+    if (campo.tipo === 'lista') {
+      // El valor legible (nombre oficial) y, al lado, el código del catálogo
+      // (código DANE en el caso de municipios) para cruzar con bases oficiales.
+      return [campo.id, campo.id + '_codigo'];
+    }
     return [campo.id];
   }
 
@@ -180,6 +185,15 @@
       (campo.opciones || []).forEach(function (op) {
         fila[campo.id + '__' + op.valor] = lista.indexOf(String(op.valor)) !== -1 ? 1 : 0;
       });
+      return;
+    }
+    if (campo.tipo === 'lista') {
+      var codigo = '';
+      (campo.opciones || []).forEach(function (op) {
+        if (String(op.valor) === String(valor)) codigo = op.codigo || '';
+      });
+      fila[campo.id] = (valor === undefined || valor === null) ? '' : valor;
+      fila[campo.id + '_codigo'] = codigo;
       return;
     }
     if (campo.tipo === 'confirmacion') {

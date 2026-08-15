@@ -35,13 +35,26 @@ En el array `USUARIOS` de [js/config.js:63](../js/config.js#L63), **en el propio
 código fuente y con la contraseña en texto plano**. El archivo lo advierte en su
 encabezado: la aplicación no debe publicarse en internet tal como está.
 
-| `usuario` | `alias` | `nombre` | `rol` | `secretaria` | `password` |
-|---|---|---|---|---|---|
-| `eduard` | `edward` | Eduard | `admin` | `null` | `123` |
-| `eduard 1` | `eduard1`, `edward 1`, `edward1` | Eduard 1 | `coordinador` | `vivienda` | `123` |
-| `eduard 2` | `eduard2`, `edward 2`, `edward2` | Eduard 2 | `coordinador` | `gestion_riesgo` | `123` |
-| `gabriela` | — | Gabriela | `diligenciador` | `null` | `123` |
-| `laura` | — | Laura | `diligenciador` | `null` | `123` |
+| `usuario` | también entra con | `nombre` | `rol` | `password` |
+|---|---|---|---|---|
+| `administrador` | `admin`, `administradora` | Administrador | `admin` | `123456789` |
+| `claudia-rincon` | `claudia`, `Claudia Rincón`, `ClaudiaRincon`… | Claudia Rincón | `diligenciador` | cédula |
+| `daniel-giraldo` | `daniel`, `Daniel Giraldo`, `DanielGiraldo`… | Daniel Giraldo | `diligenciador` | cédula |
+
+**Formato del usuario (decisión 2026-08-15): `nombre-apellido`**, sin tildes y en
+minúsculas. Lo arma el ayudante `diligenciador(nombreCompleto, cedula, extra)` a
+partir del nombre; para agregar a alguien se copia una línea:
+
+```js
+diligenciador('Ana María Pérez', '1234567890', { correo: 'ana@…', organismo: 'Bomberos' }),
+```
+
+Opciones de `extra`: `password` (si no se indica, es la cédula), `correo`,
+`organismo`, `alias` (otras formas de escribir el usuario) y **`anteriores`**
+(nombres de usuario que la persona usó antes: las encuestas grabadas con ellos
+siguen siendo suyas en «Mis encuestas», en la recuperación entre equipos y en el
+panel del coordinador, que agrupa por el usuario canónico con
+`APP_CONFIG.canonicoDe()` / `equivalentesDe()`).
 
 Los `alias` permiten escribir el usuario de varias formas.
 
@@ -55,16 +68,17 @@ contraseñas.
 
 1. Normaliza lo que escribió el usuario con `normalizar()`: recorta, pasa a
    minúsculas, quita tildes (`normalize('NFD')` + regex de diacríticos) y quita
-   **todos los espacios**. Así `Eduard 1`, `eduard1` y `EDUARD 1` son
-   equivalentes.
-2. Recorre `USUARIOS` comparando el valor normalizado contra `usuario` y contra
-   cada `alias`.
+   **espacios, guiones y guiones bajos**. Así `Claudia-Rincon`, `claudia rincon`,
+   `CLAUDIA RINCÓN` y `ClaudiaRincon` son equivalentes.
+2. Recorre `USUARIOS` comparando el valor normalizado contra `usuario`, contra
+   cada `alias` y contra cada nombre `anterior`.
 3. Compara la contraseña con `String(password) !== String(encontrado.password)`
    — comparación exacta, **sin normalizar y sensible a mayúsculas**.
 4. Si todo cuadra devuelve el objeto de sesión **sin la contraseña**:
 
 ```js
-{ usuario: 'laura', nombre: 'Laura', rol: 'diligenciador', secretaria: null }
+{ usuario: 'claudia-rincon', equivalentes: ['claudia-rincon', 'claudia'],
+  nombre: 'Claudia Rincón', rol: 'diligenciador', datos: { nombre, cedula, correo, organismo } }
 ```
 
 Si falla devuelve `null`.

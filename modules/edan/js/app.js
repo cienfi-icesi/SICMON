@@ -559,7 +559,7 @@
    * necesita ver quien vuelve al aplicativo es qué dejó a medias.
    */
   function renderEncuestasPropias() {
-    var todasMias = window.Almacen.listar({ usuario: sesion.usuario });
+    var todasMias = window.Almacen.listar({ usuario: sesion.equivalentes || sesion.usuario });
     var enProgreso = todasMias.filter(function (r) { return r.estado !== 'finalizada'; });
     var finalizadas = todasMias.filter(function (r) { return r.estado === 'finalizada'; });
 
@@ -633,13 +633,15 @@
       var dirA = (r.respuestas || {}).direccion_completa;
       var col = (r.respuestas || {}).afe_colapso;
       var etiq = col === 'colapsado' ? 'Colapsado' : col === 'riesgo_colapso' ? 'Riesgo de colapso' : '';
-      var partes = [dirA, (edif && edif.toUpperCase() !== 'NA') ? edif : '', etiq].filter(Boolean);
+      var munA = (r.respuestas || {}).afe_municipio;
+      var partes = [dirA, (edif && edif.toUpperCase() !== 'NA') ? edif : '', munA, etiq].filter(Boolean);
       return partes.join(' · ') || 'Sin ubicación registrada';
     }
     if (r.tipo_formulario === 'vivienda') {
       var nombre = (r.respuestas || {}).viv_prop_nombres_apellidos;
       var dir = (r.respuestas || {}).direccion_completa;
-      return [nombre, dir].filter(Boolean).join(' · ') || 'Sin propietario registrado';
+      var mun = (r.respuestas || {}).viv_municipio;
+      return [nombre, dir, mun].filter(Boolean).join(' · ') || 'Sin propietario registrado';
     }
     var personas = r.personas || [];
     var primera = personas[0] || {};
@@ -981,6 +983,33 @@
   }
 
   /**
+   * Municipio en el que se está aplicando el registro, resuelto contra el
+   * catálogo oficial de los municipios del Valle (js/municipios-valle.js).
+   *
+   * Cada formulario declara en `campoMunicipio` cuál de sus campos guarda el
+   * municipio; si no lo declara, no hay municipio y el widget de dirección
+   * lo dice en pantalla en vez de asumir uno. NO se cae a Cali por defecto:
+   * un municipio supuesto en silencio produce coordenadas en la ciudad
+   * equivocada sin que nadie lo note.
+   */
+  function contextoGeografico() {
+    var idMunicipio = formActivo && formActivo.campoMunicipio;
+    var texto = idMunicipio ? registro.respuestas[idMunicipio] : '';
+    var m = (window.buscarMunicipio && texto) ? window.buscarMunicipio(texto) : null;
+    return {
+      formulario: formActivo ? formActivo.id : '',
+      municipio: m ? m.buscar : '',          // nombre con el que se le habla al buscador
+      municipioNombre: m ? m.nombre : (texto || ''),
+      municipioCodigo: m ? m.codigo : '',
+      centro: m ? m.centro : null,
+      caja: m ? m.caja : null,
+      cabecera: m ? m.cabecera : null,
+      nomenclaturaCalibrada: !!(m && m.nomenclatura_calibrada),
+      departamento: 'Valle del Cauca'
+    };
+  }
+
+  /**
    * Arranca el mapa y los eventos del campo de dirección, si la sección tiene
    * uno. Debe llamarse DESPUÉS de escribir el HTML en el documento.
    */
@@ -989,12 +1018,9 @@
     (seccion.campos || []).forEach(function (c) { if (c.tipo === 'direccion') campoDir = c; });
     if (!campoDir) return;
 
-    // Contexto para acotar la búsqueda de la dirección al municipio correcto.
-    window.CampoDireccion.contexto = {
-      formulario: formActivo.id,
-      municipio: registro.respuestas.viv_municipio || 'Cali',
-      departamento: registro.respuestas.viv_departamento || 'Valle del Cauca'
-    };
+    // Contexto para acotar el mapa y la búsqueda de la dirección al municipio
+    // que el formulario tenga elegido (ver contextoGeografico).
+    window.CampoDireccion.contexto = contextoGeografico();
 
     window.CampoDireccion.montar(dom.formCampos, campoDir, registro.respuestas, {
       // Cada tecla: guardado diferido, como el resto del formulario.
@@ -1087,7 +1113,7 @@
 
     // El "for" solo se usa en controles de texto: en radios y casillas haría
     // que al tocar el enunciado se marcara la primera opción.
-    var tiposConFoco = ['texto', 'textarea', 'numero', 'fecha'];
+    var tiposConFoco = ['texto', 'textarea', 'numero', 'fecha', 'lista'];
     var asociable = tiposConFoco.indexOf(campo.tipo) !== -1;
     // El código de la pregunta se muestra para poder referirse a ella sin
     // depender de su redacción (ver js/codigos.js).
@@ -1149,6 +1175,19 @@
             '</label>';
           }).join('') +
         '</div>';
+        break;
+
+      case 'lista':
+        // Desplegable para catálogos largos (p. ej. los 42 municipios): las
+        // opciones vienen en el mismo contrato {valor, etiqueta} que 'unica'.
+        control = '<select id="' + clave + '" ' + attrs + '>' +
+          '<option value="">' + escapar(campo.placeholder || 'Seleccione…') + '</option>' +
+          (campo.opciones || []).map(function (op) {
+            var marcada = String(valor === undefined || valor === null ? '' : valor) === String(op.valor);
+            return '<option value="' + escapar(op.valor) + '"' + (marcada ? ' selected' : '') + '>' +
+              escapar(op.etiqueta) + '</option>';
+          }).join('') +
+        '</select>';
         break;
 
       case 'confirmacion':
@@ -1223,7 +1262,7 @@
 
     // Radios y casillas disparan 'input' y 'change'; se atiende solo 'change'
     // para no procesar (ni redibujar) el mismo cambio dos veces.
-    var esCasilla = control.type === 'radio' || control.type === 'checkbox';
+    var esCasilla = control.type === 'radio' || control.type === 'checkbox' || control.tagName === 'SELECT';
     if (esCasilla && evento.type === 'input') return;
 
     var lista = control.getAttribute('data-lista');
@@ -1253,6 +1292,12 @@
 
     guardarDiferido();
 
+    // Si cambió el municipio del formulario, el mapa y la búsqueda de la
+    // dirección se ajustan en el acto (no hace falta redibujar la sección).
+    if (formActivo.campoMunicipio && campoId === formActivo.campoMunicipio) {
+      alCambiarMunicipio(campoId);
+    }
+
     // Solo se vuelve a dibujar cuando el cambio puede alterar qué se ve.
     var afectaVisibilidad = !!condicionantes[formActivo.id][campoId];
     var esOpcion = campo.tipo === 'unica' || campo.tipo === 'multiple' || campo.tipo === 'confirmacion';
@@ -1263,6 +1308,27 @@
       renderProgreso(seccionesVisibles());
     } else {
       renderProgreso(seccionesVisibles());
+    }
+  }
+
+  /**
+   * El municipio cambió: se actualiza el contexto del campo de dirección (si
+   * está montado en esta sección) y, en el formulario de edificaciones, la
+   * entidad responsable si todavía traía la derivada del municipio anterior.
+   */
+  function alCambiarMunicipio(campoId) {
+    var ctx = contextoGeografico();
+    if (window.CampoDireccion && window.CampoDireccion.actualizarContexto) {
+      window.CampoDireccion.actualizarContexto(ctx);
+    }
+    // 'Alcaldía de <municipio>' solo se reescribe si el diligenciador no la
+    // había cambiado a mano (vacía o igual a la que se derivó antes).
+    if (campoId === 'viv_municipio') {
+      var actual = registro.respuestas.viv_alcaldia_gobernacion || '';
+      var derivada = /^Alcaldía de /.test(actual) || actual === '';
+      if (derivada && ctx.municipioNombre) {
+        registro.respuestas.viv_alcaldia_gobernacion = 'Alcaldía de ' + ctx.municipioNombre;
+      }
     }
   }
 
@@ -1600,8 +1666,19 @@
    */
   function recuperarEncuestasDelUsuario() {
     if (!window.Sincronizacion || !window.Sincronizacion.configurada()) return;
-    window.Sincronizacion.traerMisEncuestas(sesion.usuario).then(function (lista) {
-      if (!lista || !lista.length || !sesion) return;
+    // Se piden las encuestas de todos los nombres que la persona ha tenido
+    // (el actual y los anteriores) y se juntan sin repetir.
+    var nombres = sesion.equivalentes || [sesion.usuario];
+    Promise.all(nombres.map(function (u) {
+      return window.Sincronizacion.traerMisEncuestas(u).catch(function () { return null; });
+    })).then(function (listas) {
+      var vistos = {}, lista = [];
+      listas.forEach(function (l) {
+        (l || []).forEach(function (r) {
+          if (r && r.id_encuesta && !vistos[r.id_encuesta]) { vistos[r.id_encuesta] = true; lista.push(r); }
+        });
+      });
+      if (!lista.length || !sesion) return;
       var res = window.Almacen.importarDeCentral(lista);
       if (!res.ok || (!res.agregadas && !res.actualizadas)) return;
 
@@ -1696,7 +1773,7 @@
   function registrosFiltrados() {
     var filtro = {};
     if (dom.filtroTipo.value) filtro.tipo_formulario = dom.filtroTipo.value;
-    if (dom.filtroUsuario.value) filtro.usuario = dom.filtroUsuario.value;
+    if (dom.filtroUsuario.value) filtro.usuario = window.APP_CONFIG.equivalentesDe(dom.filtroUsuario.value);
     if (dom.filtroEstado.value) filtro.estado = dom.filtroEstado.value;
     return window.Almacen.listar(filtro);
   }
@@ -1723,7 +1800,7 @@
     var hayPersonas = lista.some(function (r) { return r.n_personas !== undefined; });
 
     lista.forEach(function (r) {
-      var k = r.usuario || '(sin usuario)';
+      var k = window.APP_CONFIG.canonicoDe(r.usuario) || '(sin usuario)';
       if (!porUsuario[k]) {
         porUsuario[k] = { usuario: k, nombre: r.usuario_nombre || k, vivienda: 0, personas: 0, afectaciones: 0, total: 0, ultima: null };
       }
@@ -1861,7 +1938,10 @@
   function actualizarFiltroUsuarios() {
     var visibles = window.Almacen.listar();
     var usuarios = {};
-    visibles.forEach(function (r) { usuarios[r.usuario] = r.usuario_nombre || r.usuario; });
+    visibles.forEach(function (r) {
+      var k = window.APP_CONFIG.canonicoDe(r.usuario);
+      usuarios[k] = r.usuario_nombre || k;
+    });
 
     var seleccionado = dom.filtroUsuario.value;
     dom.filtroUsuario.innerHTML = '<option value="">Todos</option>' +

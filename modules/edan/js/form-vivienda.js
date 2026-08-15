@@ -88,6 +88,7 @@
 
   // --- Definición del formulario --------------------------------------------
   window.FORM_VIVIENDA = {
+    campoMunicipio: 'viv_municipio',
     id: 'vivienda',
     nombre: 'Registro de edificaciones',
     nombreCorto: 'Edificaciones',
@@ -186,8 +187,13 @@
           {
             id: 'viv_municipio',
             etiqueta: 'Municipio',
-            tipo: 'texto',
+            tipo: 'lista',
+            // Los 42 municipios del Valle del Cauca (catálogo oficial DANE,
+            // js/municipios-valle.js). El mapa y la búsqueda de la dirección
+            // se ajustan al municipio elegido.
+            opciones: window.opcionesMunicipiosValle ? window.opcionesMunicipiosValle() : [],
             valorPorDefecto: 'Santiago de Cali',
+            requerido: true,
             ancho: 'medio'
           },
           {

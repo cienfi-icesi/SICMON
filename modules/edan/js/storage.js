@@ -95,7 +95,9 @@
       lista = lista.filter(function (r) { return r.tipo_formulario === filtro.tipo_formulario; });
     }
     if (filtro.usuario) {
-      lista = lista.filter(function (r) { return r.usuario === filtro.usuario; });
+      // Acepta un usuario o una lista (el actual + los nombres anteriores).
+      var admitidos = [].concat(filtro.usuario);
+      lista = lista.filter(function (r) { return admitidos.indexOf(r.usuario) !== -1; });
     }
     if (filtro.estado) {
       lista = lista.filter(function (r) { return r.estado === filtro.estado; });
@@ -472,8 +474,9 @@
     var borradores = todas.filter(function (r) { return r.estado !== 'finalizada'; });
 
     var porUsuario = {};
+    var canon = (window.APP_CONFIG && window.APP_CONFIG.canonicoDe) ? window.APP_CONFIG.canonicoDe : function (u) { return u; };
     finalizadas.forEach(function (r) {
-      var k = r.usuario || '(sin usuario)';
+      var k = canon(r.usuario) || '(sin usuario)';
       if (!porUsuario[k]) {
         porUsuario[k] = {
           usuario: k,

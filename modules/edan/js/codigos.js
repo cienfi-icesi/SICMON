@@ -165,7 +165,9 @@
       'viv_prof_organismo': 'V103',
       /* Agregada el 2026-08-15: qué tan fino fue el acierto de la búsqueda
          de la dirección en el mapa (predio / cruce / vía). */
-      'precision_geocodificacion': 'V104'
+      'precision_geocodificacion': 'V104',
+      'sufijo_generador': 'V105',
+      'sufijo_generador_otro': 'V106'
     },
 
     // ================== FORMULARIO DE PERSONAS / FAMILIA ==================
@@ -265,7 +267,10 @@
       'afe_diligencia_nombre': 'A037',
       'afe_organismo': 'A038',
       'afe_grupo_voluntarios': 'A039',
-      'precision_geocodificacion': 'A040'
+      'precision_geocodificacion': 'A040',
+      'afe_municipio': 'A041',
+      'sufijo_generador': 'A042',
+      'sufijo_generador_otro': 'A043'
     }
   };
 

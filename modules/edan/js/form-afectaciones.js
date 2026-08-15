@@ -44,6 +44,7 @@
   ];
 
   window.FORM_AFECTACIONES = {
+    campoMunicipio: 'afe_municipio',
     id: 'afectaciones',
     nombre: 'Registro de afectaciones',
     nombreCorto: 'Afectaciones',
@@ -90,6 +91,15 @@
         titulo: 'Ubicación geográfica del evento',
         campos: [
           {
+            id: 'afe_municipio',
+            etiqueta: 'Municipio donde ocurre la afectación',
+            tipo: 'lista',
+            opciones: window.opcionesMunicipiosValle ? window.opcionesMunicipiosValle() : [],
+            valorPorDefecto: 'Santiago de Cali',
+            requerido: true,
+            ancho: 'medio'
+          },
+          {
             id: 'afe_direccion',
             etiqueta: 'Dirección completa',
             tipo: 'direccion',
@@ -108,7 +118,16 @@
             ancho: 'completo'
           },
           { id: 'afe_barrio', etiqueta: 'Barrio', tipo: 'texto', requerido: true, ancho: 'medio' },
-          { id: 'afe_comuna', etiqueta: 'Comuna', tipo: 'texto', modo: 'numerico', requerido: true, ancho: 'medio' }
+          {
+            id: 'afe_comuna', etiqueta: 'Comuna', tipo: 'texto', modo: 'numerico', requerido: true, ancho: 'medio',
+            // Solo Cali y Buenaventura tienen comunas; en los demás municipios
+            // el campo se oculta (y deja de ser obligatorio) para no forzar un
+            // número que no existe.
+            visibleSi: { alguno: [
+              { campo: 'afe_municipio', op: 'eq', valor: 'Santiago de Cali' },
+              { campo: 'afe_municipio', op: 'eq', valor: 'Buenaventura' }
+            ] }
+          }
         ]
       },
 

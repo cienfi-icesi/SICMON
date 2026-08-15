@@ -57,6 +57,8 @@ de esta lista es también el orden de las columnas en el CSV.
 | 3 | `sufijo_via` | Letra o sufijo | V021 | `<select>`: Ninguno · A–F · Otro | no |
 | 4 | `sufijo_via_otro` | Sufijo (¿cuál?) | V022 | texto; **aparece solo si** `sufijo_via = Otro`, ej. «Bis» | no |
 | 5 | `numero_generador` | Número generador o cruce (#) | V023 | texto numérico, ej. «4» | no |
+| 5b | `sufijo_generador` | Letra del generador | V105 (A042) | `<select>`: Ninguno · A–F · Otro — el «E» de «# 4E-64» | no |
+| 5c | `sufijo_generador_otro` | Sufijo del generador (¿cuál?) | V106 (A043) | texto; **aparece solo si** `sufijo_generador = Otro`, ej. «Bis» | no |
 | 6 | `placa_inmueble` | Placa del inmueble (–) | V024 | texto numérico, ej. «50» | no |
 | 7 | `tipo_inmueble` | ¿Qué tipo de vivienda o inmueble es? | V025 | radios: **Casa** / **Conjunto residencial** | no |
 | 8 | `nombre_conjunto` | Nombre del conjunto residencial | V026 | texto; solo si Conjunto | no |
@@ -177,8 +179,20 @@ mapas ni coordenadas en ninguna otra parte de la aplicación.
   ([js/campo-direccion.js:11](../js/campo-direccion.js#L11)).
 - Mosaicos: `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, `maxZoom: 19`,
   atribución «© colaboradores de OpenStreetMap». **Requieren conexión.**
-- Vista inicial: centro de Cali `[3.4516, -76.5320]` con zoom 12
-  (`ZOOM_CIUDAD`); si ya hay punto, se centra en él con zoom 17 (`ZOOM_PUNTO`).
+- Vista inicial: **la cabecera del municipio elegido en el formulario** con zoom
+  12 (`ZOOM_CIUDAD`); si ya hay punto, se centra en él con zoom 17 (`ZOOM_PUNTO`).
+  Si el formulario aún no tiene municipio, se muestra el Valle del Cauca completo
+  (`CENTRO_VALLE`, zoom 8): la aplicación **no asume Cali por defecto**. Al
+  cambiar el municipio, el mapa se recentra en el acto
+  (`CampoDireccion.actualizarContexto`) siempre que no haya un punto marcado; si
+  ya lo hay, no se mueve (es dato del diligenciador) y se avisa cuando queda
+  fuera del municipio nuevo.
+- Los datos de cada municipio (código DANE, nombre, centro de la cabecera, caja
+  del municipio y de la cabecera) están en `js/municipios-valle.js`, generado a
+  partir del Marco Geoestadístico Nacional 2021 del DANE (capas
+  `MGN_MPIO_POLITICO` y `MGN_CLASE`). Cada formulario declara en
+  `campoMunicipio` cuál de sus campos guarda el municipio (`viv_municipio` /
+  `afe_municipio`).
 - `scrollWheelZoom: false`, para que la rueda del ratón no secuestre el
   desplazamiento de la página.
 - **En pantalla táctil el mapa arranca bloqueado**, con un velo «Toque para mover
@@ -229,15 +243,39 @@ que exista el job `pages` de GitLab en `.gitlab-ci.yml`.
 
 ### 3.4 Geocodificación directa (dirección → coordenada)
 
-`geocodificar()`, [js/campo-direccion.js:820](../js/campo-direccion.js#L820).
+`geocodificar()` en `js/campo-direccion.js`.
 
-- Servicio: **Nominatim** de OpenStreetMap,
-  `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=co&q=…`
-- La consulta se arma como
-  `<direccion_completa>, <municipio>, <departamento>, Colombia`, tomando
-  municipio y departamento del contexto que fija `app.js` a partir de
-  `viv_municipio` y `viv_departamento` (`CampoDireccion.contexto`,
-  [js/app.js:714](../js/app.js#L714)); por defecto «Cali» y «Valle del Cauca».
+- Servicio: **Nominatim** de OpenStreetMap. NO se le pide «la dirección» como
+  texto (su buscador no resuelve cruces ni placas): se piden por separado la
+  geometría de la vía y la de la vía generadora, **acotadas a la caja del
+  municipio elegido** (`viewbox` + `bounded=1`, y filtro de la respuesta con la
+  misma caja), se calcula el cruce y, con la placa, se avanza esa distancia en
+  metros a lo largo de la vía.
+- **Regla del equipo (2026-08-15): solo se registra coordenada cuando la
+  búsqueda llega a nivel de PREDIO.** Si apenas ubica la vía o el cruce, no se
+  marca ningún punto: se centra el mapa en esa zona y se pide tocar el mapa o
+  usar la ubicación actual. La precisión alcanzada se guarda en
+  `precision_geocodificacion` (V104 / A040).
+- El paso de cruce → predio depende del **sentido en que crece la numeración**.
+  Ese sentido **se mide en el mapa para cada dirección** (`medirSentido`): se
+  busca la generadora vecina (la siguiente o la anterior) y se mira a qué lado
+  del cruce cae; hacia allá crece la numeración. Vale para cualquier municipio
+  cuyas vías estén en el mapa base (verificado en Cali, El Cairo y Tuluá). La
+  letra de una generadora se prueba con sus dos lecturas —intermedia (Cali:
+  41B entre 41 y 42) y de sector (Buga: 4E = «4 Este», vecinas 5E/3E)— y gana
+  la vecina que quede a distancia de cuadra (15–500 m).
+- Condiciones para llegar a predio: el cruce base debe ser una intersección
+  real o casi (≤ 60 m; si el mapa no dibuja las vías encontrándose, como la
+  Carrera 4E de Buga con la Calle 5, se queda en cruce y no registra
+  coordenada) y la placa no pasa del largo de la cuadra medida.
+- Si la vecina no está en el mapa, se usa la regla escrita de la ciudad solo
+  donde está verificada (`NOMENCLATURA_CALIBRADA` en `js/municipios-valle.js`,
+  hoy Cali); en los demás la búsqueda se detiene en el cruce.
+- La búsqueda por nombre de vía solo acepta el nombre **exacto** que devuelve
+  el mapa base («Carrera 4E» con la letra pegada); pedir «Carrera 4D» traía 32
+  tramos de otras carreras. La búsqueda libre sigue siendo difusa.
+- Si el formulario no tiene municipio, la búsqueda no se ejecuta y lo dice: no
+  se adivina un municipio.
 - **Es una acción explícita del usuario, con botón.** No se dispara al escribir,
   porque cada consulta envía la dirección a un servicio externo.
 - Límite de frecuencia propio: no se permite otra búsqueda antes de **1500 ms**.
@@ -263,6 +301,7 @@ que exista el job `pages` de GitLab en `.gitlab-ci.yml`.
 | «Calle 15A» | `tipo_via=Cll`, `numero_via=15`, `sufijo_via=A` |
 | «Carrera 22 Oeste» | `tipo_via=Cra`, `numero_via=22`, `sufijo_via=Otro`, `sufijo_via_otro=Oeste` |
 | «38-104» | `numero_generador=38`, `placa_inmueble=104` |
+| «4E-64» | `numero_generador=4`, `sufijo_generador=E`, `placa_inmueble=64` (la letra va pegada al número, como la escribe el mapa base: «Carrera 4E») |
 | «Bulevar del Río» (vía con nombre propio) | no encaja: **no se rellena nada** |
 
   Los prefijos reconocidos están en `PREFIJOS_VIA`
