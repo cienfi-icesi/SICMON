@@ -61,8 +61,27 @@ else
   URL_ESTADO="https://x-access-token:${ESTADO_TOKEN}@github.com/${ESTADO_REPO}.git"
 fi
 
-if ! git clone --depth 1 --quiet "$URL_ESTADO" "$TEMPORAL/estado" 2>/dev/null; then
-  echo "estado: no se pudo clonar ${ESTADO_REPO}. Revise que exista y que el token tenga acceso." >&2
+## El error de git se CONSERVA y se imprime. Antes iba a /dev/null y el unico
+## rastro era "no se pudo clonar", que no distingue entre un repositorio que no
+## existe, un token sin permiso y un nombre mal escrito: tres arreglos
+## distintos. El token se borra del mensaje antes de imprimirlo —GitHub
+## enmascara los secrets en el registro, pero este script tambien corre a mano,
+## donde no hay quien enmascare nada.
+if ! ERROR_GIT="$(git clone --depth 1 --quiet "$URL_ESTADO" "$TEMPORAL/estado" 2>&1)"; then
+  echo "estado: no se pudo clonar el repositorio de estado." >&2
+  echo "  git dijo: ${ERROR_GIT//${ESTADO_TOKEN:-__nada__}/[token]}" >&2
+  cat >&2 <<'PISTAS'
+  Las tres causas, en orden de frecuencia:
+    1. ESTADO_REPO debe ser "owner/nombre" (p. ej. cienfi-icesi/SICMON-estado).
+       Si lleva https:// o termina en .git, el script lo toma como direccion
+       literal y clona SIN el token, de modo que un repositorio privado falla.
+    2. El token no alcanza a ESE repositorio. Un token fine-grained solo llega
+       a los repositorios que se le marcaron: revise que SICMON-estado este
+       entre ellos, con permiso Contents: Read and write. El token que usa el
+       Apps Script para el aviso NO sirve si se creo solo para SICMON.
+    3. El repositorio todavia no existe. Cree uno privado y vacio; la primera
+       corrida lo llena sola.
+PISTAS
   exit 1
 fi
 
