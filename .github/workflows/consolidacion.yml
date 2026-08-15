@@ -1,0 +1,141 @@
+# ============================================================================
+#  Consolidación cada 10 minutos, en los servidores de GitHub.
+#
+#  QUÉ HACE
+#  Baja de la hoja de Google lo que llegó del campo, lo consolida (duplicados,
+#  emparejamiento hogar-edificación) y devuelve el resultado a las pestañas c_*
+#  de la misma hoja, que es de donde lo lee el aplicativo de consulta.
+#
+#  POR QUÉ AQUÍ Y NO EN UN EQUIPO
+#  Antes esto corría con launchd en el portátil de CIENFI. Dos problemas: si el
+#  equipo estaba apagado la consulta se quedaba vieja sin avisar, y macOS
+#  bloquea el acceso de los agentes de launchd a ~/Desktop y ~/Documents, que es
+#  donde vivía el repositorio (fallaba con "Operation not permitted" y código
+#  78). Aquí no depende de ninguna máquina de nadie.
+#
+#  POR QUÉ ES GRATIS
+#  Los repositorios públicos no consumen minutos en los ejecutores estándar.
+#  Esto solo se sostiene mientras el repositorio siga siendo público, y solo
+#  puede ser público porque los datos personales NO viven aquí: viven en la
+#  hoja de Google. Si algún día se vuelve privado, esta frecuencia costaría del
+#  orden de US$50-80 al mes.
+#
+#  LO QUE HAY QUE CONFIGURAR UNA SOLA VEZ
+#  Settings → Secrets and variables → Actions → New repository secret:
+#    TOKEN_EXPORTACION   la misma cadena de la propiedad TOKEN_EXPORTACION del
+#                        script de Google. Es lo que autoriza a bajar las
+#                        tablas y a publicar el consolidado.
+# ============================================================================
+
+name: Consolidación
+
+on:
+  schedule:
+    # Cada 10 minutos. OJO: el cron de Actions es "best effort" —en horas de
+    # carga alta se retrasa—, así que en la práctica son 10-20 minutos, no 10
+    # exactos. Si la operación necesita puntualidad estricta, esto no la da.
+    - cron: '*/10 * * * *'
+  # Permite lanzarla a mano desde la pestaña Actions. Sirve para probar y,
+  # sobre todo, para reactivar el cron: GitHub desactiva los workflows
+  # programados tras 60 días sin commits en el repositorio.
+  workflow_dispatch:
+
+# Dos corridas solapadas dejarían la hoja a medio reemplazar. Esto hace lo
+# mismo que el lockfile hacía en el equipo: si hay una en curso, la nueva
+# espera su turno en vez de arrancar encima.
+concurrency:
+  group: consolidacion
+  cancel-in-progress: false
+
+jobs:
+  consolidar:
+    runs-on: ubuntu-latest
+    # Una corrida normal toma dos o tres minutos. Si pasa de quince es que algo
+    # se colgó, y conviene que muera para no bloquear a la siguiente.
+    timeout-minutes: 15
+
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          # Usa los binarios ya compilados de Posit en vez de compilar desde
+          # el código fuente. Sin esto, stringi, data.table y RSQLite solos se
+          # tardan más de diez minutos en cada corrida.
+          use-public-rspm: true
+
+      - name: Instalar las librerías
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          # googledrive no se usa aquí (el paso de Drive no corre en Actions),
+          # pero config/packages.R lo carga sin condición, así que tiene que
+          # estar instalado o el pipeline muere al arrancar.
+          packages: |
+            any::dplyr
+            any::tidyr
+            any::rio
+            any::data.table
+            any::DBI
+            any::RSQLite
+            any::digest
+            any::jsonlite
+            any::stringi
+            any::stringdist
+            any::googledrive
+            any::httr
+          cache-version: 1
+
+      # La base es DERIVADA: si no está, se reconstruye entera desde la hoja,
+      # porque la ingestión es idempotente por id_encuesta. Guardarla entre
+      # corridas no es necesario para que el resultado sea correcto; sirve para
+      # conservar el historial campo a campo (record_history) y la bitácora de
+      # corridas, que sí se perderían con una base nueva cada vez.
+      #
+      # La llave lleva la fecha y la hora para que cada corrida deje su propia
+      # entrada; restore-keys hace que se recupere la más reciente que exista.
+      - name: Recuperar la base de la corrida anterior
+        uses: actions/cache/restore@v4
+        with:
+          path: consolidacion/data/db
+          key: base-oficial-${{ github.run_id }}
+          restore-keys: |
+            base-oficial-
+
+      - name: Poner el token donde el pipeline lo busca
+        env:
+          TOKEN_EXPORTACION: ${{ secrets.TOKEN_EXPORTACION }}
+        run: |
+          if [ -z "$TOKEN_EXPORTACION" ]; then
+            echo "::error::Falta el secreto TOKEN_EXPORTACION. Créelo en Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          mkdir -p consolidacion/.secrets
+          printf '%s' "$TOKEN_EXPORTACION" > consolidacion/.secrets/token_exportacion.txt
+
+      - name: Consolidar
+        working-directory: consolidacion
+        run: Rscript pipeline/run_pipeline.R
+
+      - name: Guardar la base para la próxima corrida
+        # También cuando el pipeline falla: perder el historial encima de un
+        # error solo empeora el diagnóstico.
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: consolidacion/data/db
+          key: base-oficial-${{ github.run_id }}
+
+      # El log queda como artefacto, no como commit: si se subiera al
+      # repositorio, cada corrida publicaría en un repositorio público las
+      # direcciones y los identificadores que el pipeline va nombrando.
+      - name: Guardar el log de la corrida
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-${{ github.run_id }}
+          path: consolidacion/logs/
+          retention-days: 14
+          if-no-files-found: ignore

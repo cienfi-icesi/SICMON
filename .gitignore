@@ -8,6 +8,9 @@
 # La regla de fondo: aquí va CÓDIGO, no datos. Los datos personales viven en
 # la hoja de Google y el sitio se los pide por fetch al Apps Script; el
 # repositorio no necesita ni una cédula para funcionar.
+#
+# Este archivo es el MISMO en las dos copias del proyecto (SICMON en GitHub y
+# web_damage_cali en Dropbox/GitLab). Si se cambia en una, cambiarlo en la otra.
 # ============================================================================
 
 # --- Credenciales -----------------------------------------------------------
@@ -24,12 +27,15 @@ consolidacion/data/db/
 *.sqlite3
 
 # --- Datos de entrada y de salida -------------------------------------------
-# entrada/  lo que baja de Drive y de la hoja
-# salida/   la copia local del consolidado (datos.js y el Excel del equipo)
-# pruebas/  las bases sintéticas de los generadores
+# entrada/   lo que baja de Drive y de la hoja
+# salida/    la copia local del consolidado (datos.js y el Excel del equipo)
+# pruebas/   las bases sintéticas de los generadores
+# historico/ la base EDAN de la Secretaría de Vivienda
 consolidacion/data/entrada/
 consolidacion/data/salida/
 consolidacion/data/pruebas/
+consolidacion/data/historico/
+app_output/
 
 # --- Datos que antes alimentaban el sitio -----------------------------------
 # Hasta agosto de 2026 el pipeline escribía estos archivos dentro del sitio y
@@ -40,12 +46,43 @@ modules/consulta/js/datos.js
 modules/consulta/descargas/
 modules/tablero/js/datos_tablero.js
 
+# --- Exportes de la aplicación de campo -------------------------------------
+# Los CSV que descarga el diligenciador y los respaldos en JSON: son la misma
+# información personal, con otro envoltorio.
+*.csv
+indice_encuestas_*.csv
+personas_*.csv
+viviendas_*.csv
+respaldo_encuestas_*.json
+# EXCEPCIÓN: el libro de códigos no son datos, son las etiquetas de las
+# preguntas, y 06_publicar_hoja.R no arranca sin él.
+!consolidacion/synthetic/insumos/diccionario_variables.csv
+
 # --- Registros de operación -------------------------------------------------
 consolidacion/logs/
 *.log
 
-# --- Sistema ----------------------------------------------------------------
+# --- Copias en conflicto de Dropbox -----------------------------------------
+# El proyecto vive en una carpeta sincronizada: cuando dos equipos tocan el
+# mismo archivo, Dropbox deja una copia con este nombre al lado. Si se cuela al
+# repositorio, aparecen dos versiones del mismo script y nadie sabe cuál corre.
+*Copia en conflicto de*
+*conflicted copy*
+
+# --- Temporales y herramientas ----------------------------------------------
+*.bak
+*.tmp
+*.tmp.*
+*~$*
+.gitignore.orig
+.claude/
+
+# --- Sistema y entorno de R -------------------------------------------------
 .DS_Store
+Thumbs.db
+desktop.ini
 .Rhistory
+*.Rhistory
 .RData
+.Rproj.user
 .Rproj.user/

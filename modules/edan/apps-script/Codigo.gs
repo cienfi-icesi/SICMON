@@ -233,7 +233,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.6.1',
+    version: '1.6.2',
     hora_servidor: ahora_()
   });
 }
@@ -253,7 +253,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.1', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.6.2', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
@@ -306,6 +306,12 @@ function doPost(e) {
       } finally {
         lockPub.releaseLock();
       }
+    }
+    if (payload.accion === 'inventario_consolidado') {
+      verificarTokenExportacion_(payload);
+      // Cuántas filas hay publicadas hoy en cada pestaña c_*. Sin contenido.
+      // Lo usa el pipeline para no reemplazar una base llena por una vacía.
+      return salida_({ ok: true, tablas: inventarioConsolidado_(libro_()), hora_servidor: ahora_() });
     }
     if (payload.accion === 'marcar_consolidado') {
       verificarTokenExportacion_(payload);
@@ -894,6 +900,23 @@ function publicarConsolidado_(ss, payload) {
     total_filas: Math.max(0, hoja.getLastRow() - 1),
     hora_servidor: ahora_()
   };
+}
+
+/**
+ * Cuántas filas hay publicadas en cada pestaña consolidada. No devuelve datos.
+ *
+ * Existe para que el pipeline pueda comparar antes de escribir. Sin esto, una
+ * corrida que por cualquier motivo consolide cero registros —la hoja cruda
+ * vacía, una exportación fallida, una base reconstruida desde cero— reemplaza
+ * la base publicada por nada, y la consulta se queda muda sin que nadie se
+ * entere. Pasó en pruebas y por eso está esta puerta.
+ */
+function inventarioConsolidado_(ss) {
+  return TABLAS_CONSOLIDADAS.map(function (nombre) {
+    var hoja = ss.getSheetByName(nombre);
+    if (!hoja) return { tabla: nombre, existe: false, filas: 0 };
+    return { tabla: nombre, existe: true, filas: Math.max(0, hoja.getLastRow() - 1) };
+  });
 }
 
 /** Momento de la última publicación del pipeline. */

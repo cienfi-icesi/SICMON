@@ -75,6 +75,10 @@ PUBLICAR_HOJA <- TRUE
 ## margen de sobra frente al limite de Apps Script y evita que la ejecucion se
 ## alargue tanto que Google cierre la conexion, que es como fallan estas cosas.
 BYTES_POR_PAGINA_PUBLICAR <- 300000
+## Publicar es reemplazar. Con esto en FALSE, 06_publicar_hoja.R se niega a
+## dejar la hoja vacia si alli ya hay registros publicados: una base vieja
+## sirve, una borrada no. Poner en TRUE solo para vaciar a proposito.
+FORZAR_PUBLICACION_VACIA <- FALSE
 
 ## salida local del consolidado: copia de trabajo para el equipo (un Excel con
 ## las cuatro bases y el datos.js de respaldo).

@@ -169,8 +169,13 @@ resultado <- tryCatch({
                       timeout(TIEMPO_LIMITE_HOJA))
     datos <- fromJSON(content(respuesta, as = "text", encoding = "UTF-8"))
     if (!isTRUE(datos$ok)) {
-      stop(sprintf("el receptor respondio '%s' (accion %s, tabla %s)",
-                   datos$error, cuerpo$accion, cuerpo$tabla))
+      ## el nombre de la tabla va aparte: las acciones que no la llevan (ping,
+      ## inventario, marca) dejarian a sprintf con un argumento de longitud cero
+      ## y el mensaje saldria VACIO, que fue justo lo que paso la primera vez
+      ## que el seguro de abajo freno una corrida
+      cual <- if (is.null(cuerpo$tabla)) "" else sprintf(", tabla %s", cuerpo$tabla)
+      stop(sprintf("el receptor respondio '%s' (accion %s%s)",
+                   datos$error, cuerpo$accion, cual))
     }
     datos
   }
@@ -219,6 +224,42 @@ resultado <- tryCatch({
   ## el codigo en el editor no basta, hay que implementar una version nueva
   ping <- pedir_hoja(list(accion = "ping"))
   log_msg(sprintf("publicacion: receptor version %s", ping$version))
+
+  ##============================================================================##
+  ##=== 4. Seguro: no reemplazar una base publicada por una vacia            ===##
+  ##============================================================================##
+
+  ## Publicar es REEMPLAZAR: la primera pagina de cada tabla borra lo que
+  ## hubiera. Si esta corrida consolido cero registros, sin este seguro la
+  ## consulta se queda muda y nadie se entera, porque no hay ningun error: el
+  ## pipeline hizo exactamente lo que le pidieron.
+  ##
+  ## Y no es hipotetico. Basta con que la hoja cruda responda vacia una vez —una
+  ## exportacion a medias, alguien limpiando pestañas— para que la corrida
+  ## siguiente arrase con lo publicado. En GitHub Actions es mas facil todavia:
+  ## si la cache no trae la base, se reconstruye desde cero, y una lectura vacia
+  ## de la hoja se convierte en una base vacia.
+  ##
+  ## Ante la duda se conserva lo que ya esta publicado: una base vieja sirve;
+  ## una borrada, no. Para un reemplazo legitimo por vacio (empezar de nuevo)
+  ## se corre este paso con FORZAR_PUBLICACION_VACIA <- TRUE.
+  cuentas <- c(c_personas      = nrow(personas),
+               c_hogares       = nrow(hogares),
+               c_edificaciones = nrow(edificaciones),
+               c_afectaciones  = nrow(afectaciones))
+
+  if (all(cuentas == 0) && !FORZAR_PUBLICACION_VACIA) {
+    publicado <- pedir_hoja(list(accion = "inventario_consolidado"))$tablas
+    vivas     <- publicado$filas[publicado$tabla %in% names(cuentas)]
+
+    if (any(vivas > 0)) {
+      stop(sprintf(paste("esta corrida consolido CERO registros y la hoja tiene %d publicados.",
+                         "No se reemplaza nada. Revise que la hoja cruda no este vacia;",
+                         "si el vaciado es intencional, corra este paso con",
+                         "FORZAR_PUBLICACION_VACIA <- TRUE."),
+                   sum(vivas)))
+    }
+  }
 
   ## export data (pestañas c_* de la hoja; las lee el aplicativo de consulta)
   publicar_tabla("c_personas",      personas)

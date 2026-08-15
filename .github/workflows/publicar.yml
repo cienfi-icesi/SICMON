@@ -1,0 +1,83 @@
+# ============================================================================
+#  Publicación del portal en GitHub Pages
+#
+#  Equivalente a .gitlab-ci.yml, para cuando el proyecto viva en GitHub. Los
+#  dos hacen lo mismo: arman la carpeta del sitio y la publican por HTTPS,
+#  que es lo que necesita el botón «Usar mi ubicación actual» del módulo de
+#  captura (los navegadores solo entregan la ubicación en https o localhost).
+#
+#  LA PUBLICACIÓN ES MANUAL A PROPÓSITO (workflow_dispatch).
+#  Subir código NO publica nada. Para publicar: pestaña Actions → «Publicar
+#  el portal» → Run workflow. Se dejó así porque, mientras las contraseñas
+#  sigan siendo "123", publicar el sitio lo deja al alcance de cualquiera que
+#  tenga la dirección.
+#
+#  ANTES DE PUBLICAR POR PRIMERA VEZ
+#    1. Cambiar las contraseñas en modules/edan/js/config.js.
+#    2. Revisar el token de modules/edan/js/config-sync.js: queda accesible
+#       desde el navegador de cualquiera que abra el sitio.
+#
+#  OJO CON LOS REPOSITORIOS PRIVADOS
+#  En un plan gratuito de GitHub, Pages solo funciona con repositorios
+#  PÚBLICOS. Si el repositorio es privado hace falta un plan de pago (Pro,
+#  Team o Enterprise). Ver la nota al equipo en README.md.
+# ============================================================================
+name: Publicar el portal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una publicación a la vez; no se cancela una que ya esté corriendo.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Armar la carpeta del sitio
+        run: |
+          mkdir -p public
+          cp index.html public/
+          # El portal SICMON carga sus estilos, su lógica y los logos de estas
+          # tres carpetas: sin ellas el sitio sale sin diseño.
+          cp -r css public/
+          cp -r js public/
+          cp -r logos public/
+          cp -r portal public/
+          cp -r assets public/
+          cp -r modules public/
+          # --- lo que no debe quedar accesible en el sitio publicado ---
+          rm -rf public/modules/_plantilla
+          rm -rf public/modules/edan/input
+          rm -rf public/modules/edan/README
+          rm -f  public/modules/edan/README.md
+          rm -f  public/modules/copernicus/README.md
+          rm -f  public/modules/seguimiento/README.md
+          rm -f  public/modules/consulta/README.md
+          # El receptor de Apps Script es documentación, no parte del sitio.
+          rm -rf public/modules/edan/apps-script
+
+      - name: Preparar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4
