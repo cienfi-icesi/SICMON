@@ -115,7 +115,19 @@ jobs:
       # Binarios de Ubuntu en vez de compilar desde el fuente: la instalación
       # baja de ~20 minutos a menos de 2. renv respeta esta variable por encima
       # del repositorio anotado en renv.lock.
-      RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/__linux__/jammy/latest
+      #
+      # LA FECHA NO ES OPCIONAL. Antes decía «latest» y las dos primeras
+      # corridas fallaron por eso: renv.lock fija versiones exactas, y en
+      # «latest» solo hay binario de la versión MÁS RECIENTE de cada paquete.
+      # Basta que CRAN publique una actualización para que la versión fijada
+      # se quede sin binario y la instalación muera. Con la fecha, el
+      # repositorio sirve el estado de CRAN de ese día —binarios incluidos— y
+      # el lockfile se generó contra esa misma instantánea, así que cada
+      # versión fijada existe por construcción.
+      #
+      # Para actualizar dependencias: subir la fecha aquí y regenerar
+      # renv.lock contra la instantánea nueva. Las dos cosas, o ninguna.
+      RENV_CONFIG_REPOS_OVERRIDE: https://packagemanager.posit.co/cran/__linux__/jammy/2026-08-15
 
     steps:
       - name: Traer el repositorio
