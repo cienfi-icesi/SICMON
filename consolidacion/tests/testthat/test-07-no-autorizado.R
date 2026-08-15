@@ -78,6 +78,18 @@ test_that("la consulta ciudadana no devuelve la base", {
   }
 })
 
+## El aplicativo de campo guarda su lista de usuarios con la contrasena en
+## texto plano (la cedula de cada diligenciador). Es una decision tomada: esa
+## aplicacion trabaja SIN CONEXION, en el telefono, y valida el ingreso ahi
+## mismo; no hay servidor al que preguntarle. Lo que protege ese ingreso es que
+## no da acceso a nada mas que al formulario en blanco de ese telefono.
+##
+## Lo que esta prueba vigila es que la excepcion no se extienda. En particular
+## que NO aparezca en el aplicativo de consulta, donde al otro lado esta la base
+## consolidada entera: alli la contrasena es el TOKEN_LECTURA y quien la compara
+## es Google, precisamente para que no viaje en un archivo publico.
+EXCEPCIONES_CONTRASENA <- "modules/edan/js/config.js"
+
 test_that("ninguna contrasena esta escrita en el JavaScript publicado", {
   ## Esta no necesita red: revisa el codigo que se publica en GitHub Pages.
   ## Una contrasena en el frontend no es autenticacion —cualquiera la lee con
@@ -97,13 +109,31 @@ test_that("ninguna contrasena esta escrita en el JavaScript publicado", {
     numeros <- which(grepl("(password|contraseña|clave)\\s*:\\s*['\"][^'\"]{4,}['\"]",
                            lineas, ignore.case = TRUE) &
                      !grepl("^\\s*(\\*|//|/\\*)", lineas))
-    for (n in numeros) {
-      hallazgos <- c(hallazgos, sprintf("%s:%d", sub("^\\.\\./", "", archivo), n))
-    }
+    ruta <- sub("^\\.\\./", "", archivo)
+    if (ruta %in% EXCEPCIONES_CONTRASENA) next
+    for (n in numeros) hallazgos <- c(hallazgos, sprintf("%s:%d", ruta, n))
   }
 
   expect_equal(hallazgos, character(0),
                info = paste0("contrasena en texto plano dentro del sitio publicado:\n  ",
                              paste(hallazgos, collapse = "\n  "),
                              "\nEl repositorio es publico: esas credenciales las lee cualquiera."))
+})
+
+test_that("la excepcion sigue siendo UNA, y sigue estando donde se acepto", {
+  ## Si el archivo exceptuado deja de tener contrasenas, sobra la excepcion y
+  ## hay que quitarla: una excepcion que ya no protege nada solo sirve para
+  ## tapar el dia que vuelva a aparecer el problema.
+  for (ruta in EXCEPCIONES_CONTRASENA) {
+    lineas <- readLines(file.path("..", ruta), warn = FALSE)
+    tiene <- any(grepl("(password|contraseña|clave)\\s*:\\s*['\"][^'\"]{4,}['\"]",
+                       lineas, ignore.case = TRUE) &
+                 !grepl("^\\s*(\\*|//|/\\*)", lineas))
+    expect_true(tiene,
+                info = sprintf("%s ya no tiene contrasenas: quite la excepcion de EXCEPCIONES_CONTRASENA", ruta))
+  }
+
+  ## Y el aplicativo de consulta NO puede estar en la lista, pase lo que pase.
+  expect_false("modules/consulta/js/app.js" %in% EXCEPCIONES_CONTRASENA)
+  expect_false("modules/consulta/js/config-consulta.js" %in% EXCEPCIONES_CONTRASENA)
 })

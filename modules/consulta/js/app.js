@@ -40,20 +40,30 @@
   var CLAVE_OBS = 'alcaldia_sismos_observaciones_v1';
   var sesion = null;
 
-  /* Quiénes pueden entrar. Aquí van los NOMBRES DE USUARIO, que no son
-     secretos; la contraseña no está en este archivo ni en ningún otro del
-     sitio: es el TOKEN_LECTURA del Apps Script y quien la compara es Google.
+  /* Quiénes pueden entrar. Se toma la MISMA lista del aplicativo de campo
+     (../edan/js/config.js, que index.html carga antes que este archivo), para
+     que dar de alta a alguien sea una sola línea en un solo sitio y no haya
+     forma de que quede habilitado en una aplicación y no en la otra.
 
-     Para qué sirve entonces esta lista, si la contraseña es la misma para
-     todos: para que el nombre con el que quedan firmadas las observaciones sea
-     uno de los del equipo y no cualquier cosa que alguien teclee. No es
-     autenticación por persona —quien tenga la contraseña puede entrar con
-     cualquiera de estos nombres—; para eso haría falta un usuario y una clave
-     por funcionario, que es una decisión aparte.
+     Se aceptan el nombre de usuario canónico (claudia-rincon), sus alias y sus
+     nombres anteriores, porque de eso ya se encarga fichaDe() allá.
 
-     Agregar a alguien = agregar una línea aquí. Quitarle el acceso a TODOS =
-     cambiar TOKEN_LECTURA en las Propiedades del script de Google. */
-  var USUARIOS = [
+     LA CONTRASEÑA NO SALE DE AHÍ, y no puede. La que se teclea en esta pantalla
+     es el TOKEN_LECTURA del Apps Script: es la que Google compara antes de
+     entregar las tablas, y por eso no está escrita en ningún archivo de este
+     sitio. La cédula que config.js usa como clave sirve para entrar al
+     aplicativo de campo, que trabaja sin conexión y guarda todo en el propio
+     teléfono; aquí lo que hay al otro lado es la base consolidada entera, así
+     que quien decide es el servidor y no el navegador.
+
+     Consecuencia práctica: la contraseña es la misma para todo el equipo. El
+     usuario sirve para que las observaciones queden firmadas con un nombre real
+     y no con lo que alguien teclee. Para una clave por persona haría falta que
+     el Apps Script guardara una por funcionario, que es otra decisión.
+
+     Quitarle el acceso a TODOS = cambiar TOKEN_LECTURA en las Propiedades del
+     script de Google. Surte efecto de inmediato, sin publicar nada. */
+  var USUARIOS = (window.APP_CONFIG && window.APP_CONFIG.usuarios) || [
     { usuario: 'administrador', nombre: 'Administrador' }
   ];
 
@@ -639,10 +649,25 @@
 
     /* el usuario se valida aquí y la contraseña allá: son dos comprobaciones
        distintas, pero el mensaje de error es el mismo a propósito, para no
-       decirle a quien tantea cuál de las dos acertó */
-    var conocido = USUARIOS.filter(function (u) {
-      return u.usuario.replace(/ /g, '') === tecleado;
-    })[0];
+       decirle a quien tantea cuál de las dos acertó.
+
+       Se traduce lo tecleado a su nombre de usuario canónico con canonicoDe()
+       del aplicativo de campo, que ya sabe de tildes, mayúsculas, alias y
+       nombres anteriores. Si no conoce el texto lo devuelve igual, y entonces
+       no coincide con ningún usuario, que es lo que se quiere.
+
+       Hace falta porque el formato nuevo lleva guion: «claudia-rincon» nunca
+       coincidiría con lo que alguien teclea. El respaldo de abajo solo actúa
+       si config.js no llegó a cargar, y compara sin espacios ni guiones. */
+    var conocido;
+    if (window.APP_CONFIG && window.APP_CONFIG.canonicoDe) {
+      var canonico = window.APP_CONFIG.canonicoDe($('#login-usuario').value);
+      conocido = USUARIOS.filter(function (u) { return u.usuario === canonico; })[0];
+    } else {
+      conocido = USUARIOS.filter(function (u) {
+        return u.usuario.replace(/[\s_-]+/g, '') === tecleado;
+      })[0];
+    }
     if (!conocido) { error.textContent = 'Usuario o contraseña incorrectos.';
                      error.classList.remove('oculto'); return; }
 

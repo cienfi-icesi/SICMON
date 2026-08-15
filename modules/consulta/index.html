@@ -158,7 +158,13 @@
 
 <!-- Los datos NO viajan en el repositorio: esta página se los pide al Apps
      Script. config-consulta.js solo trae la dirección del receptor. -->
-<script src="js/config-consulta.js"></script>
-<script src="js/app.js"></script>
+<!-- La lista de quiénes pueden entrar es la MISMA del aplicativo de campo, y se
+     lee de su config.js en vez de repetirla aquí. Si se repitiera, agregar a
+     alguien exigiría acordarse de tocar dos archivos, y el día que se olvidara
+     uno esa persona entraría a una aplicación y no a la otra.
+     Ese archivo solo define window.APP_CONFIG; no dibuja nada. -->
+<script src="../edan/js/config.js?v=2.3.0"></script>
+<script src="js/config-consulta.js?v=2.3.0"></script>
+<script src="js/app.js?v=2.3.0"></script>
 </body>
 </html>
