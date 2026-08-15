@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SICMON · Sistema de Información para la Captura, Consulta y Monitoreo de Desastres</title>
+<meta name="description" content="SICMON integra herramientas para la captura, consulta y seguimiento de información relacionada con desastres y sus afectaciones en Santiago de Cali." />
+<!-- Tipografías: recurso externo (Google Fonts). Sin conexión se usa la
+     tipografía del sistema definida en css/styles.css. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css?v=1.8.2" />
+</head>
+<body>
+
+<!-- ===================== ENCABEZADO INSTITUCIONAL ===================== -->
+<header class="encabezado">
+  <div class="contenedor encabezado__fila">
+    <div class="marcas">
+      <img class="logo-cienfi" src="logos/logo-cienfi.png" alt="CIENFI — Centro de Investigación en Economía y Finanzas" />
+      <span class="marcas__sep" aria-hidden="true"></span>
+      <img class="logo-icesi" src="logos/logo-icesi.png" alt="Universidad Icesi" />
+      <span class="marcas__sep marcas__sep--aliado" aria-hidden="true"></span>
+      <img class="logo-alcaldia" src="logos/logo-alcaldia-cali.png" alt="Alcaldía de Santiago de Cali" />
+    </div>
+    <p class="sello">SICMON</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== PRESENTACIÓN DEL SISTEMA ===================== -->
+  <section class="presentacion">
+    <div class="contenedor">
+      <p class="etiqueta"><span>Sistema de información · Gestión de desastres · Santiago de Cali</span></p>
+      <h1 class="sigla">SICMON</h1>
+      <p class="desarrollado">Sistema de Información para la Captura, Consulta y Monitoreo de Desastres</p>
+      <p class="explicacion">SICMON integra herramientas para la captura, consulta y seguimiento de información relacionada con desastres y sus afectaciones en Santiago de Cali. El sistema permite registrar información sobre afectaciones, edificaciones y personas, consultar la información consolidada y acceder a herramientas para su visualización y seguimiento.</p>
+    </div>
+  </section>
+
+  <!-- ===================== ACCESOS DEL SISTEMA =====================
+       Los destinos de los tres botones se configuran en js/config.js
+       (CONFIG.accesos.registro / consulta / tableros). Mientras la URL
+       esté vacía, el botón se muestra inactivo.
+  ================================================================= -->
+  <section class="accesos">
+    <div class="contenedor">
+      <div class="accesos__regla" aria-hidden="true"></div>
+      <div class="accesos__rejilla">
+
+        <article class="acceso">
+          <div class="acceso__tope">
+            <p class="acceso__num">01</p>
+            <span class="acceso__ico"><img src="assets/icons/registro.svg" alt="" /></span>
+          </div>
+          <h2 class="acceso__titulo">Captura de información</h2>
+          <p class="acceso__desc">Registro estructurado de información sobre afectaciones, edificaciones y personas.</p>
+          <p class="acceso__accion"><a class="boton" data-acceso="registro">Abrir aplicativos <span aria-hidden="true">&rarr;</span></a></p>
+        </article>
+
+        <article class="acceso">
+          <div class="acceso__tope">
+            <p class="acceso__num">02</p>
+            <span class="acceso__ico"><img src="assets/icons/consulta.svg" alt="" /></span>
+          </div>
+          <h2 class="acceso__titulo">Consulta de información</h2>
+          <p class="acceso__desc">Consulta integrada de la información registrada mediante criterios de búsqueda.</p>
+          <p class="acceso__accion"><a class="boton" data-acceso="consulta">Consultar <span aria-hidden="true">&rarr;</span></a></p>
+        </article>
+
+        <article class="acceso">
+          <div class="acceso__tope">
+            <p class="acceso__num">03</p>
+            <span class="acceso__ico"><img src="assets/icons/tableros.svg" alt="" /></span>
+          </div>
+          <h2 class="acceso__titulo">Visualización de información</h2>
+          <p class="acceso__desc">Visualización territorial y analítica de la información registrada para su seguimiento.</p>
+          <p class="acceso__accion"><a class="boton" data-acceso="tableros">Ver visualizaciones <span aria-hidden="true">&rarr;</span></a></p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== PIE INSTITUCIONAL ===================== -->
+<footer class="pie">
+  <div class="contenedor pie__fila">
+    <div class="marcas">
+      <img class="logo-cienfi" src="logos/logo-cienfi.png" alt="CIENFI" />
+      <span class="marcas__sep" aria-hidden="true"></span>
+      <img class="logo-icesi" src="logos/logo-icesi.png" alt="Universidad Icesi" />
+      <span class="marcas__sep marcas__sep--aliado" aria-hidden="true"></span>
+      <img class="logo-alcaldia" src="logos/logo-alcaldia-cali.png" alt="Alcaldía de Santiago de Cali" />
+    </div>
+    <p class="pie__texto">CIENFI · Universidad Icesi · Alcaldía de Santiago de Cali</p>
+  </div>
+</footer>
+
+<script src="js/config.js?v=1.8.2"></script>
+<script src="js/app.js?v=1.8.2"></script>
+</body>
+</html>
