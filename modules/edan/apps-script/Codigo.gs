@@ -246,7 +246,7 @@ function doGet() {
   return salida_({
     ok: true,
     servicio: 'Registro de información — receptor',
-    version: '1.8.0',
+    version: '1.9.0',
     hora_servidor: ahora_()
   });
 }
@@ -266,7 +266,7 @@ function doPost(e) {
     if (payload.accion === 'ping') {
       // La versión permite verificar que la implementación publicada trae
       // las consultas de avance y de recuperación de encuestas.
-      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.8.0', hora_servidor: ahora_() });
+      return salida_({ ok: true, mensaje: 'conexión correcta', version: '1.9.0', hora_servidor: ahora_() });
     }
     if (payload.accion === 'avance') {
       verificarTokenLectura_(payload);
